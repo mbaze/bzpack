@@ -5,71 +5,71 @@
 
 size_t BitStream::Size() const
 {
-	return mBytes.size();
+    return mBytes.size();
 }
 
 const uint8_t* BitStream::Data() const
 {
-	return mBytes.data();
+    return mBytes.data();
 }
 
 void BitStream::Reverse()
 {
-	std::reverse(mBytes.begin(), mBytes.end());
+    std::reverse(mBytes.begin(), mBytes.end());
 }
 
 void BitStream::ReadReset()
 {
-	mReadMask = 0;
-	mReadBitPos = 0;
-	mReadBytePos = 0;
+    mReadMask = 0;
+    mReadBitPos = 0;
+    mReadBytePos = 0;
 }
 
 void BitStream::WriteReset()
 {
-	mBytes.clear();
-	mWriteMask = 0;
-	mWriteBitPos = 0;
+    mBytes.clear();
+    mWriteMask = 0;
+    mWriteBitPos = 0;
 }
 
 void BitStream::WriteBit(bool value)
 {
-	if (mWriteMask == 0)
-	{
-		mWriteMask = 128;
-		mWriteBitPos = mBytes.size();
-		mBytes.push_back(0);
-	}
+    if (mWriteMask == 0)
+    {
+        mWriteMask = 128;
+        mWriteBitPos = mBytes.size();
+        mBytes.push_back(0);
+    }
 
-	if (value)
-	{
-		mBytes[mWriteBitPos] |= mWriteMask;
-	}
+    if (value)
+    {
+        mBytes[mWriteBitPos] |= mWriteMask;
+    }
 
-	mWriteMask >>= 1;
+    mWriteMask >>= 1;
 }
 
 void BitStream::WriteByte(uint8_t value)
 {
-	mBytes.push_back(value);
+    mBytes.push_back(value);
 }
 
 uint32_t BitStream::ReadBit()
 {
-	if (mReadMask == 0)
-	{
-		mReadMask = 128;
-		mReadBitPos = mReadBytePos;
-		mReadBytePos++;
-	}
+    if (mReadMask == 0)
+    {
+        mReadMask = 128;
+        mReadBitPos = mReadBytePos;
+        mReadBytePos++;
+    }
 
-	bool value = mBytes[mReadBitPos] & mReadMask;
-	mReadMask >>= 1;
+    bool value = mBytes[mReadBitPos] & mReadMask;
+    mReadMask >>= 1;
 
-	return value;
+    return value;
 }
 
 uint8_t BitStream::ReadByte()
 {
-	return mBytes[mReadBytePos++];
+    return mBytes[mReadBytePos++];
 }

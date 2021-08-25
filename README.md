@@ -25,3 +25,7 @@ That is:
 3. 0 indicates the end of sequence.
 
 Therefore, the resulting codeword has exactly the same length as its canonical form.
+
+#### Thanks
+
+I have used valuable input from multiple people, including Aleksey "introspec" Pichugin, Slavomir "Busy" Labsky and Pavel "Zilog" Cimbal. Let me also take the opportunity to recognize the work of Einar Saukas.

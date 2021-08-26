@@ -1,7 +1,7 @@
 ; Copyright (c) 2021, Milos "baze" Bazelides
 ; This code is released under the terms of the BSD 2-Clause License.
 
-; Unary decoder with Elias-Gamma langths (2..N).
+; Unary decoder with Elias-Gamma lengths (2..N).
 
 ; The decoder assumes reverse order. We can omit the end of stream
 ; marker if we let the last literal overwrite the code after LDDR.

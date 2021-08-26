@@ -1,7 +1,7 @@
 ; Copyright (c) 2021, Aleksey "introspec" Pichugin, Milos "baze" Bazelides, Pavel "Zilog" Cimbal.
 ; This code is released under the terms of the BSD 2-Clause License.
 
-; Block decoder with Elias-Gamma langths (1..N).
+; Block decoder with Elias-Gamma lengths (1..N).
 
 ; The decoder assumes reverse order. We can omit the end of stream
 ; marker if we let the last literal overwrite the code after LDDR.

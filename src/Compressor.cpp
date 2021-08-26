@@ -212,7 +212,7 @@ bool EncodeUnaryElias(const uint8_t* pInputStream, size_t inputSize, const std::
 
     if (strncmp((char*) pInputStream, (char*) unpack.data(), inputSize) != 0)
     {
-        int error = 1;
+        _ASSERT(0);
     }
 
 #endif // VERIFY
@@ -227,6 +227,7 @@ bool EncodeAlignedLZSS(const uint8_t* pInputStream, size_t inputSize, const std:
         return false;
     }
 
+    bool addEndMarker = (format & Format::FlagAddEndMarker);
     bool extendOffset = (format & Format::FlagExtendOffset);
     bool extendLength = (format & Format::FlagExtendLength);
     format &= Format::Mask;
@@ -263,7 +264,10 @@ bool EncodeAlignedLZSS(const uint8_t* pInputStream, size_t inputSize, const std:
         }
     }
 
-    // TODO: End of stream.
+    if (addEndMarker)
+    {
+        packedStream.WriteByte(0);
+    }
 
 #ifdef VERIFY
 

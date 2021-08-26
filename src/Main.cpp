@@ -10,7 +10,7 @@ const char* pInputFileError = "Error: Cannot open input file.\n";
 const char* pOutputFileError = "Error: Cannot open output file.\n";
 const char* pPackError = "Error: Compression failed.\n";
 
-enum Args { be1, be2, ue1, ue2, ur1, lzs, r, e, o, l, Count };
+enum Args { be1, be2, ue1, ue2, lzs, r, e, o, l, Count };
 
 int main(int argCount, char** args)
 {
@@ -22,7 +22,6 @@ int main(int argCount, char** args)
         printf("-be2: Block literals with Elias-Gamma length 2..N.\n");
         printf("-ue1: Unary literals with Elias-Gamma length 1..N.\n");
         printf("-ue2: Unary literals with Elias-Gamma length 2..N.\n");
-        printf("-ur1: Unary literals with Rice (K = 1) length 1..N.\n");
         printf("-lzs: Byte-aligned LZSS with raw 8-bit length.\n");
         printf("-r: Compress in reverse order.\n");
         printf("-e: Append end of stream marker.\n");
@@ -40,7 +39,6 @@ int main(int argCount, char** args)
         argNames[Args::be2] = "-be2";
         argNames[Args::ue1] = "-ue1";
         argNames[Args::ue2] = "-ue2";
-        argNames[Args::ur1] = "-ur1";
         argNames[Args::lzs] = "-lzs";
         argNames[Args::r] = "-r";
         argNames[Args::e] = "-e";
@@ -52,7 +50,6 @@ int main(int argCount, char** args)
         argFlags[Args::be2] = Format::BlockElias2;
         argFlags[Args::ue1] = Format::UnaryElias1;
         argFlags[Args::ue2] = Format::UnaryElias2;
-        argFlags[Args::ur1] = Format::UnaryRice;
         argFlags[Args::lzs] = Format::AlignedLZSS;
         argFlags[Args::r] = Format::FlagReverse;
         argFlags[Args::e] = Format::FlagEndMarker;

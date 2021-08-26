@@ -26,7 +26,7 @@ Therefore, the resulting codeword has exactly the same length as the canonical f
 
 ### Selecting Between 1..N and 2..N Codes
 
-Elias-Gamma code is capable of representing arbitrary integer values 1..N. However, the code can be offset to 2..N and we can assign shorter codewords to lengths 2..7 which are statistically common. Let's see the difference:
+Elias-Gamma code is capable of representing arbitrary integer values 1..N. However, the code can be offset to 2..N and we can assign shorter codewords to lengths 2..7. Let's see the difference:
 
 Regular 1..N code:
 ```

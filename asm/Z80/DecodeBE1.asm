@@ -1,4 +1,4 @@
-; Copyright (c) 2021, Aleksey "introspec" Pichugin, Milos "baze" Bazelides, Pavel "Zilog" Cimbal.
+; Copyright (c) 2021, Aleksey "introspec" Pichugin, Milos "baze" Bazelides, Pavel "Zilog" Cimbal
 ; This code is released under the terms of the BSD 2-Clause License.
 
 ; Block decoder with Elias-Gamma lengths (1..N).
@@ -6,9 +6,9 @@
 ; The decoder assumes reverse order. We can omit the end of stream
 ; marker if we let the last literal overwrite the code after LDDR.
 
-DecodeUE1	ld	hl,SrcAddr
+		ld	hl,SrcAddr
 		ld	de,DstAddr
-		ld	bc,0		; Note: Ideally, these values should be "reused"
+		ld	bc,0		; Ideally, these values should be "reused"
 		ld	a,%11000000	; e.g. by aligning the addresses.
 
 DecodeLength	add	a,a

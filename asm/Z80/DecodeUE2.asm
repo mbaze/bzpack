@@ -6,9 +6,9 @@
 ; The decoder assumes reverse order. We can omit the end of stream
 ; marker if we let the last literal overwrite the code after LDDR.
 
-DecodeUE1	ld	hl,SrcAddr
+		ld	hl,SrcAddr
 		ld	de,DstAddr
-		ld	b,0		; Note: Ideally, these values should be "reused"
+		ld	b,0		; Ideally, these values should be "reused"
 		ld	a,%10000000	; e.g. by aligning the addresses.
 
 MainLoop	ld	c,1

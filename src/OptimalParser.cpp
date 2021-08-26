@@ -18,9 +18,8 @@ FormatLimits GetFormatLimits(uint32_t format)
 
     bool extendOffset = (format & Format::FlagExtendOffset);
     bool extendLength = (format & Format::FlagExtendLength);
-    format &= Format::Mask;
 
-    switch (format)
+    switch (format & Format::Mask)
     {
     case Format::AlignedLZSS:
         limits.minMatchLength = 2;

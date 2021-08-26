@@ -334,30 +334,28 @@ bool Compress(uint8_t* pInputStream, size_t inputSize, uint32_t format, BitStrea
         return false;
     }
 
+    bool success = false;
+
     switch (format & Format::Mask)
     {
     case Format::BlockElias1:
     case Format::BlockElias2:
-        if (EncodeBlockElias(pInputStream, inputSize, streamRefs, format, packedStream) == false)
-        {
-            return false;
-        }
+        success = EncodeBlockElias(pInputStream, inputSize, streamRefs, format, packedStream);
         break;
 
     case Format::UnaryElias1:
     case Format::UnaryElias2:
-        if (EncodeUnaryElias(pInputStream, inputSize, streamRefs, format, packedStream) == false)
-        {
-            return false;
-        }
+        success = EncodeUnaryElias(pInputStream, inputSize, streamRefs, format, packedStream);
         break;
 
     case Format::AlignedLZSS:
-        if (EncodeAlignedLZSS(pInputStream, inputSize, streamRefs, format, packedStream) == false)
-        {
-            return false;
-        }
+        success = EncodeAlignedLZSS(pInputStream, inputSize, streamRefs, format, packedStream);
         break;
+    }
+
+    if (!success)
+    {
+        return false;
     }
 
     if (format & Format::FlagReverse)

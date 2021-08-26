@@ -48,7 +48,7 @@ Offset 2..N code:
 7: 1110
 8: 10100
 ```
-If the distribution of lengths fits the alternative coding, sometimes it's possible to gain a couple of bytes although it's best to try both options.
+Sometimes, the alternative coding might be a better fit to the distribution of block lengths inside the input stream.
 
 #### Thanks
 

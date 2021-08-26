@@ -70,21 +70,10 @@ bool EncodeBlockElias(const uint8_t* pInputStream, size_t inputSize, const std::
 
     if (addEndMarker)
     {
-        packedStream.WriteBit(1);
-        packedStream.WriteBit(1);
-        packedStream.WriteBit(1);
-        packedStream.WriteBit(1);
-        packedStream.WriteBit(1);
-        packedStream.WriteBit(1);
-        packedStream.WriteBit(1);
-        packedStream.WriteBit(1);
-        packedStream.WriteBit(1);
-        packedStream.WriteBit(1);
-        packedStream.WriteBit(1);
-        packedStream.WriteBit(1);
-        packedStream.WriteBit(1);
-        packedStream.WriteBit(1);
-        packedStream.WriteBit(1);
+        for (size_t i = 0; i < 15; i++)
+        {
+            packedStream.WriteBit(1);
+        }
     }
 
 #ifdef VERIFY
@@ -185,20 +174,10 @@ bool EncodeUnaryElias(const uint8_t* pInputStream, size_t inputSize, const std::
 
     if (addEndMarker)
     {
-        packedStream.WriteBit(1);
-        packedStream.WriteBit(1);
-        packedStream.WriteBit(1);
-        packedStream.WriteBit(1);
-        packedStream.WriteBit(1);
-        packedStream.WriteBit(1);
-        packedStream.WriteBit(1);
-        packedStream.WriteBit(1);
-        packedStream.WriteBit(1);
-        packedStream.WriteBit(1);
-        packedStream.WriteBit(1);
-        packedStream.WriteBit(1);
-        packedStream.WriteBit(1);
-        packedStream.WriteBit(1);
+        for (size_t i = 0; i < 14; i++)
+        {
+            packedStream.WriteBit(1);
+        }
     }
 
 #ifdef VERIFY

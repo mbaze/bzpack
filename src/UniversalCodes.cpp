@@ -127,7 +127,37 @@ uint32_t DecodeElias2(BitStream& stream)
     do
     {
         value = (value << 1) | stream.ReadBit();
-    } while (stream.ReadBit());
+    }
+    while (stream.ReadBit());
+
+    return value;
+}
+
+// Unary coding.
+
+uint32_t GetUnaryCost(uint32_t value)
+{
+    return value + 1;
+}
+
+void EncodeUnary(BitStream& stream, uint32_t value)
+{
+    for (uint32_t i = 0; i < value; i++)
+    {
+        stream.WriteBit(1);
+    }
+
+    stream.WriteBit(0);
+}
+
+uint32_t DecodeUnary(BitStream& stream)
+{
+    uint32_t value = 0;
+
+    while (stream.ReadBit())
+    {
+        value++;
+    }
 
     return value;
 }

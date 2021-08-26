@@ -14,6 +14,10 @@ uint32_t GetElias2Cost(uint32_t value);
 void EncodeElias2(BitStream& stream, uint32_t value);
 uint32_t DecodeElias2(BitStream& stream);
 
+uint32_t GetUnaryCost(uint32_t value);
+void EncodeUnary(BitStream& stream, uint32_t value);
+uint32_t DecodeUnary(BitStream& stream);
+
 uint32_t GetRiceCost(uint32_t value);
 void EncodeRice(BitStream& stream, uint32_t value);
 uint32_t DecodeRice(BitStream& stream);

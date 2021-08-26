@@ -52,7 +52,7 @@ int main(int argCount, char** args)
         argFlags[Args::ue2] = Format::UnaryElias2;
         argFlags[Args::lzs] = Format::AlignedLZSS;
         argFlags[Args::r] = Format::FlagReverse;
-        argFlags[Args::e] = Format::FlagEndMarker;
+        argFlags[Args::e] = Format::FlagAddEndMarker;
         argFlags[Args::o] = Format::FlagExtendOffset;
         argFlags[Args::l] = Format::FlagExtendLength;
 

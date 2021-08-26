@@ -57,13 +57,6 @@ FormatLimits GetFormatLimits(uint32_t format)
         limits.maxLiteralLength = UINT32_MAX;
         break;
 
-    case Format::UnaryRice:
-        limits.minMatchLength = 2;
-        limits.maxMatchOffset = extendOffset ? 256 : 255;
-        limits.maxMatchLength = 253;
-        limits.maxLiteralLength = UINT32_MAX;
-        break;
-
     default:
         _ASSERT(0);
     }
@@ -88,7 +81,6 @@ uint32_t GetLiteralCost(uint32_t format, uint32_t literalPos)
 
     case Format::UnaryElias1:
     case Format::UnaryElias2:
-    case Format::UnaryRice:
         return 1 + 8;
     }
 
@@ -113,9 +105,6 @@ uint32_t GetMatchCost(uint32_t format, uint32_t offset, uint32_t length)
 
     case Format::UnaryElias2:
         return 1 + GetElias2Cost(length) + 8;
-
-    case Format::UnaryRice:
-        return 1 + GetRiceCost(length - 2) + 8;
     }
 
     return UINT32_MAX;

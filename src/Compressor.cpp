@@ -204,74 +204,6 @@ bool EncodeUnaryElias(const uint8_t* pInputStream, size_t inputSize, const std::
     return true;
 }
 
-bool EncodeUnaryRice(const uint8_t* pInputStream, size_t inputSize, const std::vector<StreamRef>& refs, uint32_t format, BitStream& outputStream)
-{
-    if (pInputStream == nullptr || inputSize == 0)
-    {
-        return false;
-    }
-
-    size_t i = 0;
-    outputStream.WriteReset();
-
-    for (const StreamRef& ref : refs)
-    {
-        if (ref.offset)
-        {
-            outputStream.WriteBit(0);
-            EncodeRice(outputStream, ref.length - 2);
-
-            outputStream.WriteByte(static_cast<uint8_t>(ref.offset - 1));
-            i += ref.length;
-        }
-        else
-        {
-            for (size_t b = 0; b < ref.length; b++)
-            {
-                outputStream.WriteBit(1);
-                outputStream.WriteByte(pInputStream[i++]);
-            }
-        }
-    }
-
-#ifdef VERIFY
-
-    outputStream.ReadReset();
-    std::vector<uint8_t> unpack;
-
-    while (1)
-    {
-        if (outputStream.ReadBit())
-        {
-            unpack.push_back(outputStream.ReadByte());
-        }
-        else
-        {
-            size_t size = DecodeRice(outputStream) + 2;
-            size_t offset = outputStream.ReadByte() + 1;
-
-            for (size_t i = 0; i < size; i++)
-            {
-                unpack.push_back(unpack[unpack.size() - offset]);
-            }
-        }
-
-        if (unpack.size() >= inputSize)
-        {
-            break;
-        }
-    }
-
-    if (strncmp((char*) pInputStream, (char*) unpack.data(), inputSize) != 0)
-    {
-        _ASSERT(0);
-    }
-
-#endif // VERIFY
-
-    return true;
-}
-
 bool EncodeAlignedLZSS(const uint8_t* pInputStream, size_t inputSize, const std::vector<StreamRef>& refs, uint32_t format, BitStream& packedStream)
 {
     if (pInputStream == nullptr || inputSize == 0)
@@ -395,13 +327,6 @@ bool Compress(uint8_t* pInputStream, size_t inputSize, uint32_t format, BitStrea
     case Format::UnaryElias1:
     case Format::UnaryElias2:
         if (EncodeUnaryElias(pInputStream, inputSize, streamRefs, format, packedStream) == false)
-        {
-            return false;
-        }
-        break;
-
-    case Format::UnaryRice:
-        if (EncodeUnaryRice(pInputStream, inputSize, streamRefs, format, packedStream) == false)
         {
             return false;
         }

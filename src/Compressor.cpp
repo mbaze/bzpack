@@ -11,11 +11,6 @@
 
 bool EncodeAlignedLZSS(const uint8_t* pInputStream, size_t inputSize, const std::vector<StreamRef>& refs, uint32_t format, BitStream& packedStream)
 {
-    if (pInputStream == nullptr || inputSize == 0)
-    {
-        return false;
-    }
-
     bool addEndMarker = (format & Format::FlagAddEndMarker);
     bool extendOffset = (format & Format::FlagExtendOffset);
     bool extendLength = (format & Format::FlagExtendLength);
@@ -60,60 +55,11 @@ bool EncodeAlignedLZSS(const uint8_t* pInputStream, size_t inputSize, const std:
         packedStream.WriteByte(0);
     }
 
-#ifdef VERIFY
-
-    packedStream.ReadReset();
-    std::vector<uint8_t> unpack;
-
-    while (1)
-    {
-        size_t length = packedStream.ReadByte();
-        bool isLiteral = (length & 1);
-
-        length >>= 1;
-        if (extendLength) length++;
-
-        if (isLiteral)
-        {
-            for (size_t i = 0; i < length; i++)
-            {
-                unpack.push_back(packedStream.ReadByte());
-            }
-        }
-        else
-        {
-            size_t offset = packedStream.ReadByte();
-            if (extendOffset) offset++;
-
-            for (size_t i = 0; i < length; i++)
-            {
-                unpack.push_back(unpack[unpack.size() - offset]);
-            }
-        }
-
-        if (unpack.size() >= inputSize)
-        {
-            break;
-        }
-    }
-
-    if (strncmp((char*) pInputStream, (char*) unpack.data(), inputSize) != 0)
-    {
-        _ASSERT(0);
-    }
-
-#endif // VERIFY
-
     return true;
 }
 
 bool EncodeBlockElias(const uint8_t* pInputStream, size_t inputSize, const std::vector<StreamRef>& refs, uint32_t format, BitStream& packedStream)
 {
-    if (pInputStream == nullptr || inputSize == 0)
-    {
-        return false;
-    }
-
     bool addEndMarker = (format & Format::FlagAddEndMarker);
     bool extendOffset = (format & Format::FlagExtendOffset);
     format &= Format::Mask;
@@ -175,60 +121,11 @@ bool EncodeBlockElias(const uint8_t* pInputStream, size_t inputSize, const std::
         }
     }
 
-#ifdef VERIFY
-
-    packedStream.ReadReset();
-    std::vector<uint8_t> unpack;
-
-    while (1)
-    {
-        size_t size = isElias1 ? DecodeElias1(packedStream) : DecodeElias2(packedStream);
-
-        if (packedStream.ReadBit())
-        {
-            if (!isElias1) size--;
-
-            for (size_t i = 0; i < size; i++)
-            {
-                unpack.push_back(packedStream.ReadByte());
-            }
-        }
-        else
-        {
-            size_t offset = packedStream.ReadByte();
-
-            if (isElias1) size++;
-            if (extendOffset) offset++;
-
-            for (size_t i = 0; i < size; i++)
-            {
-                unpack.push_back(unpack[unpack.size() - offset]);
-            }
-        }
-
-        if (unpack.size() >= inputSize)
-        {
-            break;
-        }
-    }
-
-    if (strncmp((char*) pInputStream, (char*) unpack.data(), inputSize) != 0)
-    {
-        _ASSERT(0);
-    }
-
-#endif // VERIFY
-
     return true;
 }
 
 bool EncodeUnaryElias(const uint8_t* pInputStream, size_t inputSize, const std::vector<StreamRef>& refs, uint32_t format, BitStream& packedStream)
 {
-    if (pInputStream == nullptr || inputSize == 0)
-    {
-        return false;
-    }
-
     bool addEndMarker = (format & Format::FlagAddEndMarker);
     bool extendOffset = (format & Format::FlagExtendOffset);
     format &= Format::Mask;
@@ -281,43 +178,6 @@ bool EncodeUnaryElias(const uint8_t* pInputStream, size_t inputSize, const std::
         }
     }
 
-#ifdef VERIFY
-
-    packedStream.ReadReset();
-    std::vector<uint8_t> unpack;
-
-    while (1)
-    {
-        if (packedStream.ReadBit())
-        {
-            unpack.push_back(packedStream.ReadByte());
-        }
-        else
-        {
-            size_t size = isElias1 ? DecodeElias1(packedStream) + 1 : DecodeElias2(packedStream);
-
-            size_t offset = packedStream.ReadByte();
-            if (extendOffset) offset++;
-
-            for (size_t i = 0; i < size; i++)
-            {
-                unpack.push_back(unpack[unpack.size() - offset]);
-            }
-        }
-
-        if (unpack.size() >= inputSize)
-        {
-            break;
-        }
-    }
-
-    if (strncmp((char*) pInputStream, (char*) unpack.data(), inputSize) != 0)
-    {
-        _ASSERT(0);
-    }
-
-#endif // VERIFY
-
     return true;
 }
 
@@ -362,6 +222,22 @@ bool Compress(uint8_t* pInputStream, size_t inputSize, uint32_t format, BitStrea
     {
         return false;
     }
+
+#ifdef VERIFY
+
+    std::vector<uint8_t> unpackedStream;
+    if (Decompress(packedStream, format, inputSize, unpackedStream) == false)
+    {
+        return false;
+    }
+
+    if (strncmp((char*) pInputStream, (char*) unpackedStream.data(), inputSize) != 0)
+    {
+        _ASSERT(0);
+        return false;
+    }
+
+#endif // VERIFY
 
     if (format & Format::FlagReverse)
     {

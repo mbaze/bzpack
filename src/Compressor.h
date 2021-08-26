@@ -28,4 +28,7 @@ enum Format: uint32_t
 
 bool Compress(uint8_t* pInputStream, size_t inputSize, uint32_t format, BitStream& packedStream);
 
+// Zero inputSize tells the decompressor to expect end of stream marker.
+bool Decompress(BitStream& packedStream, uint32_t format, size_t inputSize, std::vector<uint8_t>& outputStream);
+
 #endif // COMPRESSOR_H

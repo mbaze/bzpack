@@ -21,6 +21,7 @@
   <ItemGroup>
     <ClCompile Include="..\src\BitStream.cpp" />
     <ClCompile Include="..\src\Compressor.cpp" />
+    <ClCompile Include="..\src\Decompressor.cpp" />
     <ClCompile Include="..\src\Main.cpp" />
     <ClCompile Include="..\src\OptimalParser.cpp" />
     <ClCompile Include="..\src\UniversalCodes.cpp" />

@@ -6,6 +6,7 @@
     <ClCompile Include="..\src\Main.cpp" />
     <ClCompile Include="..\src\OptimalParser.cpp" />
     <ClCompile Include="..\src\UniversalCodes.cpp" />
+    <ClCompile Include="..\src\Decompressor.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\BitStream.h" />

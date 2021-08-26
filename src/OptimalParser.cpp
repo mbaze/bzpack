@@ -121,12 +121,12 @@ uint32_t GetMatchCost(uint32_t format, uint32_t offset, uint32_t length)
     return UINT32_MAX;
 }
 
-void FindMatches(std::vector<StreamRef>& matches, const uint8_t* pInputStream, uint32_t inputSize, uint32_t position, const FormatLimits& limits)
+void FindMatches(std::vector<StreamRef>& matches, const uint8_t* pInputStream, size_t inputSize, size_t position, const FormatLimits& limits)
 {
     matches.clear();
 
-    uint32_t maxOffset = std::min(position, limits.maxMatchOffset);
-    uint32_t maxLength = std::min(inputSize - position, limits.maxMatchLength);
+    uint32_t maxOffset = std::min(static_cast<uint32_t>(position), limits.maxMatchOffset);
+    uint32_t maxLength = std::min(static_cast<uint32_t>(inputSize - position), limits.maxMatchLength);
 
     for (uint32_t offset = 1; offset <= maxOffset; offset++)
     {
@@ -150,7 +150,7 @@ void FindMatches(std::vector<StreamRef>& matches, const uint8_t* pInputStream, u
     }
 }
 
-bool OptimalParse(const uint8_t* pInputStream, uint32_t inputSize, uint32_t format, std::vector<StreamRef>& refs)
+bool Parse(const uint8_t* pInputStream, size_t inputSize, uint32_t format, std::vector<StreamRef>& refs)
 {
     if (pInputStream == nullptr || inputSize == 0)
     {
@@ -165,7 +165,7 @@ bool OptimalParse(const uint8_t* pInputStream, uint32_t inputSize, uint32_t form
 
     nodes[0].cost = GetLiteralCost(format, 0);
 
-    for (uint32_t i = 0; i < inputSize; i++)
+    for (size_t i = 0; i < inputSize; i++)
     {
         // Does encoding a literal reduce the cost?
 
@@ -190,7 +190,7 @@ bool OptimalParse(const uint8_t* pInputStream, uint32_t inputSize, uint32_t form
             const StreamRef& match = matches[m];
             uint32_t matchCost = nodes[i].cost + GetMatchCost(format, match.offset, match.length);
 
-            // Keep shorter offsets with the same cost.
+            // Keep shorter offsets if the cost is the same.
 
             if (matchCost < nodes[i + match.length].cost)
             {

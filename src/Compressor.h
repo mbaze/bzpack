@@ -9,7 +9,7 @@
 // "Block" methods encode literals as "block length + flag + data".
 // "Unary" methods encode every literal byte as "flag + data".
 
-enum Format : uint32_t
+enum Format: uint32_t
 {
     BlockElias1,
     BlockElias2,
@@ -27,6 +27,6 @@ enum Format : uint32_t
     Mask = 0x0FFFFFFF
 };
 
-bool Compress(uint8_t* pInputStream, uint32_t inputSize, uint32_t format, BitStream& packedStream);
+bool Compress(uint8_t* pInputStream, size_t inputSize, uint32_t format, BitStream& packedStream);
 
 #endif // COMPRESSOR_H

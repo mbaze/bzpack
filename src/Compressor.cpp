@@ -364,7 +364,7 @@ bool EncodeAlignedLZSS(const uint8_t* pInputStream, size_t inputSize, const std:
     return true;
 }
 
-bool Compress(uint8_t* pInputStream, uint32_t inputSize, uint32_t format, BitStream& packedStream)
+bool Compress(uint8_t* pInputStream, size_t inputSize, uint32_t format, BitStream& packedStream)
 {
     if (pInputStream == nullptr || inputSize == 0)
     {
@@ -377,7 +377,7 @@ bool Compress(uint8_t* pInputStream, uint32_t inputSize, uint32_t format, BitStr
     }
 
     std::vector<StreamRef> streamRefs;
-    if (OptimalParse(pInputStream, inputSize, format, streamRefs) == false)
+    if (Parse(pInputStream, inputSize, format, streamRefs) == false)
     {
         return false;
     }

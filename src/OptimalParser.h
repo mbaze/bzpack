@@ -19,4 +19,4 @@ struct FormatLimits
     uint32_t maxLiteralLength = UINT32_MAX;
 };
 
-bool OptimalParse(const uint8_t* pInputStream, uint32_t inputSize, uint32_t format, std::vector<StreamRef>& refs);
+bool Parse(const uint8_t* pInputStream, size_t inputSize, uint32_t format, std::vector<StreamRef>& refs);

@@ -16,6 +16,7 @@ bool EncodeBlockElias(const uint8_t* pInputStream, size_t inputSize, const std::
         return false;
     }
 
+    bool addEndMarker = (format & Format::FlagAddEndMarker);
     bool extendOffset = (format & Format::FlagExtendOffset);
     format &= Format::Mask;
 
@@ -67,7 +68,24 @@ bool EncodeBlockElias(const uint8_t* pInputStream, size_t inputSize, const std::
         }
     }
 
-    // TODO: End of stream.
+    if (addEndMarker)
+    {
+        packedStream.WriteBit(1);
+        packedStream.WriteBit(1);
+        packedStream.WriteBit(1);
+        packedStream.WriteBit(1);
+        packedStream.WriteBit(1);
+        packedStream.WriteBit(1);
+        packedStream.WriteBit(1);
+        packedStream.WriteBit(1);
+        packedStream.WriteBit(1);
+        packedStream.WriteBit(1);
+        packedStream.WriteBit(1);
+        packedStream.WriteBit(1);
+        packedStream.WriteBit(1);
+        packedStream.WriteBit(1);
+        packedStream.WriteBit(1);
+    }
 
 #ifdef VERIFY
 
@@ -123,6 +141,7 @@ bool EncodeUnaryElias(const uint8_t* pInputStream, size_t inputSize, const std::
         return false;
     }
 
+    bool addEndMarker = (format & Format::FlagAddEndMarker);
     bool extendOffset = (format & Format::FlagExtendOffset);
     format &= Format::Mask;
 
@@ -162,6 +181,24 @@ bool EncodeUnaryElias(const uint8_t* pInputStream, size_t inputSize, const std::
                 packedStream.WriteByte(pInputStream[i++]);
             }
         }
+    }
+
+    if (addEndMarker)
+    {
+        packedStream.WriteBit(1);
+        packedStream.WriteBit(1);
+        packedStream.WriteBit(1);
+        packedStream.WriteBit(1);
+        packedStream.WriteBit(1);
+        packedStream.WriteBit(1);
+        packedStream.WriteBit(1);
+        packedStream.WriteBit(1);
+        packedStream.WriteBit(1);
+        packedStream.WriteBit(1);
+        packedStream.WriteBit(1);
+        packedStream.WriteBit(1);
+        packedStream.WriteBit(1);
+        packedStream.WriteBit(1);
     }
 
 #ifdef VERIFY

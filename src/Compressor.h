@@ -20,7 +20,7 @@ enum Format: uint32_t
     // Some formats support tweaks, e.g. shorter decoder vs. bigger offset.
 
     FlagReverse = 0x80000000,
-    FlagEndMarker = 0x40000000,
+    FlagAddEndMarker = 0x40000000,
     FlagExtendOffset = 0x20000000,
     FlagExtendLength = 0x10000000,
     Mask = 0x0FFFFFFF

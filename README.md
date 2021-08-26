@@ -17,14 +17,40 @@ The canonical form of Elias-Gamma code consists of *N* zeroes followed by a *(N 
 
 Bzpack uses an alternative form in which the bits are interleaved: **1**0**1**0**0**0**0**.
 
-Assuming that the most significant bit is implicit, the interleaved zeroes can be seen as 1-bit flags indicating whether another significant bit follows. This interleaved form lends itself to a very efficient decoder implementation. The actual format as output by the compressor is (**1**)1**1**1**0**1**0**0.
+Assuming that the most significant bit is implicit, the interleaved zeroes can be seen as 1-bit flags that indicate whether another significant bit follows. This interleaved form lends itself to a very efficient decoder implementation. The actual format as output by the compressor is (**1**)1**1**1**0**1**0**0.
 
 That is:
 1. the most significant bit is not output,
 2. subsequent significant bits are preceded by 1 indicating their presence,
-3. 0 indicates the end of sequence.
+3. 0 marks the end of sequence.
 
-Therefore, the resulting codeword has exactly the same length as its canonical form.
+Therefore, the resulting codeword has exactly the same length as the canonical form.
+
+### Selecting Between 1..N and 2..N Codes
+
+Elias-Gamma code is capable of representing arbitrary integer values 1..N. However, the code can be offset to 2..N and we can assign shorter codewords to lengths 2 and 3 which are statistically common. Let's see the difference:
+
+Regular 1..N code:
+```
+1: 0
+2: 100
+3: 110
+4: 10100
+5: 10110
+6: 11100
+7: 11110
+```
+Offset 2..N code:
+```
+2: 00
+3: 10
+4: 0100
+5: 0110
+6: 1100
+7: 1110
+8: 10100
+```
+If the input stream is dominated by block lengths 2 and 3, sometimes it's possible to gain a couple of bytes although it's best to try both options.
 
 #### Thanks
 

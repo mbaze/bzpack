@@ -3,8 +3,8 @@
 
 ; Block decoder with Elias-Gamma langths (2..N).
 
-; The decoder assumes reverse order. If the last literal overwrites
-; instructions after LDDR we can omit the end of stream marker.
+; The decoder assumes reverse order. We can omit the end of stream
+; marker if we let the last literal overwrite the code after LDDR.
 
 DecodeUE1	ld	hl,SrcAddr
 		ld	de,DstAddr

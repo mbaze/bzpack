@@ -31,11 +31,13 @@ bool EncodeAlignedLZSS(const uint8_t* pInputStream, size_t inputSize, const std:
 
     for (const StreamRef& ref : refs)
     {
-        size_t length = extendLength ? ref.length - 1 : ref.length;
+        size_t length = ref.length;
+        if (extendLength) length--;
 
         if (ref.offset)
         {
-            size_t offset = extendOffset ? ref.offset - 1 : ref.offset;
+            size_t offset = ref.offset;
+            if (extendOffset) offset--;
 
             packedStream.WriteByte(static_cast<uint8_t>(length << 1));
             packedStream.WriteByte(static_cast<uint8_t>(offset));
@@ -138,7 +140,8 @@ bool EncodeBlockElias(const uint8_t* pInputStream, size_t inputSize, const std::
                 EncodeElias2(packedStream, ref.length);
             }
 
-            size_t offset = extendOffset ? ref.offset - 1 : ref.offset;
+            size_t offset = ref.offset;
+            if (extendOffset) offset--;
 
             packedStream.WriteBit(0);
             packedStream.WriteByte(static_cast<uint8_t>(offset));
@@ -254,7 +257,9 @@ bool EncodeUnaryElias(const uint8_t* pInputStream, size_t inputSize, const std::
                 EncodeElias2(packedStream, ref.length);
             }
 
-            size_t offset = extendOffset ? ref.offset - 1 : ref.offset;
+            size_t offset = ref.offset;
+            if (extendOffset) offset--;
+
             packedStream.WriteByte(static_cast<uint8_t>(offset));
             i += ref.length;
         }

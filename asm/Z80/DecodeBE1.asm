@@ -8,7 +8,7 @@
 
 DecodeUE1	ld	hl,SrcAddr
 		ld	de,DstAddr
-		ld	b,0		; Note: Ideally, these values should be "reused"
+		ld	bc,0		; Note: Ideally, these values should be "reused"
 		ld	a,%11000000	; e.g. by aligning the addresses.
 
 DecodeLength	add	a,a

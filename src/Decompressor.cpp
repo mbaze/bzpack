@@ -127,7 +127,7 @@ bool DecodeUnaryElias(BitStream& packedStream, uint32_t format, size_t inputSize
         return false;
     }
 
-    bool isElias1 = (format == Format::BlockElias1);
+    bool isElias1 = (format == Format::UnaryElias1);
 
     outputStream.clear();
     packedStream.ReadReset();
@@ -140,13 +140,14 @@ bool DecodeUnaryElias(BitStream& packedStream, uint32_t format, size_t inputSize
         }
         else
         {
-            size_t length = isElias1 ? DecodeElias1(packedStream) + 1 : DecodeElias2(packedStream);
+            size_t length = isElias1 ? DecodeElias1(packedStream) : DecodeElias2(packedStream);
 
             if (testEndMarker && length > 255)
             {
                 break;
             }
 
+            if (isElias1) length++;
             size_t offset = packedStream.ReadByte();
             if (extendOffset) offset++;
 

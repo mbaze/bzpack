@@ -115,10 +115,14 @@ bool EncodeBlockElias(const uint8_t* pInputStream, size_t inputSize, const std::
 
     if (addEndMarker)
     {
-        for (size_t i = 0; i < 15; i++)
+        size_t bitCount = isElias1 ? 16 : 15;
+
+        for (size_t i = 0; i < bitCount; i++)
         {
             packedStream.WriteBit(1);
         }
+
+        packedStream.WriteBit(0);
     }
 
     return true;
@@ -137,7 +141,7 @@ bool EncodeUnaryElias(const uint8_t* pInputStream, size_t inputSize, const std::
 
     size_t i = 0;
     packedStream.WriteReset();
-    bool isElias1 = (format == Format::BlockElias1);
+    bool isElias1 = (format == Format::UnaryElias1);
 
     for (const StreamRef& ref : refs)
     {
@@ -174,10 +178,14 @@ bool EncodeUnaryElias(const uint8_t* pInputStream, size_t inputSize, const std::
     {
         packedStream.WriteBit(0);
 
-        for (size_t i = 0; i < 14; i++)
+        size_t bitCount = isElias1 ? 16 : 15;
+
+        for (size_t i = 0; i < bitCount; i++)
         {
             packedStream.WriteBit(1);
         }
+
+        packedStream.WriteBit(0);
     }
 
     return true;
@@ -231,6 +239,11 @@ bool Compress(uint8_t* pInputStream, size_t inputSize, uint32_t format, BitStrea
     if (Decompress(packedStream, format, inputSize, unpackedStream) == false)
     {
         return false;
+    }
+
+    if (format & Format::FlagReverse)
+    {
+        std::reverse(unpackedStream.begin(), unpackedStream.end());
     }
 
     if (strncmp((char*) pInputStream, (char*) unpackedStream.data(), inputSize) != 0)

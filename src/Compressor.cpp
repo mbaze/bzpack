@@ -172,6 +172,8 @@ bool EncodeUnaryElias(const uint8_t* pInputStream, size_t inputSize, const std::
 
     if (addEndMarker)
     {
+        packedStream.WriteBit(0);
+
         for (size_t i = 0; i < 14; i++)
         {
             packedStream.WriteBit(1);

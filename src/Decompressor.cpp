@@ -6,7 +6,7 @@
 
 bool DecodeAlignedLZSS(BitStream& packedStream, uint32_t format, size_t inputSize, std::vector<uint8_t>& outputStream)
 {
-    bool expectEndMarker = (inputSize == 0);
+    bool testEndMarker = (inputSize == 0);
     bool extendOffset = (format & Format::FlagExtendOffset);
     bool extendLength = (format & Format::FlagExtendLength);
     format &= Format::Mask;
@@ -22,6 +22,12 @@ bool DecodeAlignedLZSS(BitStream& packedStream, uint32_t format, size_t inputSiz
     while (1)
     {
         size_t length = packedStream.ReadByte();
+
+        if (testEndMarker && length == 0)
+        {
+            break;
+        }
+
         bool isLiteral = (length & 1);
 
         length >>= 1;
@@ -45,7 +51,7 @@ bool DecodeAlignedLZSS(BitStream& packedStream, uint32_t format, size_t inputSiz
             }
         }
 
-        if (outputStream.size() >= inputSize)
+        if (!testEndMarker && outputStream.size() >= inputSize)
         {
             break;
         }
@@ -56,7 +62,7 @@ bool DecodeAlignedLZSS(BitStream& packedStream, uint32_t format, size_t inputSiz
 
 bool DecodeBlockElias(BitStream& packedStream, uint32_t format, size_t inputSize, std::vector<uint8_t>& outputStream)
 {
-    bool expectEndMarker = (inputSize == 0);
+    bool testEndMarker = (inputSize == 0);
     bool extendOffset = (format & Format::FlagExtendOffset);
     format &= Format::Mask;
 
@@ -72,13 +78,18 @@ bool DecodeBlockElias(BitStream& packedStream, uint32_t format, size_t inputSize
 
     while (1)
     {
-        size_t size = isElias1 ? DecodeElias1(packedStream) : DecodeElias2(packedStream);
+        size_t length = isElias1 ? DecodeElias1(packedStream) : DecodeElias2(packedStream);
+
+        if (testEndMarker && length > 255)
+        {
+            break;
+        }
 
         if (packedStream.ReadBit())
         {
-            if (!isElias1) size--;
+            if (!isElias1) length--;
 
-            for (size_t i = 0; i < size; i++)
+            for (size_t i = 0; i < length; i++)
             {
                 outputStream.push_back(packedStream.ReadByte());
             }
@@ -87,16 +98,16 @@ bool DecodeBlockElias(BitStream& packedStream, uint32_t format, size_t inputSize
         {
             size_t offset = packedStream.ReadByte();
 
-            if (isElias1) size++;
+            if (isElias1) length++;
             if (extendOffset) offset++;
 
-            for (size_t i = 0; i < size; i++)
+            for (size_t i = 0; i < length; i++)
             {
                 outputStream.push_back(outputStream[outputStream.size() - offset]);
             }
         }
 
-        if (outputStream.size() >= inputSize)
+        if (!testEndMarker && outputStream.size() >= inputSize)
         {
             break;
         }
@@ -107,7 +118,7 @@ bool DecodeBlockElias(BitStream& packedStream, uint32_t format, size_t inputSize
 
 bool DecodeUnaryElias(BitStream& packedStream, uint32_t format, size_t inputSize, std::vector<uint8_t>& outputStream)
 {
-    bool addEndMarker = (format & Format::FlagAddEndMarker);
+    bool testEndMarker = (inputSize == 0);
     bool extendOffset = (format & Format::FlagExtendOffset);
     format &= Format::Mask;
 
@@ -129,18 +140,23 @@ bool DecodeUnaryElias(BitStream& packedStream, uint32_t format, size_t inputSize
         }
         else
         {
-            size_t size = isElias1 ? DecodeElias1(packedStream) + 1 : DecodeElias2(packedStream);
+            size_t length = isElias1 ? DecodeElias1(packedStream) + 1 : DecodeElias2(packedStream);
+
+            if (testEndMarker && length > 255)
+            {
+                break;
+            }
 
             size_t offset = packedStream.ReadByte();
             if (extendOffset) offset++;
 
-            for (size_t i = 0; i < size; i++)
+            for (size_t i = 0; i < length; i++)
             {
                 outputStream.push_back(outputStream[outputStream.size() - offset]);
             }
         }
 
-        if (outputStream.size() >= inputSize)
+        if (!testEndMarker && outputStream.size() >= inputSize)
         {
             break;
         }

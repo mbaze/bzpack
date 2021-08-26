@@ -14,13 +14,13 @@ MainLoop	ld	c,(hl)
 		dec	hl
 		srl	c
 ;		ret	z		; Option to include the end of stream marker.
-;		inc	c		; Option to increase length to 128.
 		jr	c,Copy
 		push	hl
 		ld	l,(hl)
 		ld	h,b
 		add	hl,de
 ;		inc	hl		; Option to increase offset to 256.
+;		inc	c		; Option to increase length to 128.
 Copy		lddr
 		jr	c,MainLoop
 		pop	hl

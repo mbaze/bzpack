@@ -2,9 +2,9 @@
 Bzpack is a data compression utility primarily meant as a tool for demoscene enthusiasts. Given the artificially imposed size limits on productions like 256 B, 512 B or 1 KiB intros, the ability to implement a short decoder is nearly as important as the efficiency of the compression format itself. Bzpack doesn’t claim to be a state-of-the-art, general-purpose archiver. The design goal is to minimize the overall program length with acceptable trade-off between simplicity and efficiency. Special consideration was given to vintage computing platforms like Sinclair ZX Spectrum.
 
 ## Format Overview
-All supported formats are variants of the Lempel–Ziv–Storer–Szymanski algorithm. The compressed stream consists of:
-1. strings of uncompressed symbols (also called literals),
-2. reusable symbol sequences represented as offset-length pairs (also called phrases).
+All supported formats are based on the Lempel–Ziv–Storer–Szymanski algorithm. The compressed stream consists of:
+1. strings of uncompressed symbols (literals),
+2. reusable symbol sequences represented as offset-length pairs (phrases).
 
 Bzpack encodes offsets as raw 8-bit values. Literals are encoded in two possible ways:
 1. as a sequence of bytes preceded by block length (the “block” method),

@@ -3,7 +3,7 @@
 
 #include "UniversalCodes.h"
 
-// Elias-Gamma code 1..N with interleaved flags and implicit MSB.
+// Elias-Gamma 1..N coding (interleaved format).
 
 // 1: 0
 // 2: 100
@@ -12,21 +12,22 @@
 // 5: 10110
 // 6: 11100
 // 7: 11110
+// 8: 1010100
 
 uint32_t GetElias1Cost(uint32_t value)
 {
     _ASSERT(value > 0);
 
     uint32_t mask = ~1;
-    uint32_t bitCount = 0;
+    uint32_t count = 0;
 
     while (value & mask)
     {
-        bitCount++;
+        count++;
         mask <<= 1;
     }
 
-    return (bitCount << 1) + 1;
+    return (count << 1) + 1;
 }
 
 void EncodeElias1(BitStream& stream, uint32_t value)
@@ -34,15 +35,15 @@ void EncodeElias1(BitStream& stream, uint32_t value)
     _ASSERT(value > 0);
 
     uint32_t mask = ~1;
-    uint32_t bitCount = 0;
+    uint32_t count = 0;
 
     while (value & mask)
     {
-        bitCount++;
+        count++;
         mask <<= 1;
     }
 
-    mask = 1 << bitCount;
+    mask = 1 << count;
     mask >>= 1;
 
     while (mask)
@@ -67,7 +68,7 @@ uint32_t DecodeElias1(BitStream& stream)
     return value;
 }
 
-// Elias-Gamma code 2..N with interleaved flags and implicit MSB.
+// Elias-Gamma 2..N coding (interleaved format).
 
 // 2: 00
 // 3: 10
@@ -75,6 +76,8 @@ uint32_t DecodeElias1(BitStream& stream)
 // 5: 0110
 // 6: 1100
 // 7: 1110
+// 8: 010100
+// 9: 010110
 
 uint32_t GetElias2Cost(uint32_t value)
 {
@@ -164,6 +167,15 @@ uint32_t DecodeUnary(BitStream& stream)
 
 // Rice coding (K = 1).
 
+// 0: 00
+// 1: 01
+// 2: 100
+// 3: 101
+// 4: 1100
+// 5: 1101
+// 6: 11100
+// 7: 11101
+
 uint32_t GetRiceCost(uint32_t value)
 {
     return (value >> 1) + 2;
@@ -171,9 +183,7 @@ uint32_t GetRiceCost(uint32_t value)
 
 void EncodeRice(BitStream& stream, uint32_t value)
 {
-    uint32_t count = value >> 1;
-
-    while (count--)
+    for (uint32_t i = 0; i < value >> 1; i++)
     {
         stream.WriteBit(1);
     }
@@ -192,4 +202,54 @@ uint32_t DecodeRice(BitStream& stream)
     }
 
     return (value << 1) | stream.ReadBit();
+}
+
+// Vbinary 2x2 coding.
+
+// 0: 00
+// 1: 01
+// 2: 10
+// 3: 1100
+// 4: 1101
+// 5: 1110
+// 6: 111100
+// 7: 111101
+
+uint32_t GetVbinCost(uint32_t value)
+{
+    return (value / 3 + 1) << 1;
+}
+
+void EncodeVbin(BitStream& stream, uint32_t value)
+{
+    uint32_t count = value / 3;
+
+    for (uint32_t i = 0; i < count; i++)
+    {
+        stream.WriteBit(1);
+        stream.WriteBit(1);
+        value -= 3;
+    }
+
+    stream.WriteBit(value & 2);
+    stream.WriteBit(value & 1);
+}
+
+uint32_t DecodeVbin(BitStream& stream)
+{
+    uint32_t value = 0;
+
+    while (1)
+    {
+        uint32_t bits = stream.ReadBit();
+        bits = (bits << 1) | stream.ReadBit();
+        value += bits;
+
+        if ((bits & 3) < 3)
+        {
+            break;
+        }
+    }
+
+    return value;
 }

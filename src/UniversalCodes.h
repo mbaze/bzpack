@@ -22,4 +22,8 @@ uint32_t GetRiceCost(uint32_t value);
 void EncodeRice(BitStream& stream, uint32_t value);
 uint32_t DecodeRice(BitStream& stream);
 
+uint32_t GetVbinCost(uint32_t value);
+void EncodeVbin(BitStream& stream, uint32_t value);
+uint32_t DecodeVbin(BitStream& stream);
+
 #endif // UNIVERSAL_CODES_H

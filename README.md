@@ -13,20 +13,17 @@ Bzpack encodes offsets as raw 8-bit values. Literals are encoded in two possible
 Phrase and literal lengths are encoded using universal codes such as Elias-Gamma.
 
 ### A Note on Elias-Gamma Coding
-The canonical form of Elias-Gamma code consists of *N* zeroes followed by a *(N + 1)*-bit binary number. For instance, the number 12 is encoded as 000**1100**. Peter Elias devised also an alternative form in which the bits are interleaved: **1**0**1**0**0**0**0**.
+The canonical form of Elias-Gamma code consists of *N* zeroes followed by a *(N + 1)*-bit binary number. For instance, the number 12 is encoded as 000**1100**. In his 1975 paper "Universal codeword sets and representations of the integers", Peter Elias devised also an alternative form in which the bits are interleaved: **1**0**1**0**0**0**0**.
 
-Assuming that the most significant bit is implicit, the interleaved zeroes can be seen as 1-bit flags that indicate whether another significant bit follows. This interleaved form lends itself to a very efficient decoder implementation. The actual format as output by the compressor is (**1**)1**1**1**0**1**0**0.
+Assuming that the most significant bit is implicit, the interleaved zeroes can be seen as 1-bit flags that indicate whether another significant bit follows. This interleaved form lends itself to a very efficient decoder implementation. Bzpack borrows this approach but uses 1s instead of 0s. Therefore, the actual format as it appears in the output is: (**1**)1**1**1**0**1**0**0, that is:
 
-That is:
 1. the most significant bit is not stored,
 2. subsequent significant bits are preceded by 1 indicating their presence,
 3. 0 marks the end of sequence.
 
-Therefore, the resulting codeword has exactly the same length as the canonical form.
-
 ### Selecting Between 1..N and 2..N Codes
 
-Elias-Gamma code is capable of representing arbitrary integer values 1..N. However, the code can be offset to 2..N and we can assign shorter codewords to lengths 2..7. Let's see the difference:
+Elias-Gamma code is capable of representing arbitrary integer values 1..N. However, the code can be offset to 2..N which leads to somewhat different distribution of codeword lengths:
 
 Regular 1..N code:
 ```
@@ -48,7 +45,7 @@ Offset 2..N code:
 7: 1110
 8: 10100
 ```
-Sometimes, the alternative coding might be a better fit to the distribution of block lengths inside the input stream.
+Although the 1..N code usually performs better, there are data blocks where 2..N is a better fit. Therefore, it is best to try both options.
 
 #### Thanks
 

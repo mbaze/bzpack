@@ -1,20 +1,43 @@
 // Copyright (c) 2021, Milos "baze" Bazelides
 // This code is released under the terms of the BSD 2-Clause License.
 
+#include <cstdio>
 #include <memory>
 #include <string>
 #include <algorithm>
-#include <stdio.h>
 #include "Compressor.h"
 
-const char* pInputFileError = "Error: Cannot open input file.\n";
-const char* pOutputFileError = "Error: Cannot open output file.\n";
-const char* pPackError = "Error: Compression failed.\n";
+enum Error
+{
+    InputFile,
+    OutputFile,
+    Compression,
+};
 
-enum Args { lzs, be1, be2, ue1, ue2, r, e, o, l, Count };
+void PrintError(Error error)
+{
+    printf("Error: ");
+
+    switch (error)
+    {
+    case Error::InputFile:
+        printf("Cannot open input file.\n");
+        break;
+
+    case Error::OutputFile:
+        printf("Cannot create output file.\n");
+        break;
+
+    case Error::Compression:
+        printf("Compression algorithm failed.");
+        break;
+    }
+}
 
 int main(int argCount, char** args)
 {
+    enum Args { lzs, be1, be2, ue1, ue2, r, e, o, l, Count };
+
     if (argCount < 3)
     {
         printf("\nUsage: bzpack.exe <input.bin> <output.bzp> [-lzs|-be1|-be2|-ue1|-ue2] [-e] [-o] [-l]\n");
@@ -75,14 +98,14 @@ int main(int argCount, char** args)
     FILE* pInputFile = fopen(args[1], "rb");
     if (pInputFile == NULL)
     {
-        printf(pInputFileError);
+        PrintError(Error::InputFile);
         return 0;
     }
 
     if (fseek(pInputFile, 0, SEEK_END))
     {
         fclose(pInputFile);
-        printf(pInputFileError);
+        PrintError(Error::InputFile);
         return 0;
     }
 
@@ -95,20 +118,20 @@ int main(int argCount, char** args)
 
     if (bytesRead != inputFileSize)
     {
-        printf(pInputFileError);
+        PrintError(Error::InputFile);
         return 0;
     }
 
     BitStream packedStream;
     if (Compress(spInputStream.get(), inputFileSize, format, packedStream) == false)
     {
-        printf(pPackError);
+        PrintError(Error::Compression);
     }
 
     FILE* pOutputFile = fopen(args[2], "wb");
     if (pOutputFile == NULL)
     {
-        printf(pOutputFileError);
+        PrintError(Error::OutputFile);
         return 0;
     }
 
@@ -117,7 +140,7 @@ int main(int argCount, char** args)
 
     if (bytesWritten != packedStream.Size())
     {
-        printf(pOutputFileError);
+        PrintError(Error::OutputFile);
         return 0;
     }
 

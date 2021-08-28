@@ -19,4 +19,14 @@ struct FormatLimits
     uint32_t maxLiteralLength = UINT32_MAX;
 };
 
+// Zero offset indicates a literal.
+
+struct Node
+{
+    uint32_t offset = 0;
+    uint32_t length = 1;
+    uint32_t cost = UINT32_MAX;
+    uint32_t literalCount = 0;
+};
+
 bool Parse(const uint8_t* pInputStream, size_t inputSize, uint32_t format, std::vector<StreamRef>& refs);

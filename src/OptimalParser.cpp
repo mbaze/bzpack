@@ -6,16 +6,6 @@
 #include "OptimalParser.h"
 #include "UniversalCodes.h"
 
-// Zero offset indicates a literal.
-
-struct Node
-{
-    uint32_t offset = 0;
-    uint32_t length = 1;
-    uint32_t cost = UINT32_MAX;
-    uint32_t literalCount = 0;
-};
-
 FormatLimits GetFormatLimits(uint32_t format)
 {
     FormatLimits limits;

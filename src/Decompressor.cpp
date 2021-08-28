@@ -1,6 +1,7 @@
 // Copyright (c) 2021, Milos "baze" Bazelides
 // This code is released under the terms of the BSD 2-Clause License.
 
+#include <algorithm>
 #include "Compressor.h"
 #include "UniversalCodes.h"
 

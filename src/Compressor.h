@@ -6,8 +6,8 @@
 
 #include "BitStream.h"
 
-// "Block" methods encode literals as "block length + flag + data".
-// "Unary" methods encode every literal byte as "flag + data".
+// "Block" methods encode literal sequences as "block length + flag + bytes".
+// "Unary" methods encode every literal as "flag + byte".
 
 enum Format: uint32_t
 {

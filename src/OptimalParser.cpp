@@ -9,7 +9,7 @@ struct Node
     uint32_t offset = 0;
     uint32_t length = 1;
     uint32_t cost = UINT32_MAX;
-    uint32_t literalPos = 0;
+    uint32_t literalCount = 0;
 };
 
 FormatLimits GetFormatLimits(uint32_t format)
@@ -63,20 +63,20 @@ FormatLimits GetFormatLimits(uint32_t format)
     return limits;
 }
 
-uint32_t GetLiteralCost(uint32_t format, uint32_t literalPos)
+uint32_t GetLiteralCost(uint32_t format, uint32_t length)
 {
     format &= Format::Mask;
 
     switch (format)
     {
     case Format::AlignedLZSS:
-        return literalPos ? 8 : 16;
+        return 8 + 8 * length;
 
     case Format::BlockElias1:
-        return 8;
+        return GetElias1Cost(length) + 1 + 8 * length;
 
     case Format::BlockElias2:
-        return 8;
+        return GetElias2Cost(length + 1) + 1 + 8 * length;
 
     case Format::UnaryElias1:
     case Format::UnaryElias2:
@@ -145,47 +145,51 @@ bool Parse(const uint8_t* pInputStream, size_t inputSize, uint32_t format, std::
         return false;
     }
 
-    std::vector<StreamRef> matches(256);
-    std::vector<Node> nodes(inputSize + 1);
     FormatLimits limits = GetFormatLimits(format);
 
     // Forward pass.
 
-    nodes[0].cost = GetLiteralCost(format, 0);
+    std::vector<StreamRef> matches(256);
+    std::vector<Node> nodes(inputSize + 1);
+    nodes[0].cost = GetLiteralCost(format, 1);
 
     for (size_t i = 0; i < inputSize; i++)
     {
         // Does encoding a literal reduce the cost?
 
-        uint32_t literalCost = nodes[i].cost + GetLiteralCost(format, nodes[i].literalPos + 1);
+        uint32_t maxLength = std::min(static_cast<uint32_t>(inputSize - i), limits.maxLiteralLength);
 
-        // Prefer literals over phrases if there's the same cost.
-
-        if (literalCost <= nodes[i + 1].cost)
+        for (uint32_t l = 1; l <= maxLength; l++)
         {
-            nodes[i + 1].offset = 0;
-            nodes[i + 1].length = 1;
-            nodes[i + 1].cost = literalCost;
-            nodes[i + 1].literalPos = nodes[i].literalPos + 1;
+            uint32_t literalCost = nodes[i].cost + GetLiteralCost(format, l);
+
+            // Prefer literals over phrases if the cost is the same.
+
+            if (literalCost <= nodes[i + l].cost)
+            {
+                nodes[i + l].offset = 0;
+                nodes[i + l].length = 1;
+                nodes[i + l].cost = literalCost;
+                nodes[i + l].literalCount = l;
+            }
         }
 
-        // Does encoding any of the matches reduce the cost?
+        // Does encoding a match reduce the cost?
 
         FindMatches(matches, pInputStream, inputSize, i, limits);
 
-        for (size_t m = 0; m < matches.size(); m++)
+        for (const StreamRef& match: matches)
         {
-            const StreamRef& match = matches[m];
             uint32_t matchCost = nodes[i].cost + GetMatchCost(format, match.offset, match.length);
 
-            // Keep shorter offsets if the cost is the same.
+            // Prefer shorter offsets if the cost is the same.
 
             if (matchCost < nodes[i + match.length].cost)
             {
                 nodes[i + match.length].offset = match.offset;
                 nodes[i + match.length].length = match.length;
                 nodes[i + match.length].cost = matchCost;
-                nodes[i + match.length].literalPos = 0;
+                nodes[i + match.length].literalCount = 0;
             }
         }
     }
@@ -206,7 +210,7 @@ bool Parse(const uint8_t* pInputStream, size_t inputSize, uint32_t format, std::
         }
         else
         {
-            ref.length = nodes[position].literalPos;
+            ref.length = nodes[position].literalCount;
         }
 
         position -= ref.length;

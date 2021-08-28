@@ -1,8 +1,11 @@
 // Copyright (c) 2021, Milos "baze" Bazelides
 // This code is released under the terms of the BSD 2-Clause License.
 
+#include <cassert>
 #include "OptimalParser.h"
 #include "UniversalCodes.h"
+
+// Zero offset indicates a literal.
 
 struct Node
 {
@@ -57,7 +60,7 @@ FormatLimits GetFormatLimits(uint32_t format)
         break;
 
     default:
-        _ASSERT(0);
+        assert(0);
     }
 
     return limits;

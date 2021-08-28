@@ -1,6 +1,7 @@
 // Copyright (c) 2021, Milos "baze" Bazelides
 // This code is released under the terms of the BSD 2-Clause License.
 
+#include <cassert>
 #include "UniversalCodes.h"
 
 // Elias-Gamma 1..N coding (interleaved format).
@@ -16,7 +17,7 @@
 
 uint32_t GetElias1Cost(uint32_t value)
 {
-    _ASSERT(value > 0);
+    assert(value > 0);
 
     uint32_t mask = ~1;
     uint32_t count = 0;
@@ -32,7 +33,7 @@ uint32_t GetElias1Cost(uint32_t value)
 
 void EncodeElias1(BitStream& stream, uint32_t value)
 {
-    _ASSERT(value > 0);
+    assert(value > 0);
 
     uint32_t mask = ~1;
     uint32_t count = 0;
@@ -81,7 +82,7 @@ uint32_t DecodeElias1(BitStream& stream)
 
 uint32_t GetElias2Cost(uint32_t value)
 {
-    _ASSERT(value > 1);
+    assert(value > 1);
 
     uint32_t mask = ~3;
     uint32_t bitCount = 1;
@@ -97,7 +98,7 @@ uint32_t GetElias2Cost(uint32_t value)
 
 void EncodeElias2(BitStream& stream, uint32_t value)
 {
-    _ASSERT(value > 1);
+    assert(value > 1);
 
     uint32_t mask = ~3;
     uint32_t bitCount = 0;

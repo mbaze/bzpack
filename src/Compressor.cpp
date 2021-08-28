@@ -1,6 +1,7 @@
 // Copyright (c) 2021, Milos "baze" Bazelides
 // This code is released under the terms of the BSD 2-Clause License.
 
+#include <cassert>
 #include "Compressor.h"
 #include "OptimalParser.h"
 #include "UniversalCodes.h"
@@ -246,9 +247,9 @@ bool Compress(uint8_t* pInputStream, size_t inputSize, uint32_t format, BitStrea
         std::reverse(unpackedStream.begin(), unpackedStream.end());
     }
 
-    if (strncmp((char*) pInputStream, (char*) unpackedStream.data(), inputSize) != 0)
+    if (strncmp((char*) pInputStream, (char*) unpackedStream.data(), inputSize))
     {
-        _ASSERT(0);
+        assert(0);
         return false;
     }
 

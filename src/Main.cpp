@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <string>
+#include <algorithm>
 #include <stdio.h>
 #include "Compressor.h"
 
@@ -16,7 +17,7 @@ int main(int argCount, char** args)
 {
     if (argCount < 3)
     {
-        printf("\nUsage: bzpack.exe <input.bin> <output.bzp> [-be1|-be2|-ue1|-ue2|-ur1] [-e] [-o] [-l]\n");
+        printf("\nUsage: bzpack.exe <input.bin> <output.bzp> [-lzs|-be1|-be2|-ue1|-ue2] [-e] [-o] [-l]\n");
         printf("\nOptions:\n");
         printf("-lzs: Byte-aligned LZSS with raw 8-bit length.\n");
         printf("-be1: Block literals with Elias-Gamma length 1..N (default).\n");
@@ -71,8 +72,8 @@ int main(int argCount, char** args)
         format |= Format::BlockElias1;
     }
 
-    FILE* pInputFile;
-    if (fopen_s(&pInputFile, args[1], "rb"))
+    FILE* pInputFile = fopen(args[1], "rb");
+    if (pInputFile == NULL)
     {
         printf(pInputFileError);
         return 0;
@@ -89,7 +90,7 @@ int main(int argCount, char** args)
     rewind(pInputFile);
 
     std::unique_ptr<uint8_t[]> spInputStream = std::make_unique<uint8_t[]>(inputFileSize);
-    size_t bytesRead = fread_s(spInputStream.get(), inputFileSize, 1, inputFileSize, pInputFile);
+    size_t bytesRead = fread(spInputStream.get(), 1, inputFileSize, pInputFile);
     fclose(pInputFile);
 
     if (bytesRead != inputFileSize)
@@ -104,8 +105,8 @@ int main(int argCount, char** args)
         printf(pPackError);
     }
 
-    FILE* pOutputFile;
-    if (fopen_s(&pOutputFile, args[2], "wb"))
+    FILE* pOutputFile = fopen(args[2], "wb");
+    if (pOutputFile == NULL)
     {
         printf(pOutputFileError);
         return 0;

@@ -139,6 +139,15 @@ uint32_t DecodeElias2(BitStream& stream)
 
 // Unary coding.
 
+// 0: 0
+// 1: 10
+// 2: 110
+// 3: 1110
+// 4: 11110
+// 5: 111110
+// 6: 1111110
+// 7: 11111110
+
 uint32_t GetUnaryCost(uint32_t value)
 {
     return value + 1;

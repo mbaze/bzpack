@@ -54,7 +54,7 @@ int main(int argCount, char** args)
         return 0;
     }
 
-    uint32_t format = 0;
+    uint32_t format = Format::Default;
 
     if (argCount > 3)
     {

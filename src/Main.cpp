@@ -10,7 +10,7 @@ const char* pInputFileError = "Error: Cannot open input file.\n";
 const char* pOutputFileError = "Error: Cannot open output file.\n";
 const char* pPackError = "Error: Compression failed.\n";
 
-enum Args { be1, be2, ue1, ue2, lzs, r, e, o, l, Count };
+enum Args { lzs, be1, be2, ue1, ue2, r, e, o, l, Count };
 
 int main(int argCount, char** args)
 {
@@ -18,11 +18,11 @@ int main(int argCount, char** args)
     {
         printf("\nUsage: bzpack.exe <input.bin> <output.bzp> [-be1|-be2|-ue1|-ue2|-ur1] [-e] [-o] [-l]\n");
         printf("\nOptions:\n");
+        printf("-lzs: Byte-aligned LZSS with raw 8-bit length.\n");
         printf("-be1: Block literals with Elias-Gamma length 1..N (default).\n");
         printf("-be2: Block literals with Elias-Gamma length 2..N.\n");
         printf("-ue1: Unary literals with Elias-Gamma length 1..N.\n");
         printf("-ue2: Unary literals with Elias-Gamma length 2..N.\n");
-        printf("-lzs: Byte-aligned LZSS with raw 8-bit length.\n");
         printf("-r: Compress in reverse order.\n");
         printf("-e: Append end of stream marker.\n");
         printf("-o: Extend maximum window offset by 1.\n");
@@ -35,22 +35,22 @@ int main(int argCount, char** args)
     if (argCount > 3)
     {
         std::vector<std::string> argNames(Args::Count);
+        argNames[Args::lzs] = "-lzs";
         argNames[Args::be1] = "-be1";
         argNames[Args::be2] = "-be2";
         argNames[Args::ue1] = "-ue1";
         argNames[Args::ue2] = "-ue2";
-        argNames[Args::lzs] = "-lzs";
         argNames[Args::r] = "-r";
         argNames[Args::e] = "-e";
         argNames[Args::o] = "-o";
         argNames[Args::l] = "-l";
 
         uint32_t argFlags[Args::Count];
+        argFlags[Args::lzs] = Format::AlignedLZSS;
         argFlags[Args::be1] = Format::BlockElias1;
         argFlags[Args::be2] = Format::BlockElias2;
         argFlags[Args::ue1] = Format::UnaryElias1;
         argFlags[Args::ue2] = Format::UnaryElias2;
-        argFlags[Args::lzs] = Format::AlignedLZSS;
         argFlags[Args::r] = Format::FlagReverse;
         argFlags[Args::e] = Format::FlagAddEndMarker;
         argFlags[Args::o] = Format::FlagExtendOffset;
@@ -66,7 +66,7 @@ int main(int argCount, char** args)
         }
     }
 
-    if ((format & Format::Mask) == 0)
+    if ((format & Format::Mask) == Format::Default)
     {
         format |= Format::BlockElias1;
     }
@@ -85,7 +85,7 @@ int main(int argCount, char** args)
         return 0;
     }
 
-    uint32_t inputFileSize = ftell(pInputFile);
+    size_t inputFileSize = ftell(pInputFile);
     rewind(pInputFile);
 
     std::unique_ptr<uint8_t[]> spInputStream = std::make_unique<uint8_t[]>(inputFileSize);

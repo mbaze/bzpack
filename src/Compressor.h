@@ -11,6 +11,7 @@
 
 enum Format: uint32_t
 {
+    Default,
     AlignedLZSS,
     BlockElias1,
     BlockElias2,

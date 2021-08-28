@@ -2,6 +2,7 @@
 // This code is released under the terms of the BSD 2-Clause License.
 
 #include <cassert>
+#include <algorithm>
 #include "Compressor.h"
 #include "OptimalParser.h"
 #include "UniversalCodes.h"

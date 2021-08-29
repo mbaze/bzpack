@@ -266,11 +266,11 @@ uint32_t DecodeVbin(BitStream& stream)
 
 // Plain binary encoding (the number of bits is explicit).
 
-void EncodeRaw(BitStream& stream, uint32_t value, uint32_t bits)
+void EncodeRaw(BitStream& stream, uint32_t value, uint32_t numBits)
 {
-    assert(bits > 0);
+    assert(numBits > 0);
 
-    uint32_t mask = 1 << (bits - 1);
+    uint32_t mask = 1 << (numBits - 1);
 
     while (mask)
     {
@@ -279,13 +279,13 @@ void EncodeRaw(BitStream& stream, uint32_t value, uint32_t bits)
     }
 }
 
-uint32_t DecodeRaw(BitStream& stream, uint32_t bits)
+uint32_t DecodeRaw(BitStream& stream, uint32_t numBits)
 {
-    assert(bits > 0);
+    assert(numBits > 0);
 
     uint32_t value = 0;
 
-    while (bits--)
+    while (numBits--)
     {
         value = (value << 1) | stream.ReadBit();
     }

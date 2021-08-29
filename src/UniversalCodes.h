@@ -26,4 +26,7 @@ uint32_t GetVbinCost(uint32_t value);
 void EncodeVbin(BitStream& stream, uint32_t value);
 uint32_t DecodeVbin(BitStream& stream);
 
+void EncodeRaw(BitStream& stream, uint32_t value, uint32_t bits);
+uint32_t DecodeRaw(BitStream& stream, uint32_t bits);
+
 #endif // UNIVERSAL_CODES_H

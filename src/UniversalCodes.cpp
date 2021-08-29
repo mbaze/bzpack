@@ -4,7 +4,7 @@
 #include <cassert>
 #include "UniversalCodes.h"
 
-// Elias-Gamma 1..N coding (interleaved format).
+// Elias-Gamma 1..N encoding (interleaved format).
 
 // 1: 0
 // 2: 100
@@ -69,7 +69,7 @@ uint32_t DecodeElias1(BitStream& stream)
     return value;
 }
 
-// Elias-Gamma 2..N coding (interleaved format).
+// Elias-Gamma 2..N encoding (interleaved format).
 
 // 2: 00
 // 3: 10
@@ -137,7 +137,7 @@ uint32_t DecodeElias2(BitStream& stream)
     return value;
 }
 
-// Unary coding.
+// Unary encoding.
 
 // 0: 0
 // 1: 10
@@ -175,7 +175,7 @@ uint32_t DecodeUnary(BitStream& stream)
     return value;
 }
 
-// Rice coding (K = 1).
+// Rice encoding (K = 1).
 
 // 0: 00
 // 1: 01
@@ -214,7 +214,7 @@ uint32_t DecodeRice(BitStream& stream)
     return (value << 1) | stream.ReadBit();
 }
 
-// Vbinary 2x2 coding.
+// Vbinary 2x2 encoding.
 
 // 0: 00
 // 1: 01
@@ -259,6 +259,35 @@ uint32_t DecodeVbin(BitStream& stream)
         {
             break;
         }
+    }
+
+    return value;
+}
+
+// Plain binary encoding (the number of bits is explicit).
+
+void EncodeRaw(BitStream& stream, uint32_t value, uint32_t bits)
+{
+    assert(bits > 0);
+
+    uint32_t mask = 1 << (bits - 1);
+
+    while (mask)
+    {
+        stream.WriteBit(value & mask);
+        mask >>= 1;
+    }
+}
+
+uint32_t DecodeRaw(BitStream& stream, uint32_t bits)
+{
+    assert(bits > 0);
+
+    uint32_t value = 0;
+
+    while (bits--)
+    {
+        value = (value << 1) | stream.ReadBit();
     }
 
     return value;

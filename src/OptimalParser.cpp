@@ -74,7 +74,7 @@ uint32_t GetLiteralCost(uint32_t format, uint32_t length)
 
     case Format::UnaryElias1:
     case Format::UnaryElias2:
-        return 1 + 8;
+        return (1 + 8) * length;
     }
 
     return UINT32_MAX;

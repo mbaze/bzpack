@@ -11,7 +11,7 @@
 #define VERIFY
 #endif // _DEBUG
 
-bool EncodeAlignedLZSS(const uint8_t* pInputStream, size_t inputSize, const std::vector<StreamRef>& refs, uint32_t format, BitStream& packedStream)
+bool EncodeAlignedLZSS(const uint8_t* pInputStream, const std::vector<StreamRef>& refs, uint32_t format, BitStream& packedStream)
 {
     bool addEndMarker = (format & Format::FlagAddEndMarker);
     bool extendOffset = (format & Format::FlagExtendOffset);
@@ -60,7 +60,7 @@ bool EncodeAlignedLZSS(const uint8_t* pInputStream, size_t inputSize, const std:
     return true;
 }
 
-bool EncodeBlockElias(const uint8_t* pInputStream, size_t inputSize, const std::vector<StreamRef>& refs, uint32_t format, BitStream& packedStream)
+bool EncodeBlockElias(const uint8_t* pInputStream, const std::vector<StreamRef>& refs, uint32_t format, BitStream& packedStream)
 {
     bool addEndMarker = (format & Format::FlagAddEndMarker);
     bool extendOffset = (format & Format::FlagExtendOffset);
@@ -130,7 +130,7 @@ bool EncodeBlockElias(const uint8_t* pInputStream, size_t inputSize, const std::
     return true;
 }
 
-bool EncodeUnaryElias(const uint8_t* pInputStream, size_t inputSize, const std::vector<StreamRef>& refs, uint32_t format, BitStream& packedStream)
+bool EncodeUnaryElias(const uint8_t* pInputStream, const std::vector<StreamRef>& refs, uint32_t format, BitStream& packedStream)
 {
     bool addEndMarker = (format & Format::FlagAddEndMarker);
     bool extendOffset = (format & Format::FlagExtendOffset);
@@ -216,17 +216,17 @@ bool Compress(uint8_t* pInputStream, size_t inputSize, uint32_t format, BitStrea
     switch (format & Format::Mask)
     {
     case Format::AlignedLZSS:
-        success = EncodeAlignedLZSS(pInputStream, inputSize, streamRefs, format, packedStream);
+        success = EncodeAlignedLZSS(pInputStream, streamRefs, format, packedStream);
         break;
 
     case Format::BlockElias1:
     case Format::BlockElias2:
-        success = EncodeBlockElias(pInputStream, inputSize, streamRefs, format, packedStream);
+        success = EncodeBlockElias(pInputStream, streamRefs, format, packedStream);
         break;
 
     case Format::UnaryElias1:
     case Format::UnaryElias2:
-        success = EncodeUnaryElias(pInputStream, inputSize, streamRefs, format, packedStream);
+        success = EncodeUnaryElias(pInputStream, streamRefs, format, packedStream);
         break;
     }
 

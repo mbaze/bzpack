@@ -31,3 +31,32 @@ Copy		lddr
 		dec	hl
 		dec	b		; B = 255 means "it was a phrase"
 		jr	NextBit
+
+; Alternative (faster) version. Size is the same.
+
+DecodeElias	add	a,a
+		rl	c
+NextBit		add	a,a
+		jr	nz,NoFetch
+		ld	a,(hl)
+		dec	hl
+		rla
+NoFetch		jr	c,DecodeElias
+		rla			; prepare flag
+		dec	b		; B = 0 after phrase, B = 255 after literal
+		jr	z,WasPhrase	; after phrase there can only be a literal or short offset
+		inc	b		; after literal there can only be a phrase with long / short offset...
+		rl	b		; ...so prepare B = 1 or B = 0 depending on flag
+WasPhrase	jr	c,Copy		; it's a literal, jump with B = 0
+LongOffset	push	hl
+		ld	l,(hl)
+		ld	h,b
+		add	hl,de
+		inc	c
+Copy		lddr
+		inc	c
+		jr	c,NextBit
+		pop	hl
+		dec	hl
+		inc	b		; B = 1 means "it was a phrase"
+		jr	NextBit

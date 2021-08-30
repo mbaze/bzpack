@@ -44,7 +44,7 @@ NextBit		add	a,a
 NoFetch		jr	c,DecodeElias
 		rla			; prepare flag
 		djnz	WasLiteral
-		jr	c,TestLiteral	; was phrase, only short phrase or literal can follow
+		jr	TestLiteral	; was phrase, only short phrase or literal can follow
 WasLiteral	inc	b		; after literal set B back to 0, after long offset B = 1
 		rl	b		; short / long phrase after literal
 TestLiteral	jr	c,Copy		; carry means another literal, no carry means short offset

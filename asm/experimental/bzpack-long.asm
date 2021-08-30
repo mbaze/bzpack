@@ -31,3 +31,32 @@ Copy		lddr
 		dec	hl
 		inc	b		; B = 1 means "it was a phrase"
 		jr	NextBit
+
+; Alternative shorter version, just +6 bytes. The meaning of short/long offset flag is flipped.
+
+DecodeElias	add	a,a
+		rl	c
+NextBit		add	a,a
+		jr	nz,NoFetch
+		ld	a,(hl)
+		dec	hl
+		rla
+NoFetch		jr	c,DecodeElias
+		rla			; prepare flag
+		djnz	WasLiteral
+		jr	c,TestLiteral	; was phrase, only short phrase or literal can follow
+WasLiteral	inc	b		; after literal set B back to 0, after long offset B = 1
+		rl	b		; short / long phrase after literal
+TestLiteral	jr	c,Copy		; carry means another literal, no carry means short offset
+ShortOffset	push	hl
+		ld	l,(hl)
+		ld	h,b
+		add	hl,de
+		inc	c
+Copy		lddr
+		inc	c
+		jr	c,NextBit
+		pop	hl
+		dec	hl
+		inc	b		; B = 1 means "it was a phrase"
+		jr	NextBit

@@ -71,11 +71,13 @@ The E1X1 format is similar to E1E1. In this format there can be no consecutive l
 After literal:
 
 `E1`, `0`, `ffffffff` – Copy `E1 + 1` bytes from the offset `0ffffffff` relative to the current output position.
+
 `E1`, `1`, `ffffffff` – Copy `E1 + 1` bytes from the offset `1ffffffff` relative to the current output position.
 
 After phrase:
 
 `E1`, `1` – Copy the next `E1` bytes to the output.
+
 `E1`, `0`, `ffffffff` – Copy `E1 + 1` bytes from the offset `0ffffffff` relative to the current output position.
 
 The assumption of no consecutive literals leads to slightly suboptimal encoding of certain lengths. Also, literals exceeding the length of 255 (unlikely) will cause the compression algorithm to fail. However, the trade-off usually pays off. E1X1 generally outperforms E1E1 even though the (Z80) decoder is only 6 bytes longer. The format supports the option to increment the offset.

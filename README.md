@@ -55,19 +55,31 @@ The LZS is a straightforward byte-aligned format which is interpreted as follows
 
 `00000000` or `00000001` – End of stream.
 
-The compression ratio is decent but certainly not spectacular. However, the decoder is very short and this advantage becomes apparent at the extreme end of the scale, e.g. while coding 256 B intros. Optionally, the format supports increased block sizes and/or offsets at the expense of additional opcodes in the decoder.
+The compression ratio is decent but certainly not spectacular. However, the decoder is very short and this advantage becomes apparent at the extreme end of the scale, e.g. while coding 256 B intros. Optionally, the format supports incremented block sizes and/or offsets at the expense of additional opcodes in the decoder.
 
 ### E1E1
 
 The E1E1 format encodes literals as byte sequences preceded by *E1* code denoting the block length. Phrases are stored as *E1* length combined with plain 8-bit offset. There’s a 1-bit flag after each *E1* code indicating the block type.
 
-`E1`, `1` – Copy the next *E1* bytes to the output.
+`E1`, `1` – Copy the next `E1` bytes to the output.
 
-`E1`, `0`, `ffffffff` – Copy *E1 + 1* bytes from the offset `ffffffff` relative to the current output position.
+`E1`, `0`, `ffffffff` – Copy `E1 + 1` bytes from the offset `ffffffff` relative to the current output position.
 
 `E1` > 255 - End of stream.
 
-The compression ratio is significantly improved compared to the previous format and the decoder still manages to be short. The format optionally supports increased offset lengths.
+The compression ratio is significantly improved over the previous format and the decoder still manages to be short. The format optionally supports incremented offset lengths.
+
+### UE2
+
+The UE2 format encodes literals on a per-byte basis. For every literal byte there’s a 1-bit flag indicating the byte’s presence. The opposite value of the flag is used to mark a phrase which is stored as *E2* length combined with plain 8-bit offset.
+
+`1`, `bbbbbbbb` – Copy byte `bbbbbbbb` to the output.
+
+`0`, `E2`, `ffffffff` – Copy `E2` bytes from the offset `ffffffff` relative to the current output position.
+
+`E2` > 255 - End of stream.
+
+The nature of this format is hit-or-miss. It usually performs better than LZS but worse than the other formats. However, that doesn't automatically rule out its use for particularly fitting data blocks. There's the option to increment the offset.
 
 #### Thanks
 

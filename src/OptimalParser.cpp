@@ -95,7 +95,7 @@ uint32_t GetMatchCost(uint32_t format, uint32_t offset, uint32_t length)
         return GetElias1Cost(length) + 1 + 8;
 
     case Format::Elias1_ExtElias1:
-        return 1 + GetElias2Cost(length & 255) + 8;
+        return 1 + GetElias1Cost(length & 255) + 8;
 
     case Format::Unary_Elias2:
         return 1 + GetElias2Cost(length) + 8;

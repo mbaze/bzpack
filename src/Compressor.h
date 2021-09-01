@@ -13,10 +13,9 @@ enum Format: uint32_t
 {
     Default,
     AlignedLZSS,
-    BlockElias1,
-    BlockElias2,
-    UnaryElias1,
-    UnaryElias2,
+    Elias1_Elias1,
+    Elias1_ExtElias1,
+    Unary_Elias2,
 
     // Some formats support tweaks, e.g. shorter decoder vs. bigger offset.
 

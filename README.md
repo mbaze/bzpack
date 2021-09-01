@@ -8,7 +8,7 @@ All currently supported formats are based on the Lempel–Ziv–Storer–Szymans
 
 The way literals and phrases are represented is different for every format. Each of them makes a different set of trade-offs and the efficiency also depends on the nature of input data.
 
-### A Note on Elias-Gamma Coding
+### A Note on Elias-Gamma Encoding
 The canonical form of Elias-Gamma code consists of *N* zeroes followed by a *(N + 1)*-bit binary number. For instance, the number 12 is encoded as 000**1100**. In his 1975 paper "Universal codeword sets and representations of the integers", Peter Elias devised also an alternative form in which the bits are interleaved: **1**0**1**0**0**0**0**.
 
 Assuming that the most significant bit is implicit, the interleaved zeroes can be seen as 1-bit flags that indicate whether another significant bit follows. This interleaved form lends itself to a very efficient decoder implementation. Bzpack borrows this approach but uses 1s instead of 0s. Therefore, the actual output would be (**1**)1**1**1**0**1**0**0, that is:
@@ -41,7 +41,7 @@ Offset Elias-Gamma code 2..N:
 7: 1110
 8: 010100
 ```
-Subsequent descriptions will use the symbols *E1* for Elias-Gamma code 1..N and *E2* for Elias-Gamma code 2..N.
+Subsequent descriptions use the symbols *E1* for Elias-Gamma code 1..N and *E2* for Elias-Gamma code 2..N.
 
 ## Format Description
 

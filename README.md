@@ -43,8 +43,19 @@ Offset Elias-Gamma code 2..N (E2):
 ```
 Subsequent descriptions will use the symbols E1 for Elias-Gamma code 1..N and E2 for Elias-Gamma code 2..N.
 
-### Format Description
-To do.
+## Format Description
+
+### LZS
+
+The LZS is a straightforward byte-aligned format which is interpreted as follows:
+
+`ccccccc1` – Copy the next `ccccccc` bytes to the output.
+
+`ccccccc0`, `ffffffff` – Copy `ccccccc` bytes from the offset `ffffffff` relative to the current output position.
+
+`00000000` or `00000001` – End of stream.
+
+The compression ratio is decent but certainly not spectacular. However, the decoder is very short and this advantage becomes apparent at the extreme end of the scale, e.g. while coding 256 B intros. The format allows extended sizes and offsets (additional 1-byte reach for both).
 
 #### Thanks
 

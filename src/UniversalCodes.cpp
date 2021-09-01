@@ -249,7 +249,7 @@ uint32_t DecodeVbin(BitStream& stream)
 {
     uint32_t value = 0;
 
-    while (1)
+    while (true)
     {
         uint32_t bits = stream.ReadBit();
         bits = (bits << 1) | stream.ReadBit();

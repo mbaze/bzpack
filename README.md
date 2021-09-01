@@ -52,7 +52,13 @@ The LZS is a straightforward byte-aligned format which is interpreted as follows
 
 `00000000` or `00000001` – End of stream.
 
-The compression ratio is decent but certainly not spectacular. However, the decoder is very short and this advantage becomes apparent at the extreme end of the scale, e.g. while coding 256 B intros. Optionally, the format supports incremented block sizes and/or offsets at the expense of additional opcodes in the decoder.
+The compression ratio is decent but certainly not spectacular. However, the decoder is very short and this advantage becomes apparent at the extreme end of the scale, e.g. while coding 256 B intros.
+
+Supported options:
+
+* Offset increment (1..256 instead of 1..255).
+* Size increment (1..128 instead of 1..127).
+* End of stream marker.
 
 ### E1E1
 The E1E1 format encodes literals as byte sequences preceded by *E1* code denoting the block length. Phrases are stored as *E1* length combined with plain 8-bit offset. There’s a 1-bit flag after each *E1* code indicating the block type.
@@ -63,7 +69,12 @@ The E1E1 format encodes literals as byte sequences preceded by *E1* code denotin
 
 `E1` > 255 - End of stream.
 
-The compression ratio is significantly improved over the previous format and the decoder still manages to be short. The format optionally supports incremented offset lengths.
+The compression ratio is significantly improved over the previous format and the decoder still manages to be short.
+
+Supported options:
+
+* Offset increment (1..256 instead of 1..255).
+* End of stream marker.
 
 ### E1X1
 The E1X1 format is similar to E1E1. In this format there can be no consecutive literals, therefore a phrase is guaranteed to follow each literal. The “spare” flag is used as an additional offset bit that extends the reach to 1..511. However, this is only true for phrases immediately preceded by a literal. The format is interpreted as follows:
@@ -80,7 +91,12 @@ After phrase:
 
 `E1`, `1` – Copy the next `E1` bytes to the output.
 
-The assumption of no consecutive literals leads to slightly suboptimal encoding of certain lengths. Also, literals exceeding the length of 255 (unlikely) will cause the compression algorithm to fail. However, the trade-off usually pays off. E1X1 generally outperforms E1E1 even though the (Z80) decoder is only 6 bytes longer. The format supports the option to increment the offset.
+The assumption of no consecutive literals leads to slightly suboptimal encoding of certain lengths. Also, literals exceeding the length of 255 (unlikely) will cause the compression algorithm to fail. However, the trade-off usually pays off. E1X1 generally outperforms E1E1 even though the (Z80) decoder is only 6 bytes longer.
+
+Supported options:
+
+* Offset increment (1..256 / 1..512 instead of 1..255 / 1..511).
+* End of stream marker.
 
 ### UE2
 The UE2 format encodes literals on a per-byte basis. For every literal byte there’s a 1-bit flag indicating the byte’s presence. The opposite value of the flag is used to mark a phrase which is stored as *E2* length combined with plain 8-bit offset.
@@ -91,7 +107,12 @@ The UE2 format encodes literals on a per-byte basis. For every literal byte ther
 
 `E2` > 255 - End of stream.
 
-The nature of this format is hit-or-miss. It usually performs better than LZS but worse than the other formats. However, that doesn't automatically rule out its use for particularly fitting data blocks. There's the option to increment the offset.
+The nature of this format is hit-or-miss. It usually performs better than LZS but worse than the other formats. However, that doesn't automatically rule out its use for particularly fitting data blocks.
+
+Supported options:
+
+* Offset increment (1..256 instead of 1..255).
+* End of stream marker.
 
 #### Thanks
 I have used valuable input from multiple people, including Aleksey "introspec" Pichugin, Slavomir "Busy" Labsky and Pavel "Zilog" Cimbal. Let me also take the opportunity to recognize the work of Einar Saukas.

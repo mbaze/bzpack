@@ -2,30 +2,26 @@
 Bzpack is a data compression utility which targets retrocomputing and demoscene enthusiasts. Given the artificially imposed size limits on programs like 256 B, 512 B or 1 KiB intros, the ability to implement a short decoder is nearly as important as the efficiency of the compression format itself. Bzpack doesn’t claim to be a state-of-the-art, general purpose packer. The goal is to achieve acceptable trade-off between simplicity and efficiency in order to minimize the overall program length. Special consideration was given to vintage computing platforms like Sinclair ZX Spectrum.
 
 ## Format Overview
-All supported formats are based on the Lempel–Ziv–Storer–Szymanski algorithm. The compressed stream consists of:
+All currently supported formats are based on the Lempel–Ziv–Storer–Szymanski algorithm. The compressed stream consists of:
 1. strings of uncompressed bytes (literals),
 2. reusable byte sequences represented as offset-length pairs (phrases).
 
-Bzpack encodes offsets as raw 8-bit values. Literals are encoded in two possible ways:
-1. as a sequence of bytes preceded by block length (the “block” method),
-2. using 1-bit flag for every literal symbol (the “unary” method).
-
-Phrase and literal lengths are encoded using universal codes such as Elias-Gamma.
+The way literals and phrases are represented is different for every supported format. There are different trade-offs involved and the efficiency also depends on the nature of the input data.
 
 ### A Note on Elias-Gamma Coding
 The canonical form of Elias-Gamma code consists of *N* zeroes followed by a *(N + 1)*-bit binary number. For instance, the number 12 is encoded as 000**1100**. In his 1975 paper "Universal codeword sets and representations of the integers", Peter Elias devised also an alternative form in which the bits are interleaved: **1**0**1**0**0**0**0**.
 
-Assuming that the most significant bit is implicit, the interleaved zeroes can be seen as 1-bit flags that indicate whether another significant bit follows. This interleaved form lends itself to a very efficient decoder implementation. Bzpack borrows this approach but uses 1s instead of 0s. Therefore, the actual format as it appears in the output is: (**1**)1**1**1**0**1**0**0, that is:
+Assuming that the most significant bit is implicit, the interleaved zeroes can be seen as 1-bit flags that indicate whether another significant bit follows. This interleaved form lends itself to a very efficient decoder implementation. Bzpack borrows this approach but uses 1s instead of 0s. Therefore, the actual output would be (**1**)1**1**1**0**1**0**0, that is:
 
 1. the most significant bit is not stored,
 2. subsequent significant bits are preceded by 1 indicating their presence,
 3. 0 marks the end of sequence.
 
-### Selecting Between 1..N and 2..N Codes
+### Elias-Gamma 1..N vs 2..N
 
-Elias-Gamma code is capable of representing arbitrary integer values 1..N. However, the code can be offset to 2..N which leads to somewhat different distribution of codeword lengths:
+Elias-Gamma code is able to represent positive integers 1..N. However, the code can be offset to 2..N resulting in codewords that favor the most common phrase lengths 2..7:
 
-Regular 1..N code:
+Regular Elias-Gamma code 1..N (E1):
 ```
 1: 0
 2: 100
@@ -35,7 +31,7 @@ Regular 1..N code:
 6: 11100
 7: 11110
 ```
-Offset 2..N code:
+Offset Elias-Gamma code 2..N (E2):
 ```
 2: 00
 3: 10
@@ -43,9 +39,12 @@ Offset 2..N code:
 5: 0110
 6: 1100
 7: 1110
-8: 10100
+8: 010100
 ```
-Although the 1..N code usually performs better, there are data blocks where 2..N is a better fit. Therefore, it is best to try both options.
+Subsequent descriptions will use the symbols E1 for Elias-Gamma code 1..N and E2 for Elias-Gamma code 2..N.
+
+### Format Description
+To do.
 
 #### Thanks
 

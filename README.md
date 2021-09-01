@@ -91,7 +91,7 @@ After phrase:
 
 `E1`, `1` – Copy the next `E1` bytes to the output.
 
-The assumption of no consecutive literals means that if there's a literal exceeding the length of 255 (unlikely), the compression algorithm will fail. However, the trade-off usually pays off. On average, E1X1 outperforms E1E1 and the (Z80) decoder is only 6 bytes longer.
+The assumption of no consecutive literals means that if there's a literal exceeding the length of 255 (unlikely), the compression algorithm will fail. However, the trade-off usually pays off. On average, E1X1 outperforms E1E1 and the (Z80) decoder is only 7 bytes longer.
 
 Supported options:
 

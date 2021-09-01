@@ -1,10 +1,10 @@
 ; Copyright (c) 2021, Milos "baze" Bazelides
 ; This code is released under the terms of the BSD 2-Clause License.
 
-; Unary decoder with Elias-Gamma lengths (2..N).
+; UE2 decoder.
 
 ; The decoder assumes reverse order. We can omit the end of stream
-; marker if we let the last literal overwrite the code after LDDR.
+; marker if we let the last literal overwrite opcodes after LDDR.
 
 		ld	hl,SrcAddr
 		ld	de,DstAddr
@@ -13,20 +13,20 @@
 
 MainLoop	ld	c,1
 		call	ReadBit		; Literal?
-		jr	c,Copy
+		jr	c,CopyBytes
 
-DecodeLength	call	ReadBit
+EliasLength	call	ReadBit
 		rl	c
 ;		ret	c		; Option to include the end of stream marker.
 		call	ReadBit
-		jr	c,DecodeLength
+		jr	c,EliasLength
 
 		push	hl
 		ld	l,(hl)
 		ld	h,b
 		add	hl,de
 ;		inc	hl		; Option to increase offset to 256.
-Copy		lddr
+CopyBytes	lddr
 		jr	c,MainLoop
 		pop	hl
 		dec	hl

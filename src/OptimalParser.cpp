@@ -75,8 +75,6 @@ uint32_t GetLiteralCost(uint32_t format, uint32_t length)
         return 8 + 8 * length;
 
     case Format::Elias1_Elias1:
-        return GetElias1Cost(length) + 1 + 8 * length;
-
     case Format::Elias1_ExtElias1:
         return GetElias1Cost(length) + 1 + 8 * length;
 
@@ -91,17 +89,17 @@ uint32_t GetMatchCost(uint32_t format, uint32_t offset, uint32_t length)
 {
     switch (format & Format::Mask)
     {
+    case Format::AlignedLZSS:
+        return 8 + 8;
+
     case Format::Elias1_Elias1:
         return GetElias1Cost(length) + 1 + 8;
 
     case Format::Elias1_ExtElias1:
-        return 1 + GetElias1Cost(length & 255) + 8;
+        return GetElias1Cost(length & 255) + 1 + 8;
 
     case Format::Unary_Elias2:
         return 1 + GetElias2Cost(length) + 8;
-
-    case Format::AlignedLZSS:
-        return 8 + 8;
     }
 
     return UINT32_MAX;

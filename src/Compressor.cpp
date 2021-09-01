@@ -112,58 +112,6 @@ bool EncodeBlockElias(const uint8_t* pInputStream, const std::vector<StreamRef>&
     return true;
 }
 
-bool EncodeUnaryElias(const uint8_t* pInputStream, const std::vector<StreamRef>& refs, uint32_t format, BitStream& packedStream)
-{
-    bool addEndMarker = (format & Format::FlagAddEndMarker);
-    bool extendOffset = (format & Format::FlagExtendOffset);
-    format &= Format::Mask;
-
-    if (format != Format::Unary_Elias2)
-    {
-        return false;
-    }
-
-    size_t i = 0;
-    packedStream.WriteReset();
-
-    for (const StreamRef& ref: refs)
-    {
-        if (ref.offset)
-        {
-            size_t offset = ref.offset;
-            if (extendOffset) offset--;
-
-            packedStream.WriteBit(0);
-            EncodeElias2(packedStream, ref.length);
-            packedStream.WriteByte(static_cast<uint8_t>(offset));
-
-            i += ref.length;
-        }
-        else
-        {
-            for (size_t b = 0; b < ref.length; b++)
-            {
-                packedStream.WriteBit(1);
-                packedStream.WriteByte(pInputStream[i++]);
-            }
-        }
-    }
-
-    if (addEndMarker)
-    {
-        packedStream.WriteBit(0);
-
-        for (size_t i = 0; i < 15; i++)
-        {
-            packedStream.WriteBit(1);
-        }
-
-        packedStream.WriteBit(0);
-    }
-
-    return true;
-}
-
 bool EncodeExtElias(const uint8_t* pInputStream, const std::vector<StreamRef>& refs, uint32_t format, BitStream& packedStream)
 {
     bool addEndMarker = (format & Format::FlagAddEndMarker);
@@ -220,6 +168,58 @@ bool EncodeExtElias(const uint8_t* pInputStream, const std::vector<StreamRef>& r
     if (addEndMarker)
     {
         for (size_t i = 0; i < 16; i++)
+        {
+            packedStream.WriteBit(1);
+        }
+
+        packedStream.WriteBit(0);
+    }
+
+    return true;
+}
+
+bool EncodeUnaryElias(const uint8_t* pInputStream, const std::vector<StreamRef>& refs, uint32_t format, BitStream& packedStream)
+{
+    bool addEndMarker = (format & Format::FlagAddEndMarker);
+    bool extendOffset = (format & Format::FlagExtendOffset);
+    format &= Format::Mask;
+
+    if (format != Format::Unary_Elias2)
+    {
+        return false;
+    }
+
+    size_t i = 0;
+    packedStream.WriteReset();
+
+    for (const StreamRef& ref: refs)
+    {
+        if (ref.offset)
+        {
+            size_t offset = ref.offset;
+            if (extendOffset) offset--;
+
+            packedStream.WriteBit(0);
+            EncodeElias2(packedStream, ref.length);
+            packedStream.WriteByte(static_cast<uint8_t>(offset));
+
+            i += ref.length;
+        }
+        else
+        {
+            for (size_t b = 0; b < ref.length; b++)
+            {
+                packedStream.WriteBit(1);
+                packedStream.WriteByte(pInputStream[i++]);
+            }
+        }
+    }
+
+    if (addEndMarker)
+    {
+        packedStream.WriteBit(0);
+
+        for (size_t i = 0; i < 15; i++)
         {
             packedStream.WriteBit(1);
         }

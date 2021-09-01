@@ -13,6 +13,7 @@
 
 EliasLength	add	a,a
 		rl	c
+;		ret	c		; Option to include the end of stream marker.
 NextBit		add	a,a
 		jr	nz,NoFetch
 		ld	a,(hl)
@@ -29,6 +30,7 @@ LongOffset	push	hl
 		ld	l,(hl)
 		ld	h,b
 		add	hl,de
+;		inc	hl		; Option to increase offset to 256 / 512.
 		inc	c
 CopyBytes	lddr
 		inc	c

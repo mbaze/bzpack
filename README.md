@@ -66,7 +66,7 @@ The E1E1 format encodes literals as byte sequences preceded by *E1* code denotin
 The compression ratio is significantly improved over the previous format and the decoder still manages to be short. The format optionally supports incremented offset lengths.
 
 ### E1X1
-The E1X1 format is similar to E1E1. In this format there can be no consecutive literals, therefore a phrase is guaranteed to follow each literal. The “spare” flag is used as additional offset bit that extends the reach to 1..511. However, this is only true for phrases immediately preceded by a literal. The format is interpreted as follows:
+The E1X1 format is similar to E1E1. In this format there can be no consecutive literals, therefore a phrase is guaranteed to follow each literal. The “spare” flag is used as an additional offset bit that extends the reach to 1..511. However, this is only true for phrases immediately preceded by a literal. The format is interpreted as follows:
 
 After literal:
 
@@ -76,9 +76,9 @@ After literal:
 
 After phrase:
 
-`E1`, `1` – Copy the next `E1` bytes to the output.
-
 `E1`, `0`, `ffffffff` – Copy `E1 + 1` bytes from the offset `0ffffffff` relative to the current output position.
+
+`E1`, `1` – Copy the next `E1` bytes to the output.
 
 The assumption of no consecutive literals leads to slightly suboptimal encoding of certain lengths. Also, literals exceeding the length of 255 (unlikely) will cause the compression algorithm to fail. However, the trade-off usually pays off. E1X1 generally outperforms E1E1 even though the (Z80) decoder is only 6 bytes longer. The format supports the option to increment the offset.
 

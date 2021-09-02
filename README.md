@@ -81,7 +81,7 @@ Supported options:
 
 ### E1X1
 
-The E1X1 format is similar to E1E1. However, in this format there can be no consecutive literals which means that a phrase (or end of stream) is expected to follow a literal. The “spare” flag extends the 8-bit offset to 9 bits for phrases that are immediately preceded by a literal. The format is interpreted as follows:
+The E1X1 format is similar to E1E1. However, in this format there can be no consecutive literals which means that only a phrase (or end of stream) can follow a literal. When this occurs, the “spare” flag is used as additional offset bit. The format is interpreted as follows:
 
 After a literal:
 
@@ -93,7 +93,7 @@ After a phrase:
 * `E1`, `0`, `ffffffff` – Copy `E1 + 1` bytes from the offset `0ffffffff` relative to the current output position.
 * `E1`, `1` – Copy the next `E1` bytes to the output.
 
-The format assumption means that if there's a literal exceeding the length of 255 (unlikely), the compression algorithm will fail. However, on average the trade-off pays off and E1X1 outperforms E1E1 enough to justify its longer decoder (+7 bytes on Z80).
+The limitation of this method is that the compression algorithm will fail if there's a literal exceeding the length of 255. However, this is unlikely and E1X1 usually outperforms E1E1 enough to justify its longer decoder (+6 bytes on Zilog Z80).
 
 Supported options:
 

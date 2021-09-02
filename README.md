@@ -115,6 +115,12 @@ Supported options:
 * Offset increment (1..256 instead of 1..255).
 * End of stream marker.
 
+## Comparison
+
+The following chart shows the relative performance of ZX7mini, ZX2, E1E1 and E1X1 formats on a corpus of ZX Spectrum intros. Note that this comparison doesn't take into account the decoder size.
+
+![image](https://user-images.githubusercontent.com/37623188/131913146-1eda8d17-b07d-4a06-85b7-4540b4c11b21.png)
+
 #### Thanks
 
 I have used valuable input from multiple people, including Aleksey "introspec" Pichugin, Slavomir "Busy" Labsky and Pavel "Zilog" Cimbal. Let me also take the opportunity to recognize the work of Einar Saukas.

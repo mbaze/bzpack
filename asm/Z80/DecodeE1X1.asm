@@ -8,7 +8,7 @@
 
 		ld	hl,SrcAddr
 		ld	de,DstAddr
-		ld	bc,0		; Ideally, these values should be "reused"
+		ld	bc,#FF00	; Ideally, these values should be "reused"
 		ld	a,%11000000	; e.g. by aligning the addresses.
 
 EliasLength	add	a,a

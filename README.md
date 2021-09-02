@@ -119,7 +119,7 @@ Supported options:
 
 The following chart shows the relative performance of ZX7mini, ZX2, E1E1 and E1X1 formats on a corpus of ZX Spectrum intros. Note that this comparison doesn't take into account the decoder size.
 
-![image](https://user-images.githubusercontent.com/37623188/131913146-1eda8d17-b07d-4a06-85b7-4540b4c11b21.png)
+![image](https://user-images.githubusercontent.com/37623188/131913829-fb28ed54-98cd-4889-9903-51e6007b81d3.png)
 
 #### Thanks
 

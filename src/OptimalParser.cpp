@@ -25,7 +25,7 @@ FormatLimits GetFormatLimits(uint32_t format, bool wasLiteral)
 
     case Format::Elias1_Elias1:
 
-        limits.minMatchLength = 1;
+        limits.minMatchLength = 2;
         limits.maxMatchOffset = extendOffset ? 256 : 255;
         limits.maxMatchLength = 255;
         limits.maxLiteralLength = 255;

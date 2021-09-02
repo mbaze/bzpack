@@ -21,7 +21,7 @@ NextBit		add	a,a
 		rla
 NoFetch		jr	c,EliasLength
 		rla
-		inc	b
+		inc	b		; Was it a phrase?
 		jr	z,WasPhrase
 		dec	b
 		rl	b		; B = 0 / 1 for regular / extended offset.
@@ -37,4 +37,4 @@ CopyBytes	lddr
 		jr	c,NextBit
 		pop	hl
 		dec	hl
-		djnz	NextBit		; B = 255 to indicate phrase.
+		djnz	NextBit		; Set B = 255 to indicate phrase.

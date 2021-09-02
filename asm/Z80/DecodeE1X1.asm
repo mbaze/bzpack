@@ -38,14 +38,3 @@ CopyBytes	lddr
 		pop	hl
 		dec	hl
 		djnz	NextBit		; B = 255 to indicate phrase.
-
-IF 0
-
-; This alternative code sequence saves another byte but causes slowdown.
-
-IncB		inc	b
-		jr	z,WasPhrase
-		jr	nc,IncB
-WasPhrase	jr	c,CopyBytes
-
-ENDIF

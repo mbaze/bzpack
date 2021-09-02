@@ -21,9 +21,9 @@ NextBit		add	a,a
 		rla
 NoFetch		jr	c,EliasLength
 		rla
-		dec	b		; Test "was phrase" flag.
-		jr	z,WasPhrase
 		inc	b
+		jr	z,WasPhrase
+		dec	b
 		rl	b		; B = 0 / 1 for regular / extended offset.
 WasPhrase	jr	c,CopyBytes
 LongOffset	push	hl
@@ -37,5 +37,4 @@ CopyBytes	lddr
 		jr	c,NextBit
 		pop	hl
 		dec	hl
-		inc	b		; Set "was phrase" flag.
-		jr	NextBit
+		djnz	NextBit		; B = 255 to indicate phrase.

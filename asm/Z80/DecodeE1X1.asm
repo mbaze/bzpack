@@ -26,7 +26,7 @@ NoFetch		jr	c,EliasLength
 		dec	b
 		rl	b		; B = 0 / 1 for regular / extended offset.
 WasPhrase	jr	c,CopyBytes
-LongOffset	push	hl
+		push	hl
 		ld	l,(hl)
 		ld	h,b
 		add	hl,de

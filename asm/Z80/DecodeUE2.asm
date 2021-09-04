@@ -1,7 +1,7 @@
 ; Copyright (c) 2021, Milos "baze" Bazelides
 ; This code is released under the terms of the BSD 2-Clause License.
 
-; UE2 decoder.
+; UE2 decoder (35 bytes excluding initialization).
 
 ; The decoder assumes reverse order. We can omit the end of stream
 ; marker if we let the last literal overwrite opcodes after LDDR.

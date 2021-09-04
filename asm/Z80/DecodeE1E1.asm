@@ -1,7 +1,7 @@
 ; Copyright (c) 2021, Aleksey "introspec" Pichugin, Milos "baze" Bazelides, Pavel "Zilog" Cimbal
 ; This code is released under the terms of the BSD 2-Clause License.
 
-; E1E1 decoder.
+; E1E1 decoder (28 bytes excluding initialization).
 
 ; The decoder assumes reverse order. We can omit the end of stream
 ; marker if we let the last literal overwrite opcodes after LDDR.

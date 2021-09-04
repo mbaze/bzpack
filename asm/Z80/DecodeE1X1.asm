@@ -1,7 +1,7 @@
 ; Copyright (c) 2021, Milos "baze" Bazelides
 ; This code is released under the terms of the BSD 2-Clause License.
 
-; E1X1 decoder.
+; E1X1 decoder (34 bytes excluding initialization).
 
 ; The decoder assumes reverse order. We can omit the end of stream
 ; marker if we let the last literal overwrite opcodes after LDDR.
@@ -21,12 +21,11 @@ NextBit		add	a,a
 		rla
 NoFetch		jr	c,EliasLength
 		rla
-		inc	b		; Was it a phrase?
-		jr	z,WasPhrase
+		inc	b
+		jr	nc,LoadOffset
+		jr	z,CopyBytes	; Was it a phrase?
 		dec	b
-		rl	b		; B = 0 / 1 for regular / extended offset.
-WasPhrase	jr	c,CopyBytes
-		push	hl
+LoadOffset	push	hl
 		ld	l,(hl)
 		ld	h,b
 		add	hl,de

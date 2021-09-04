@@ -11,7 +11,7 @@
 #define VERIFY
 #endif // _DEBUG
 
-bool EncodeAlignedLZSS(const uint8_t* pInputStream, const std::vector<StreamRef>& refs, uint32_t format, BitStream& packedStream)
+bool EncodeLZS(const uint8_t* pInputStream, const std::vector<StreamRef>& refs, uint32_t format, BitStream& packedStream)
 {
     bool addEndMarker = (format & Format::FlagAddEndMarker);
     bool extendOffset = (format & Format::FlagExtendOffset);
@@ -60,7 +60,7 @@ bool EncodeAlignedLZSS(const uint8_t* pInputStream, const std::vector<StreamRef>
     return true;
 }
 
-bool EncodeBlockElias(const uint8_t* pInputStream, const std::vector<StreamRef>& refs, uint32_t format, BitStream& packedStream)
+bool EncodeE1E1(const uint8_t* pInputStream, const std::vector<StreamRef>& refs, uint32_t format, BitStream& packedStream)
 {
     bool addEndMarker = (format & Format::FlagAddEndMarker);
     bool extendOffset = (format & Format::FlagExtendOffset);
@@ -112,7 +112,7 @@ bool EncodeBlockElias(const uint8_t* pInputStream, const std::vector<StreamRef>&
     return true;
 }
 
-bool EncodeExtElias(const uint8_t* pInputStream, const std::vector<StreamRef>& refs, uint32_t format, BitStream& packedStream)
+bool EncodeE1X1(const uint8_t* pInputStream, const std::vector<StreamRef>& refs, uint32_t format, BitStream& packedStream)
 {
     bool addEndMarker = (format & Format::FlagAddEndMarker);
     bool extendOffset = (format & Format::FlagExtendOffset);
@@ -124,8 +124,8 @@ bool EncodeExtElias(const uint8_t* pInputStream, const std::vector<StreamRef>& r
     }
 
     size_t i = 0;
-    packedStream.WriteReset();
     bool wasLiteral = false;
+    packedStream.WriteReset();
 
     for (const StreamRef& ref: refs)
     {
@@ -139,7 +139,7 @@ bool EncodeExtElias(const uint8_t* pInputStream, const std::vector<StreamRef>& r
             if (wasLiteral)
             {
                 bool longOffset = (ref.offset > 255);
-                packedStream.WriteBit(longOffset);
+                packedStream.WriteBit(!longOffset);
             }
             else
             {
@@ -178,7 +178,7 @@ bool EncodeExtElias(const uint8_t* pInputStream, const std::vector<StreamRef>& r
     return true;
 }
 
-bool EncodeUnaryElias(const uint8_t* pInputStream, const std::vector<StreamRef>& refs, uint32_t format, BitStream& packedStream)
+bool EncodeUE2(const uint8_t* pInputStream, const std::vector<StreamRef>& refs, uint32_t format, BitStream& packedStream)
 {
     bool addEndMarker = (format & Format::FlagAddEndMarker);
     bool extendOffset = (format & Format::FlagExtendOffset);
@@ -253,19 +253,19 @@ bool Compress(uint8_t* pInputStream, size_t inputSize, uint32_t format, BitStrea
     switch (format & Format::Mask)
     {
     case Format::Elias1_Elias1:
-        success = EncodeBlockElias(pInputStream, refs, format, packedStream);
+        success = EncodeE1E1(pInputStream, refs, format, packedStream);
         break;
 
     case Format::Elias1_ExtElias1:
-        success = EncodeExtElias(pInputStream, refs, format, packedStream);
+        success = EncodeE1X1(pInputStream, refs, format, packedStream);
         break;
 
     case Format::Unary_Elias2:
-        success = EncodeUnaryElias(pInputStream, refs, format, packedStream);
+        success = EncodeUE2(pInputStream, refs, format, packedStream);
         break;
 
     case Format::AlignedLZSS:
-        success = EncodeAlignedLZSS(pInputStream, refs, format, packedStream);
+        success = EncodeLZS(pInputStream, refs, format, packedStream);
         break;
     }
 

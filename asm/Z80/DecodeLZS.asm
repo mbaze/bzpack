@@ -1,7 +1,7 @@
 ; Copyright (c) 2017, Milos "baze" Bazelides
 ; This code is released under the terms of the BSD 2-Clause License.
 
-; LZS decoder.
+; LZS decoder (18 bytes excluding initialization).
 
 ; The decoder assumes reverse order. We can omit the end of stream
 ; marker if we let the last literal overwrite opcodes after LDDR.

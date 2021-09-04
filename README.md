@@ -81,12 +81,12 @@ Supported options:
 
 ### E1X1
 
-The E1X1 format is similar to E1E1. However, in this format there can be no consecutive literals which means that only a phrase (or end of stream) can follow a literal. When this occurs, the “spare” flag is used as additional offset bit. The format is interpreted as follows:
+The E1X1 format is similar to E1E1. However, in this format there can be no consecutive literals which means that only a phrase (or end of stream) can follow a literal. When this occurs, the “spare” flag signals extended offset. The format is interpreted as follows:
 
 After a literal:
 
-* `E1`, `0`, `ffffffff` – Copy `E1 + 1` bytes from the offset `0ffffffff` relative to the current output position.
-* `E1`, `1`, `ffffffff` – Copy `E1 + 1` bytes from the offset `1ffffffff` relative to the current output position.
+* `E1`, `0`, `ffffffff` – Copy `E1 + 1` bytes from the offset `1ffffffff` relative to the current output position.
+* `E1`, `1`, `ffffffff` – Copy `E1 + 1` bytes from the offset `0ffffffff` relative to the current output position.
 
 After a phrase:
 

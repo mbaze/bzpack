@@ -14,7 +14,7 @@ The way literals and phrases are encoded is different for every format. Each of 
 
 The canonical form of Elias-Gamma code consists of *N* zeroes followed by a *(N + 1)*-bit binary number. For instance, the number 12 is encoded as 000**1100**. In his paper "Universal codeword sets and representations of the integers", Peter Elias also devised an alternative form in which the bits are interleaved: **1**0**1**0**0**0**0**.
 
-Assuming that the most significant bit is implicit, the interleaved zeroes can be seen as 1-bit flags that indicate whether another significant bit follows. This interleaved form lends itself to a very efficient decoder implementation. Bzpack borrows this approach but flips the flag values. Therefore, the actual code for number 12 would be 1**1**1**0**1**0**0, that is:
+Assuming that the most significant bit is implicit, the interleaved zeroes can be seen as 1-bit flags that indicate whether another significant bit follows. This interleaved form lends itself to a very efficient decoder implementation. Bzpack borrows this approach but the flags are inverted. Therefore, the actual code for number 12 would be 1**1**1**0**1**0**0, that is:
 
 * The most significant bit is not stored.
 * Subsequent significant bits are preceded by 1 indicating their presence.

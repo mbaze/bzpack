@@ -93,7 +93,7 @@ After a phrase:
 * `E1`, `0`, `ffffffff` – Copy `E1 + 1` bytes from the offset `0ffffffff` relative to the current output position.
 * `E1`, `1` – Copy the next `E1` bytes to the output.
 
-The limitation of this method is that the compression algorithm will fail if there's a literal exceeding the length of 255. However, this is unlikely and E1X1 usually outperforms E1E1 enough to justify its longer decoder (+6 bytes on Zilog Z80).
+The limitation of this method is that the compression algorithm will fail if there's a literal exceeding the length of 255. However, this is unlikely and E1X1 usually outperforms E1E1 enough to justify its longer decoder.
 
 Supported options:
 

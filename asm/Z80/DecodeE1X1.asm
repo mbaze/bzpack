@@ -31,6 +31,7 @@ WasPhrase	jr	c,CopyBytes
 		ld	h,b
 		add	hl,de
 ;		inc	hl		; Option to increase offset to 256 / 512.
+		ld	b,0
 		inc	c
 CopyBytes	lddr
 		inc	c

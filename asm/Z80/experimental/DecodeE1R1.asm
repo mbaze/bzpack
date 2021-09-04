@@ -24,7 +24,6 @@ NoFetch		jr	c,EliasLength
 		jr	nc,LoadOffset
 		inc	b		; Was it a phrase?
 		jr	z,CopyBytes
-		dec	b
 		ex	af,af'
 		jr	ReuseOffset
 LoadOffset	push	hl
@@ -32,6 +31,7 @@ LoadOffset	push	hl
 		ld	a,(hl)
 ReuseOffset	ld	l,a
 		ex	af,af'
+		ld	b,0
 		ld	h,b
 		add	hl,de
 ;		inc	hl		; Option to increase offset to 256.

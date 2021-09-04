@@ -5,7 +5,7 @@
 #include "Compressor.h"
 #include "UniversalCodes.h"
 
-bool DecodeAlignedLZSS(BitStream& packedStream, uint32_t format, size_t inputSize, std::vector<uint8_t>& outputStream)
+bool DecodeLZS(BitStream& packedStream, uint32_t format, size_t inputSize, std::vector<uint8_t>& outputStream)
 {
     bool testEndMarker = (inputSize == 0);
     bool extendOffset = (format & Format::FlagExtendOffset);
@@ -61,7 +61,7 @@ bool DecodeAlignedLZSS(BitStream& packedStream, uint32_t format, size_t inputSiz
     return true;
 }
 
-bool DecodeBlockElias(BitStream& packedStream, uint32_t format, size_t inputSize, std::vector<uint8_t>& outputStream)
+bool DecodeE1E1(BitStream& packedStream, uint32_t format, size_t inputSize, std::vector<uint8_t>& outputStream)
 {
     bool testEndMarker = (inputSize == 0);
     bool extendOffset = (format & Format::FlagExtendOffset);
@@ -111,7 +111,7 @@ bool DecodeBlockElias(BitStream& packedStream, uint32_t format, size_t inputSize
     return true;
 }
 
-bool DecodeExtElias(BitStream& packedStream, uint32_t format, size_t inputSize, std::vector<uint8_t>& outputStream)
+bool DecodeE1X1(BitStream& packedStream, uint32_t format, size_t inputSize, std::vector<uint8_t>& outputStream)
 {
     bool testEndMarker = (inputSize == 0);
     bool extendOffset = (format & Format::FlagExtendOffset);
@@ -140,7 +140,7 @@ bool DecodeExtElias(BitStream& packedStream, uint32_t format, size_t inputSize, 
         if (outputLiteral)
         {
             outputLiteral = false;
-            offsetBit = packedStream.ReadBit() << 8;
+            offsetBit = !packedStream.ReadBit() << 8;
         }
         else
         {
@@ -175,7 +175,7 @@ bool DecodeExtElias(BitStream& packedStream, uint32_t format, size_t inputSize, 
     return true;
 }
 
-bool DecodeUnaryElias(BitStream& packedStream, uint32_t format, size_t inputSize, std::vector<uint8_t>& outputStream)
+bool DecodeUE2(BitStream& packedStream, uint32_t format, size_t inputSize, std::vector<uint8_t>& outputStream)
 {
     bool testEndMarker = (inputSize == 0);
     bool extendOffset = (format & Format::FlagExtendOffset);
@@ -230,19 +230,19 @@ bool Decompress(BitStream& packedStream, uint32_t format, size_t inputSize, std:
     switch (format & Format::Mask)
     {
     case Format::AlignedLZSS:
-        success = DecodeAlignedLZSS(packedStream, format, inputSize, outputStream);
+        success = DecodeLZS(packedStream, format, inputSize, outputStream);
         break;
 
     case Format::Elias1_Elias1:
-        success = DecodeBlockElias(packedStream, format, inputSize, outputStream);
+        success = DecodeE1E1(packedStream, format, inputSize, outputStream);
         break;
 
     case Format::Elias1_ExtElias1:
-        success = DecodeExtElias(packedStream, format, inputSize, outputStream);
+        success = DecodeE1X1(packedStream, format, inputSize, outputStream);
         break;
 
     case Format::Unary_Elias2:
-        success = DecodeUnaryElias(packedStream, format, inputSize, outputStream);
+        success = DecodeUE2(packedStream, format, inputSize, outputStream);
         break;
     }
 

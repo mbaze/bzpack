@@ -81,7 +81,7 @@ Supported options:
 
 ### E1X1
 
-The E1X1 format is similar to E1E1. However, in this format there can be no consecutive literals which means that only a phrase (or end of stream) can follow a literal. The "spare" flag acts as additional offset bit in this case. The format is interpreted as follows:
+The E1X1 format is similar to E1E1. However, in this format there can be no consecutive literals which means that only a phrase (or end of stream) can follow a literal. The "spare" flag after a literal acts as additional offset bit (although inverted). The format is interpreted as follows:
 
 After a literal:
 

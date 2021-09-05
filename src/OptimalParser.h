@@ -14,9 +14,9 @@ struct StreamRef
 struct Node
 {
     uint32_t offset = 0;
-    uint32_t length = 1;
+    uint32_t length = 0;
     uint32_t cost = UINT32_MAX;
-    uint32_t literalCount = 0;
+    uint32_t lastOffset = 0;
 };
 
 struct FormatLimits

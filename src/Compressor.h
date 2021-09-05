@@ -6,15 +6,13 @@
 
 #include "BitStream.h"
 
-// "Block" methods encode literal sequences as "block length + flag + bytes".
-// "Unary" methods encode every literal as "flag + byte".
-
 enum Format: uint32_t
 {
     Default,
-    AlignedLZSS,
+    Aligned_LZSS,
     Elias1_Elias1,
-    Elias1_ExtElias1,
+    Elias1_Elias1_X,
+    Elias1_Elias1_R,
     Unary_Elias2,
 
     // Some formats support tweaks, e.g. shorter decoder vs. bigger offset.

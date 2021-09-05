@@ -20,27 +20,28 @@ void PrintError(Error error)
 
     switch (error)
     {
-    case Error::InputFile:
-        printf("Cannot open input file.\n");
-        break;
+        case Error::InputFile:
+            printf("Cannot open input file.\n");
+            break;
 
-    case Error::OutputFile:
-        printf("Cannot create output file.\n");
-        break;
+        case Error::OutputFile:
+            printf("Cannot create output file.\n");
+            break;
 
-    case Error::Compression:
-        printf("Compression failed.");
-        break;
+        case Error::Compression:
+            printf("Compression failed.");
+            break;
     }
 }
 
 int main(int argCount, char** args)
 {
-    std::map<std::string, uint32_t> options =
+    static const std::map<std::string, uint32_t> options =
     {
-        {"-lzs", Format::AlignedLZSS},
+        {"-lzs", Format::Aligned_LZSS},
         {"-e1e1", Format::Elias1_Elias1},
-        {"-e1x1", Format::Elias1_ExtElias1},
+        {"-e1x1", Format::Elias1_Elias1_X},
+        {"-e1r1", Format::Elias1_Elias1_R},
         {"-ue2", Format::Unary_Elias2},
         {"-r", Format::FlagReverse},
         {"-e", Format::FlagAddEndMarker},
@@ -52,12 +53,13 @@ int main(int argCount, char** args)
     {
         printf("\nUsage: bzpack.exe <input.bin> <output.bzp> [-lzs|-e1e1|-e1x1|-ue2] [-e] [-o] [-l]\n");
         printf("\nOptions:\n\n");
-        printf("-lzs: Byte-aligned LZSS. 7-bit block lengths, 8-bit offsets.\n");
-        printf("-e1e1: Elias 1..N literal lengths, Elias 1..N phrase lengths, 8-bit offsets (default).\n");
-        printf("-e1x1: Elias 1..N literal lengths, Elias 1..N (extended) phrase lengths, 8-bit offsets.\n");
-        printf("-ue2: Unary literal lengths, Elias 2..N phrase lengths, 8-bit offsets.\n");
+        printf("-lzs: Byte-aligned LZSS. 7-bit block length, 8-bit offset.\n");
+        printf("-e1e1: Elias 1..N literal length, Elias 1..N phrase length, 8-bit offset (default).\n");
+        printf("-e1x1: Elias 1..N literal length, Elias 1..N phrase length, 8-bit (or extended) offset.\n");
+        printf("-e1r1: Elias 1..N literal length, Elias 1..N phrase length, 8-bit (or reused) offset.\n");
+        printf("-ue2: Unary literal length, Elias 2..N phrase length, 8-bit offset.\n");
         printf("-r: Compress in reverse order.\n");
-        printf("-e: Append end of stream marker.\n");
+        printf("-e: Add end of stream marker.\n");
         printf("-o: Extend maximum window offset by 1.\n");
         printf("-l: Extend maximum block length by 1.\n");
         return 0;

@@ -7,15 +7,14 @@
 
 bool DecodeLZS(BitStream& packedStream, uint32_t format, size_t inputSize, std::vector<uint8_t>& outputStream)
 {
-    bool testEndMarker = (inputSize == 0);
-    bool extendOffset = (format & Format::FlagExtendOffset);
-    bool extendLength = (format & Format::FlagExtendLength);
-    format &= Format::Mask;
-
-    if (format != Format::AlignedLZSS)
+    if ((format & Format::Mask) != Format::Aligned_LZSS)
     {
         return false;
     }
+
+    bool checkEndMarker = (inputSize == 0);
+    bool extendOffset = (format & Format::FlagExtendOffset);
+    bool extendLength = (format & Format::FlagExtendLength);
 
     outputStream.clear();
     packedStream.ReadReset();
@@ -24,7 +23,7 @@ bool DecodeLZS(BitStream& packedStream, uint32_t format, size_t inputSize, std::
     {
         size_t length = packedStream.ReadByte();
 
-        if (testEndMarker && length == 0)
+        if (checkEndMarker && length == 0)
         {
             break;
         }
@@ -52,7 +51,7 @@ bool DecodeLZS(BitStream& packedStream, uint32_t format, size_t inputSize, std::
             }
         }
 
-        if (!testEndMarker && outputStream.size() >= inputSize)
+        if (!checkEndMarker && outputStream.size() >= inputSize)
         {
             break;
         }
@@ -63,14 +62,13 @@ bool DecodeLZS(BitStream& packedStream, uint32_t format, size_t inputSize, std::
 
 bool DecodeE1E1(BitStream& packedStream, uint32_t format, size_t inputSize, std::vector<uint8_t>& outputStream)
 {
-    bool testEndMarker = (inputSize == 0);
-    bool extendOffset = (format & Format::FlagExtendOffset);
-    format &= Format::Mask;
-
-    if (format != Format::Elias1_Elias1)
+    if ((format & Format::Mask) != Format::Elias1_Elias1)
     {
         return false;
     }
+
+    bool checkEndMarker = (inputSize == 0);
+    bool extendOffset = (format & Format::FlagExtendOffset);
 
     outputStream.clear();
     packedStream.ReadReset();
@@ -79,7 +77,7 @@ bool DecodeE1E1(BitStream& packedStream, uint32_t format, size_t inputSize, std:
     {
         size_t length = DecodeElias1(packedStream);
 
-        if (testEndMarker && length > 255)
+        if (checkEndMarker && length > 255)
         {
             break;
         }
@@ -102,7 +100,7 @@ bool DecodeE1E1(BitStream& packedStream, uint32_t format, size_t inputSize, std:
             }
         }
 
-        if (!testEndMarker && outputStream.size() >= inputSize)
+        if (!checkEndMarker && outputStream.size() >= inputSize)
         {
             break;
         }
@@ -113,26 +111,25 @@ bool DecodeE1E1(BitStream& packedStream, uint32_t format, size_t inputSize, std:
 
 bool DecodeE1X1(BitStream& packedStream, uint32_t format, size_t inputSize, std::vector<uint8_t>& outputStream)
 {
-    bool testEndMarker = (inputSize == 0);
-    bool extendOffset = (format & Format::FlagExtendOffset);
-    format &= Format::Mask;
-
-    if (format != Format::Elias1_ExtElias1)
+    if ((format & Format::Mask) != Format::Elias1_Elias1_X)
     {
         return false;
     }
 
+    bool checkEndMarker = (inputSize == 0);
+    bool extendOffset = (format & Format::FlagExtendOffset);
+
     outputStream.clear();
     packedStream.ReadReset();
 
-    uint32_t offsetBit;
     bool outputLiteral = false;
 
     while (true)
     {
+        uint32_t offsetBit = 0;
         size_t length = DecodeElias1(packedStream);
 
-        if (testEndMarker && length > 255)
+        if (checkEndMarker && length > 255)
         {
             break;
         }
@@ -145,7 +142,6 @@ bool DecodeE1X1(BitStream& packedStream, uint32_t format, size_t inputSize, std:
         else
         {
             outputLiteral = packedStream.ReadBit();
-            offsetBit = 0;
         }
 
         if (outputLiteral)
@@ -166,7 +162,72 @@ bool DecodeE1X1(BitStream& packedStream, uint32_t format, size_t inputSize, std:
             }
         }
 
-        if (!testEndMarker && outputStream.size() >= inputSize)
+        if (!checkEndMarker && outputStream.size() >= inputSize)
+        {
+            break;
+        }
+    }
+
+    return true;
+}
+
+bool DecodeE1R1(BitStream& packedStream, uint32_t format, size_t inputSize, std::vector<uint8_t>& outputStream)
+{
+    if ((format & Format::Mask) != Format::Elias1_Elias1_R)
+    {
+        return false;
+    }
+
+    bool checkEndMarker = (inputSize == 0);
+    bool extendOffset = (format & Format::FlagExtendOffset);
+
+    outputStream.clear();
+    packedStream.ReadReset();
+
+    size_t prevOffset = 0;
+    bool outputLiteral = false;
+
+    while (true)
+    {
+        bool reuseOffset = false;
+        size_t length = DecodeElias1(packedStream);
+
+        if (checkEndMarker && length > 255)
+        {
+            break;
+        }
+
+        if (outputLiteral)
+        {
+            outputLiteral = false;
+            reuseOffset = packedStream.ReadBit();
+        }
+        else
+        {
+            outputLiteral = packedStream.ReadBit();
+            reuseOffset = false;
+        }
+
+        if (outputLiteral)
+        {
+            for (size_t i = 0; i < length; i++)
+            {
+                outputStream.push_back(packedStream.ReadByte());
+            }
+        }
+        else
+        {
+            size_t offset = reuseOffset ? prevOffset : packedStream.ReadByte();
+            prevOffset = offset;
+            if (extendOffset) offset++;
+
+            for (size_t i = 0; i <= length; i++)
+            {
+                outputStream.push_back(outputStream[outputStream.size() - offset]);
+            }
+        }
+
+        if (!checkEndMarker && outputStream.size() >= inputSize)
         {
             break;
         }
@@ -177,14 +238,13 @@ bool DecodeE1X1(BitStream& packedStream, uint32_t format, size_t inputSize, std:
 
 bool DecodeUE2(BitStream& packedStream, uint32_t format, size_t inputSize, std::vector<uint8_t>& outputStream)
 {
-    bool testEndMarker = (inputSize == 0);
-    bool extendOffset = (format & Format::FlagExtendOffset);
-    format &= Format::Mask;
-
-    if (format != Format::Unary_Elias2)
+    if ((format & Format::Mask) != Format::Unary_Elias2)
     {
         return false;
     }
+
+    bool checkEndMarker = (inputSize == 0);
+    bool extendOffset = (format & Format::FlagExtendOffset);
 
     outputStream.clear();
     packedStream.ReadReset();
@@ -199,7 +259,7 @@ bool DecodeUE2(BitStream& packedStream, uint32_t format, size_t inputSize, std::
         {
             size_t length = DecodeElias2(packedStream);
 
-            if (testEndMarker && length > 255)
+            if (checkEndMarker && length > 255)
             {
                 break;
             }
@@ -213,7 +273,7 @@ bool DecodeUE2(BitStream& packedStream, uint32_t format, size_t inputSize, std::
             }
         }
 
-        if (!testEndMarker && outputStream.size() >= inputSize)
+        if (!checkEndMarker && outputStream.size() >= inputSize)
         {
             break;
         }
@@ -229,21 +289,25 @@ bool Decompress(BitStream& packedStream, uint32_t format, size_t inputSize, std:
 
     switch (format & Format::Mask)
     {
-    case Format::AlignedLZSS:
-        success = DecodeLZS(packedStream, format, inputSize, outputStream);
-        break;
+        case Format::Aligned_LZSS:
+            success = DecodeLZS(packedStream, format, inputSize, outputStream);
+            break;
 
-    case Format::Elias1_Elias1:
-        success = DecodeE1E1(packedStream, format, inputSize, outputStream);
-        break;
+        case Format::Elias1_Elias1:
+            success = DecodeE1E1(packedStream, format, inputSize, outputStream);
+            break;
 
-    case Format::Elias1_ExtElias1:
-        success = DecodeE1X1(packedStream, format, inputSize, outputStream);
-        break;
+        case Format::Elias1_Elias1_X:
+            success = DecodeE1X1(packedStream, format, inputSize, outputStream);
+            break;
 
-    case Format::Unary_Elias2:
-        success = DecodeUE2(packedStream, format, inputSize, outputStream);
-        break;
+        case Format::Elias1_Elias1_R:
+            success = DecodeE1R1(packedStream, format, inputSize, outputStream);
+            break;
+
+        case Format::Unary_Elias2:
+            success = DecodeUE2(packedStream, format, inputSize, outputStream);
+            break;
     }
 
     if (!success)

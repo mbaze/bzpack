@@ -64,10 +64,10 @@ LoadOffset	push	hl
 		ld	l,(hl)
 		ld	b,0
 		ld	h,b
-ReuseOffset	push	hl
+		push	hl
 		add	hl,de
 ;		inc	hl		; Option to increase offset to 256.
-		inc	c
+ReuseOffset	inc	c
 CopyBytes	lddr
 		inc	c
 		jr	c,NextBit

@@ -43,7 +43,7 @@ CopyBytes	lddr
 		dec	hl
 		djnz	NextBit		; Set B = 255 to indicate phrase.
 
-; Shorter version (38 bytes excluding initialization) but it doesn't preserve SP.
+; Address reuser (38 bytes excluding initialization) but it doesn't preserve SP.
 
 EliasLength	add	a,a
 		rl	c
@@ -59,14 +59,14 @@ NoFetch		jr	c,EliasLength
 		inc	b		; Was it a phrase?
 		jr	z,CopyBytes
 		ex	(sp),hl
-		jr	ReuseOffset
+		jr	ReuseAddress
 LoadOffset	push	hl
 		ld	l,(hl)
 		ld	b,0
 		ld	h,b
 		add	hl,de
 ;		inc	hl		; Option to increase offset to 256.
-ReuseOffset	push	hl
+ReuseAddress	push	hl
 		inc	c
 CopyBytes	lddr
 		inc	c

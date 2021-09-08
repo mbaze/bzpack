@@ -20,15 +20,14 @@ NextBit		add	a,a
 		dec	hl
 		rla
 NoFetch		jr	c,EliasLength
+		push	hl
 		rla
 		jr	nc,LoadOffset
 		inc	b		; Was it a phrase?
 		jr	z,CopyBytes
-		push	hl
 		ex	af,af'
 		jr	ReuseOffset
-LoadOffset	push	hl
-		ex	af,af'
+LoadOffset	ex	af,af'
 		ld	a,(hl)
 ReuseOffset	ld	l,a
 		ex	af,af'
@@ -38,8 +37,8 @@ ReuseOffset	ld	l,a
 ;		inc	hl		; Option to increase offset to 256.
 		inc	c
 CopyBytes	lddr
+		pop	hl
 		inc	c
 		jr	c,NextBit
-		pop	hl
 		dec	hl
 		djnz	NextBit		; Set B = 255 to indicate phrase.

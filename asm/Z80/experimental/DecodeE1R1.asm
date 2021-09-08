@@ -1,7 +1,7 @@
 ; Copyright (c) 2021, Milos "baze" Bazelides
 ; This code is released under the terms of the BSD 2-Clause License.
 
-; E1R1 decoder (39 bytes excluding initialization).
+; E1R1 decoder (40 bytes excluding initialization).
 
 ; The decoder assumes reverse order. We can omit the end of stream
 ; marker if we let the last literal overwrite opcodes after LDDR.
@@ -24,6 +24,7 @@ NoFetch		jr	c,EliasLength
 		jr	nc,LoadOffset
 		inc	b		; Was it a phrase?
 		jr	z,CopyBytes
+		push	hl
 		ex	af,af'
 		jr	ReuseOffset
 LoadOffset	push	hl

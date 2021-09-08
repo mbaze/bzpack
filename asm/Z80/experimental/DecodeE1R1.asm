@@ -42,36 +42,3 @@ CopyBytes	lddr
 		pop	hl
 		dec	hl
 		djnz	NextBit		; Set B = 255 to indicate phrase.
-
-; Address reuser (38 bytes excluding initialization) but it doesn't preserve SP.
-
-EliasLength	add	a,a
-		rl	c
-;		ret	c		; Option to include the end of stream marker.
-NextBit		add	a,a
-		jr	nz,NoFetch
-		ld	a,(hl)
-		dec	hl
-		rla
-NoFetch		jr	c,EliasLength
-		rla
-		jr	nc,LoadOffset
-		inc	b		; Was it a phrase?
-		jr	z,CopyBytes
-		ex	(sp),hl
-		jr	ReuseAddress
-LoadOffset	push	hl
-		ld	l,(hl)
-		ld	b,0
-		ld	h,b
-		add	hl,de
-;		inc	hl		; Option to increase offset to 256.
-ReuseAddress	push	hl
-		inc	c
-CopyBytes	lddr
-		inc	c
-		jr	c,NextBit
-		pop	hl
-		ex	(sp),hl		; (SP) = last offset
-		dec	hl
-		djnz	NextBit		; Set B = 255 to indicate phrase.

@@ -6,27 +6,28 @@
 
 #include "BitStream.h"
 
-enum Format: uint32_t
+enum FormatId
 {
-    Default,
     Aligned_LZSS,
-    Elias1_Elias1,
-    Elias1_Elias1_X,
-    Elias1_Elias1_R,
+    Elias1,
+    Elias1_ZX,
+    Elias1_Ext,
+    Elias1_Rep,
     Unary_Elias2,
-
-    // Some formats support tweaks, e.g. shorter decoder vs. bigger offset.
-
-    FlagReverse = 0x80000000,
-    FlagAddEndMarker = 0x40000000,
-    FlagExtendOffset = 0x20000000,
-    FlagExtendLength = 0x10000000,
-    Mask = 0x0FFFFFFF
 };
 
-bool Compress(uint8_t* pInputStream, size_t inputSize, uint32_t format, BitStream& packedStream);
+struct FormatOptions
+{
+    uint8_t Id: 4;
+    uint8_t Reverse: 1;
+    uint8_t AddEndMarker: 1;
+    uint8_t ExtendOffset: 1;
+    uint8_t ExtendLength: 1;
+};
 
-// Zero inputSize tells the decompressor to expect end of stream marker.
-bool Decompress(BitStream& packedStream, uint32_t format, size_t inputSize, std::vector<uint8_t>& outputStream);
+bool Compress(uint8_t* pInputStream, size_t inputSize, FormatOptions format, BitStream& packedStrem);
+
+// Zero inputSize signals the decompressor to expect end of stream marker.
+bool Decompress(BitStream& packedStream, FormatOptions format, size_t inputSize, std::vector<uint8_t>& outputStream);
 
 #endif // COMPRESSOR_H

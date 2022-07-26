@@ -5,16 +5,14 @@
 #include "Compressor.h"
 #include "UniversalCodes.h"
 
-bool DecodeLZS(BitStream& packedStream, uint32_t format, size_t inputSize, std::vector<uint8_t>& outputStream)
+bool DecodeLZS(BitStream& packedStream, FormatOptions format, size_t inputSize, std::vector<uint8_t>& outputStream)
 {
-    if ((format & Format::Mask) != Format::Aligned_LZSS)
+    if (format.Id != FormatId::Aligned_LZSS)
     {
         return false;
     }
 
     bool checkEndMarker = (inputSize == 0);
-    bool extendOffset = (format & Format::FlagExtendOffset);
-    bool extendLength = (format & Format::FlagExtendLength);
 
     outputStream.clear();
     packedStream.ReadReset();
@@ -31,7 +29,7 @@ bool DecodeLZS(BitStream& packedStream, uint32_t format, size_t inputSize, std::
         bool isLiteral = (length & 1);
 
         length >>= 1;
-        if (extendLength) length++;
+        if (format.ExtendLength) length++;
 
         if (isLiteral)
         {
@@ -43,7 +41,7 @@ bool DecodeLZS(BitStream& packedStream, uint32_t format, size_t inputSize, std::
         else
         {
             size_t offset = packedStream.ReadByte();
-            if (extendOffset) offset++;
+            if (format.ExtendOffset) offset++;
 
             for (size_t i = 0; i < length; i++)
             {
@@ -60,15 +58,14 @@ bool DecodeLZS(BitStream& packedStream, uint32_t format, size_t inputSize, std::
     return true;
 }
 
-bool DecodeE1E1(BitStream& packedStream, uint32_t format, size_t inputSize, std::vector<uint8_t>& outputStream)
+bool DecodeE1(BitStream& packedStream, FormatOptions format, size_t inputSize, std::vector<uint8_t>& outputStream)
 {
-    if ((format & Format::Mask) != Format::Elias1_Elias1)
+    if (format.Id != FormatId::Elias1)
     {
         return false;
     }
 
     bool checkEndMarker = (inputSize == 0);
-    bool extendOffset = (format & Format::FlagExtendOffset);
 
     outputStream.clear();
     packedStream.ReadReset();
@@ -92,7 +89,7 @@ bool DecodeE1E1(BitStream& packedStream, uint32_t format, size_t inputSize, std:
         else
         {
             size_t offset = packedStream.ReadByte();
-            if (extendOffset) offset++;
+            if (format.ExtendOffset) offset++;
 
             for (size_t i = 0; i <= length; i++)
             {
@@ -109,15 +106,55 @@ bool DecodeE1E1(BitStream& packedStream, uint32_t format, size_t inputSize, std:
     return true;
 }
 
-bool DecodeE1X1(BitStream& packedStream, uint32_t format, size_t inputSize, std::vector<uint8_t>& outputStream)
+bool DecodeE1ZX(BitStream& packedStream, FormatOptions format, size_t inputSize, std::vector<uint8_t>& outputStream)
 {
-    if ((format & Format::Mask) != Format::Elias1_Elias1_X)
+    if (format.Id != FormatId::Elias1_ZX)
+    {
+        return false;
+    }
+
+    outputStream.clear();
+    packedStream.ReadReset();
+
+    while (true)
+    {
+        size_t length = DecodeElias1Neg(packedStream);
+
+        if (packedStream.ReadBitNeg())
+        {
+            for (size_t i = 0; i < length; i++)
+            {
+                outputStream.push_back(packedStream.ReadByte());
+            }
+        }
+        else
+        {
+            size_t offset = packedStream.ReadByte();
+            if (format.ExtendOffset) offset++;
+
+            for (size_t i = 0; i <= length; i++)
+            {
+                outputStream.push_back(outputStream[outputStream.size() - offset]);
+            }
+        }
+
+        if (outputStream.size() >= inputSize)
+        {
+            break;
+        }
+    }
+
+    return true;
+}
+
+bool DecodeE1X(BitStream& packedStream, FormatOptions format, size_t inputSize, std::vector<uint8_t>& outputStream)
+{
+    if (format.Id != FormatId::Elias1_Ext)
     {
         return false;
     }
 
     bool checkEndMarker = (inputSize == 0);
-    bool extendOffset = (format & Format::FlagExtendOffset);
 
     outputStream.clear();
     packedStream.ReadReset();
@@ -154,7 +191,7 @@ bool DecodeE1X1(BitStream& packedStream, uint32_t format, size_t inputSize, std:
         else
         {
             size_t offset = offsetBit | packedStream.ReadByte();
-            if (extendOffset) offset++;
+            if (format.ExtendOffset) offset++;
 
             for (size_t i = 0; i <= length; i++)
             {
@@ -171,15 +208,14 @@ bool DecodeE1X1(BitStream& packedStream, uint32_t format, size_t inputSize, std:
     return true;
 }
 
-bool DecodeE1R1(BitStream& packedStream, uint32_t format, size_t inputSize, std::vector<uint8_t>& outputStream)
+bool DecodeE1R(BitStream& packedStream, FormatOptions format, size_t inputSize, std::vector<uint8_t>& outputStream)
 {
-    if ((format & Format::Mask) != Format::Elias1_Elias1_R)
+    if (format.Id != FormatId::Elias1_Rep)
     {
         return false;
     }
 
     bool checkEndMarker = (inputSize == 0);
-    bool extendOffset = (format & Format::FlagExtendOffset);
 
     outputStream.clear();
     packedStream.ReadReset();
@@ -219,7 +255,7 @@ bool DecodeE1R1(BitStream& packedStream, uint32_t format, size_t inputSize, std:
         {
             size_t offset = reuseOffset ? prevOffset : packedStream.ReadByte();
             prevOffset = offset;
-            if (extendOffset) offset++;
+            if (format.ExtendOffset) offset++;
 
             for (size_t i = 0; i <= length; i++)
             {
@@ -236,15 +272,14 @@ bool DecodeE1R1(BitStream& packedStream, uint32_t format, size_t inputSize, std:
     return true;
 }
 
-bool DecodeUE2(BitStream& packedStream, uint32_t format, size_t inputSize, std::vector<uint8_t>& outputStream)
+bool DecodeUE2(BitStream& packedStream, FormatOptions format, size_t inputSize, std::vector<uint8_t>& outputStream)
 {
-    if ((format & Format::Mask) != Format::Unary_Elias2)
+    if (format.Id != FormatId::Unary_Elias2)
     {
         return false;
     }
 
     bool checkEndMarker = (inputSize == 0);
-    bool extendOffset = (format & Format::FlagExtendOffset);
 
     outputStream.clear();
     packedStream.ReadReset();
@@ -265,7 +300,7 @@ bool DecodeUE2(BitStream& packedStream, uint32_t format, size_t inputSize, std::
             }
 
             size_t offset = packedStream.ReadByte();
-            if (extendOffset) offset++;
+            if (format.ExtendOffset) offset++;
 
             for (size_t i = 0; i < length; i++)
             {
@@ -282,30 +317,34 @@ bool DecodeUE2(BitStream& packedStream, uint32_t format, size_t inputSize, std::
     return true;
 }
 
-bool Decompress(BitStream& packedStream, uint32_t format, size_t inputSize, std::vector<uint8_t>& outputStream)
+bool Decompress(BitStream& packedStream, FormatOptions format, size_t inputSize, std::vector<uint8_t>& outputStream)
 {
     bool success = false;
     outputStream.clear();
 
-    switch (format & Format::Mask)
+    switch (format.Id)
     {
-        case Format::Aligned_LZSS:
+        case FormatId::Aligned_LZSS:
             success = DecodeLZS(packedStream, format, inputSize, outputStream);
             break;
 
-        case Format::Elias1_Elias1:
-            success = DecodeE1E1(packedStream, format, inputSize, outputStream);
+        case FormatId::Elias1:
+            success = DecodeE1(packedStream, format, inputSize, outputStream);
             break;
 
-        case Format::Elias1_Elias1_X:
-            success = DecodeE1X1(packedStream, format, inputSize, outputStream);
+        case FormatId::Elias1_ZX:
+            success = DecodeE1ZX(packedStream, format, inputSize, outputStream);
             break;
 
-        case Format::Elias1_Elias1_R:
-            success = DecodeE1R1(packedStream, format, inputSize, outputStream);
+        case FormatId::Elias1_Ext:
+            success = DecodeE1X(packedStream, format, inputSize, outputStream);
             break;
 
-        case Format::Unary_Elias2:
+        case FormatId::Elias1_Rep:
+            success = DecodeE1R(packedStream, format, inputSize, outputStream);
+            break;
+
+        case FormatId::Unary_Elias2:
             success = DecodeUE2(packedStream, format, inputSize, outputStream);
             break;
     }
@@ -315,7 +354,7 @@ bool Decompress(BitStream& packedStream, uint32_t format, size_t inputSize, std:
         return false;
     }
 
-    if (format & Format::FlagReverse)
+    if (format.Reverse)
     {
         std::reverse(outputStream.begin(), outputStream.end());
     }

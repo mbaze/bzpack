@@ -292,3 +292,43 @@ uint32_t DecodeRaw(BitStream& stream, uint32_t numBits)
 
     return value;
 }
+
+// These methods are only needed by the E1ZX format.
+
+void EncodeElias1Neg(BitStream& stream, uint32_t value)
+{
+    assert(value > 0);
+
+    uint32_t mask = ~1;
+    uint32_t count = 0;
+
+    while (value & mask)
+    {
+        count++;
+        mask <<= 1;
+    }
+
+    mask = 1 << count;
+    mask >>= 1;
+
+    while (mask)
+    {
+        stream.WriteBitNeg(1);
+        stream.WriteBitNeg(value & mask);
+        mask >>= 1;
+    }
+
+    stream.WriteBitNeg(0);
+}
+
+uint32_t DecodeElias1Neg(BitStream& stream)
+{
+    uint32_t value = 1;
+
+    while (stream.ReadBitNeg())
+    {
+        value = (value << 1) | stream.ReadBitNeg();
+    }
+
+    return value;
+}

@@ -29,4 +29,9 @@ uint32_t DecodeVbin(BitStream& stream);
 void EncodeRaw(BitStream& stream, uint32_t value, uint32_t bits);
 uint32_t DecodeRaw(BitStream& stream, uint32_t bits);
 
+// These methods are only needed by the E1ZX format.
+
+void EncodeElias1Neg(BitStream& stream, uint32_t value);
+uint32_t DecodeElias1Neg(BitStream& stream);
+
 #endif // UNIVERSAL_CODES_H

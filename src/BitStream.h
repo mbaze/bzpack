@@ -25,6 +25,13 @@ public:
     uint32_t ReadBit();
     uint8_t ReadByte();
 
+    // These methods are only needed by the E1ZX format.
+
+    void WriteBitNeg(bool value);
+    uint32_t ReadBitNeg();
+    void FlushBitsNeg();
+    bool IssueCarryWarning() const;
+
 private:
 
     std::vector<uint8_t> mBytes;
@@ -35,6 +42,8 @@ private:
     uint8_t mReadMask = 0;
     size_t mReadBitPos = 0;
     size_t mReadBytePos = 0;
+
+    bool mIssueCarryWarning = false;
 };
 
 #endif // BIT_STREAM_H

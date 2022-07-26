@@ -3,8 +3,8 @@
 
 ; LZS decoder (18 bytes excluding initialization).
 
-; The decoder assumes reverse order. We can omit the end of stream
-; marker if we let the last literal overwrite opcodes after LDDR.
+; The decoder assumes reverse order. The end of stream marker can be omitted
+; if we let the last literal overwrite opcodes after LDDR and let the code continue.
 
 		ld	hl,SrcAddr
 		ld	de,DstAddr

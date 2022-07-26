@@ -6,43 +6,42 @@
 #include "OptimalParser.h"
 #include "UniversalCodes.h"
 
-FormatLimits GetFormatLimits(uint32_t format, bool wasLiteral)
+FormatLimits GetFormatLimits(FormatOptions format, bool wasLiteral)
 {
     FormatLimits limits;
 
-    bool extendOffset = (format & Format::FlagExtendOffset);
-    bool extendLength = (format & Format::FlagExtendLength);
-
-    switch (format & Format::Mask)
+    switch (format.Id)
     {
-        case Format::Aligned_LZSS:
+        case FormatId::Aligned_LZSS:
 
+            // Allowing 2-byte phrases instead of 3-byte ones can result in small gain.
             limits.minMatchLength = 2;
-            limits.maxMatchOffset = extendOffset ? 256 : 255;
-            limits.maxMatchLength = extendLength ? 128 : 127;
-            limits.maxLiteralLength = extendLength ? 128 : 127;
+            limits.maxMatchOffset = format.ExtendOffset ? 256 : 255;
+            limits.maxMatchLength = format.ExtendLength ? 128 : 127;
+            limits.maxLiteralLength = format.ExtendLength ? 128 : 127;
             break;
 
-        case Format::Elias1_Elias1:
+        case FormatId::Elias1:
+        case FormatId::Elias1_ZX:
 
             limits.minMatchLength = 2;
-            limits.maxMatchOffset = extendOffset ? 256 : 255;
+            limits.maxMatchOffset = format.ExtendOffset ? 256 : 255;
             limits.maxMatchLength = 255;
             limits.maxLiteralLength = 255;
             break;
 
-        case Format::Elias1_Elias1_X:
+        case FormatId::Elias1_Ext:
 
             // This format doesn't allow consecutive literals.
 
             if (wasLiteral)
             {
-                limits.maxMatchOffset = extendOffset ? 512 : 511;
+                limits.maxMatchOffset = format.ExtendOffset ? 512 : 511;
                 limits.maxLiteralLength = 0;
             }
             else
             {
-                limits.maxMatchOffset = extendOffset ? 256 : 255;
+                limits.maxMatchOffset = format.ExtendOffset ? 256 : 255;
                 limits.maxLiteralLength = 255;
             }
 
@@ -50,7 +49,7 @@ FormatLimits GetFormatLimits(uint32_t format, bool wasLiteral)
             limits.maxMatchLength = 254;
             break;
 
-        case Format::Elias1_Elias1_R:
+        case FormatId::Elias1_Rep:
 
             // This format doesn't allow consecutive literals.
 
@@ -64,14 +63,14 @@ FormatLimits GetFormatLimits(uint32_t format, bool wasLiteral)
             }
 
             limits.minMatchLength = 2;
-            limits.maxMatchOffset = extendOffset ? 256 : 255;
+            limits.maxMatchOffset = format.ExtendOffset ? 256 : 255;
             limits.maxMatchLength = 254;
             break;
 
-        case Format::Unary_Elias2:
+        case FormatId::Unary_Elias2:
 
             limits.minMatchLength = 2;
-            limits.maxMatchOffset = extendOffset ? 256 : 255;
+            limits.maxMatchOffset = format.ExtendOffset ? 256 : 255;
             limits.maxMatchLength = 255;
             limits.maxLiteralLength = UINT32_MAX;
             break;
@@ -83,47 +82,47 @@ FormatLimits GetFormatLimits(uint32_t format, bool wasLiteral)
     return limits;
 }
 
-uint32_t GetLiteralCost(uint32_t format, uint32_t length)
+uint32_t GetLiteralCost(FormatOptions format, uint32_t length)
 {
-    format &= Format::Mask;
-
-    switch (format)
+    switch (format.Id)
     {
-        case Format::Aligned_LZSS:
+        case FormatId::Aligned_LZSS:
             return 8 + 8 * length;
 
-        case Format::Elias1_Elias1:
-        case Format::Elias1_Elias1_X:
-        case Format::Elias1_Elias1_R:
+        case FormatId::Elias1:
+        case FormatId::Elias1_ZX:
+        case FormatId::Elias1_Ext:
+        case FormatId::Elias1_Rep:
             return GetElias1Cost(length) + 1 + 8 * length;
 
-        case Format::Unary_Elias2:
+        case FormatId::Unary_Elias2:
             return (1 + 8) * length;
     }
 
     return UINT32_MAX;
 }
 
-uint32_t GetMatchCost(uint32_t format, uint32_t offset, uint32_t length, uint32_t lastOffset)
+uint32_t GetMatchCost(FormatOptions format, uint32_t offset, uint32_t length, uint32_t lastOffset)
 {
-    switch (format & Format::Mask)
+    switch (format.Id)
     {
-        case Format::Aligned_LZSS:
+        case FormatId::Aligned_LZSS:
             return 8 + 8;
 
-        case Format::Elias1_Elias1:
+        case FormatId::Elias1:
+        case FormatId::Elias1_ZX:
             return GetElias1Cost(length) + 1 + 8;
 
-        case Format::Elias1_Elias1_X:
+        case FormatId::Elias1_Ext:
             return GetElias1Cost(length & 255) + 1 + 8;
 
-        case Format::Elias1_Elias1_R:
+        case FormatId::Elias1_Rep:
         {
             uint32_t cost = GetElias1Cost(length) + 1;
             return (offset == lastOffset) ? cost : cost + 8;
         }
 
-        case Format::Unary_Elias2:
+        case FormatId::Unary_Elias2:
             return 1 + GetElias2Cost(length) + 8;
     }
 
@@ -159,7 +158,7 @@ void FindMatches(std::vector<StreamRef>& matches, const uint8_t* pInputStream, s
     }
 }
 
-bool Parse(const uint8_t* pInputStream, size_t inputSize, uint32_t format, std::vector<StreamRef>& refs)
+bool Parse(const uint8_t* pInputStream, size_t inputSize, FormatOptions format, std::vector<StreamRef>& refs)
 {
     if (pInputStream == nullptr || inputSize == 0)
     {

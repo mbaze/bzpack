@@ -1,6 +1,6 @@
 # bzpack
 
-Bzpack is a data compression utility which targets retrocomputing and demoscene enthusiasts. Given the artificially imposed size limits on programs like 256 B, 512 B or 1 KiB intros, the ability to implement a short decoder is nearly as important as the efficiency of the compression format itself. Bzpack doesn’t claim to be a state-of-the-art, general purpose packer. The goal is to achieve acceptable trade-off between simplicity and efficiency in order to minimize the overall program size. Special consideration was given to vintage computing platform Sinclair ZX Spectrum.
+Bzpack is a data compression utility aimed at retrocomputing and demoscene enthusiasts. Given the artificially imposed size limits on programs like 256-byte, 512-byte or 1 KiB intros, the ability to implement a short decoder is nearly as important as the efficiency of the compression format itself. Bzpack doesn’t claim to be a state-of-the-art, general-purpose packer (like, for instance, Einar Saukas' excellent https://github.com/einar-saukas/ZX0). The goal is to achieve acceptable trade-off between simplicity and efficiency in order to minimize the overall program size. Special consideration was given to vintage computing platform Sinclair ZX Spectrum.
 
 ## Format Overview
 
@@ -8,13 +8,13 @@ All currently supported formats are based on the Lempel–Ziv–Storer–Szymans
 1. Strings of uncompressed bytes (literals).
 2. Reusable byte sequences represented as offset-length pairs (phrases).
 
-The way literals and phrases are encoded is different for every format and the resulting efficiency also depends on the nature of input data. Therefore, it's best to try multiple options.
+The way literals and phrases are encoded is different for every format and the efficiency also depends on the nature of input data. Therefore it's best to try multiple options and find the best fit.
 
 ### A Note on Elias-Gamma Encoding
 
-The canonical form of Elias-Gamma code consists of *N* zeroes followed by a *(N + 1)*-bit binary number. For instance, the number 12 is encoded as 000**1100**. In his paper "Universal codeword sets and representations of the integers", Peter Elias also devised an alternative form in which the bits are interleaved: **1**0**1**0**0**0**0**.
+The canonical form of Elias-Gamma code consists of *N* zeroes followed by a *(N + 1)*-bit binary number. For instance, the number 12 is encoded as 000**1100**. In his paper "Universal codeword sets and representations of the integers", Peter Elias devised also an alternative form in which the bits are interleaved: **1**0**1**0**0**0**0**.
 
-Assuming that the most significant bit is implicit, the interleaved zeroes can be seen as 1-bit flags that indicate whether another significant bit follows. This interleaved form lends itself to a very efficient decoder implementation. Bzpack borrows this approach but the flags are inverted. Therefore, the actual code for number 12 would be 1**1**1**0**1**0**0, that is:
+Assuming that the most significant bit is implicit, the interleaved zeroes can be seen as 1-bit flags which indicate whether another significant bit follows. This interleaved form lends itself to an efficient decoder implementation in assembly language. Bzpack borrows this approach excapt that the flags are inverted. Therefore, the actual code for number 12 would be 1**1**1**0**1**0**0. That means:
 
 * The most significant bit is not stored.
 * Subsequent significant bits are preceded by 1 indicating their presence.
@@ -44,7 +44,7 @@ Offset Elias-Gamma code 2..N:
 7: 1110
 8: 010100
 ```
-Subsequent descriptions use the symbols *E1* for Elias-Gamma code 1..N and *E2* for Elias-Gamma code 2..N.
+In the following text symbol *E1* denotes Elias-Gamma code 1..N and *E2* denotes Elias-Gamma code 2..N.
 
 ## Format Description
 
@@ -56,7 +56,7 @@ The LZS is a straightforward byte-aligned format which is interpreted as follows
 * `ccccccc0`, `ffffffff` – Copy `ccccccc` bytes from the offset `ffffffff` relative to the current output position.
 * `00000000` or `00000001` – End of stream.
 
-The compression ratio is decent but certainly not spectacular. However, the decoder is very short and this advantage becomes apparent at the extreme end of the scale, e.g. while coding 256 B intros.
+The compression ratio is decent but certainly not spectacular. However, the decoder is very short and this advantage becomes apparent at the extreme end of the scale, e.g. while coding 256-byte intros.
 
 Supported options:
 
@@ -81,7 +81,11 @@ Supported options:
 
 ### E1ZX
 
-E1ZX is an optimized form E1 targeted specifically for Sinclair ZX Spectrum. The stream is exactly the same size but certain values are stored as their two's complements. This enables optimization of the decompressor's initialization sequence, resulting in even shorter routine. The total size (stream + decompressor) rivals that of LZS's at the extreme end of the scale.
+E1ZX is an optimized form of E1 which specifically targets Sinclair ZX Spectrum. The stream is exactly the same length but certain values are stored as their two's complements. This allows optimization of the decompressor's initialization sequence, resulting in even shorter code. The total program size (stream + decompressor) usually rivals that of LZS's at the extreme end of the scale.
+
+Supported options:
+
+* Offset increment (1..256 instead of 1..255).
 
 ### E1X
 

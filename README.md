@@ -1,6 +1,6 @@
 # bzpack
 
-Bzpack is a data compression utility aimed at retrocomputing and demoscene enthusiasts. Given the artificially imposed size limits on programs like 256-byte, 512-byte or 1 KiB intros, the ability to implement a short decoder is nearly as important as the efficiency of the compression format itself. Bzpack doesn’t claim to be a state-of-the-art, general-purpose packer (like, for instance, Einar Saukas' excellent [ZX0](https://github.com/einar-saukas/ZX0)). The goal is to achieve acceptable trade-off between simplicity and efficiency in order to minimize the overall program size. Special consideration was given to vintage computing platform Sinclair ZX Spectrum.
+Bzpack is a data compression utility aimed at retrocomputing and demoscene enthusiasts. Given the artificially imposed size limits on programs like 256-byte, 512-byte or 1 KiB intros, the ability to implement a short decoder is nearly as important as the efficiency of the compression format itself. Bzpack doesn’t claim to be a state-of-the-art, general-purpose packer like Einar Saukas' excellent [ZX0](https://github.com/einar-saukas/ZX0). The goal is to achieve acceptable trade-off between simplicity and efficiency in order to minimize the overall program length. Special consideration was given to vintage computing platform Sinclair ZX Spectrum.
 
 ## Format Overview
 
@@ -122,7 +122,7 @@ After a phrase:
 * `E1`, `0`, `ffffffff` – Copy `E1 + 1` bytes from the offset `ffffffff` relative to the current output position.
 * `E1`, `1` – Copy the next `E1` bytes to the output.
 
-The compression algorithm will fail in the unlikely case of a literal exceeding the length of 255. Overall, E1R appears to be a slight improvement over E1X if there's structured data such as sprites or unrolled loops.
+The compression algorithm will fail in the unlikely case of a literal exceeding the length of 255. Overall, E1R appears to be an improvement over E1X if there's structured data such as sprites or unrolled loops.
 
 Supported options:
 

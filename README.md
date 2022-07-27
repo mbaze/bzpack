@@ -64,9 +64,9 @@ Supported options:
 * Size increment (1..128 instead of 1..127).
 * End of stream marker.
 
-### E1E1
+### E1
 
-The E1E1 format encodes literals as byte sequences preceded by *E1* number denoting the block length. Phrases are stored as *E1* length combined with plain 8-bit offset. Each *E1* code is followed by 1-bit flag indicating the block type.
+The E1 format encodes literals as byte sequences preceded by *E1* number denoting the block length. Phrases are stored as *E1* length combined with plain 8-bit offset. Each *E1* code is followed by 1-bit flag indicating the block type.
 
 * `E1`, `1` – Copy the next `E1` bytes to the output.
 * `E1`, `0`, `ffffffff` – Copy `E1 + 1` bytes from the offset `ffffffff` relative to the current output position.
@@ -79,9 +79,13 @@ Supported options:
 * Offset increment (1..256 instead of 1..255).
 * End of stream marker.
 
-### E1X1
+### E1ZX
 
-The E1X1 format is similar to E1E1. However, in this format there can be no consecutive literals which means that only a phrase (or end of stream) can follow a literal. The "spare" flag after a literal acts as additional offset bit (although inverted). The format is interpreted as follows:
+E1ZX is an optimized form E1 targeted specifically for Sinclair ZX Spectrum. The stream is exactly the same size but certain values are stored as their two's complements. This enables optimization of the decompressor's initialization sequence, resulting in even shorter routine. The total size (stream + decompressor) rivals that of LZS's at the extreme end of the scale.
+
+### E1X
+
+The E1X format is similar to E1. However, in this format there can be no consecutive literals which means that only a phrase (or end of stream) can follow a literal. The "spare" flag after a literal acts as additional offset bit (although inverted). The format is interpreted as follows:
 
 After a literal:
 
@@ -93,16 +97,16 @@ After a phrase:
 * `E1`, `0`, `ffffffff` – Copy `E1 + 1` bytes from the offset `0ffffffff` relative to the current output position.
 * `E1`, `1` – Copy the next `E1` bytes to the output.
 
-The limitation of this method is that the compression algorithm will fail if there's a literal exceeding the length of 255. However, this is unlikely and E1X1 usually outperforms E1E1 enough to justify its slightly longer decoder.
+The limitation of this method is that the compression algorithm will fail if there's a literal exceeding the length of 255. However, this is unlikely and E1X usually outperforms E1 enough to justify its slightly longer decoder.
 
 Supported options:
 
 * Offset increment (1..256 / 1..512 instead of 1..255 / 1..511).
 * End of stream marker.
 
-### E1R1
+### E1R
 
-The E1R1 format is another variation of E1E1 that makes the assumption of no consecutive literals. After each literal there's a flag which tells the decoder either to load a new offset or to reuse the most recent offset.
+The E1R format is another variation of E1 that makes the assumption of no consecutive literals. After each literal there's a flag which tells the decoder either to load a new offset or to reuse the most recent offset.
 
 After a literal:
 
@@ -114,14 +118,14 @@ After a phrase:
 * `E1`, `0`, `ffffffff` – Copy `E1 + 1` bytes from the offset `ffffffff` relative to the current output position.
 * `E1`, `1` – Copy the next `E1` bytes to the output.
 
-The compression algorithm will fail in the unlikely case of a literal exceeding the length of 255. Overall, E1R1 appears to be a slight improvement over E1X1 if there's structured data such as sprites or unrolled loops.
+The compression algorithm will fail in the unlikely case of a literal exceeding the length of 255. Overall, E1R appears to be a slight improvement over E1X if there's structured data such as sprites or unrolled loops.
 
 Supported options:
 
 * Offset increment (1..256 instead of 1..255).
 * End of stream marker.
 
-**Note:** The support for this format is currently still in development.
+**Note:** The support for this format is still highly experimental. Output produced from the parser cannot be considered close to optimal.
 
 ### UE2
 
@@ -140,7 +144,7 @@ Supported options:
 
 ## Comparison
 
-The following chart shows the relative performance of ZX7mini, ZX2, E1E1 and E1X1 formats on a corpus of ZX Spectrum intros. Note that this comparison doesn't take into account the decoder size.
+The following chart shows the relative performance of ZX7mini, ZX2, E1 and E1X formats on a corpus of ZX Spectrum intros. Note that this comparison doesn't take into account the decoder size.
 
 ![image](https://user-images.githubusercontent.com/37623188/131914074-9e2bd774-f234-454d-9e48-06e76fa052cd.png)
 

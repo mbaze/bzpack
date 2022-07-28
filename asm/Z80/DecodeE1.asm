@@ -38,7 +38,7 @@ CopyBytes	lddr
 ELSE
 
 ; This alternative version contains "uglier" initialization of B inside the main loop.
-; However, it increases the odds of being able to optimize the setup.
+; However, it increases the chance of being able to optimize the setup.
 
 		ld	c,0		; Ideally, these values should be "reused"
 		ld	a,%11000000	; e.g. by aligning the addresses.

@@ -36,7 +36,6 @@ CopyBytes	lddr
 		pop	hl
 		dec	hl
 		jr	NextBit
-
 ELSE
 
 ; If we use the USR #XX80 trick described above we can go one step further and place

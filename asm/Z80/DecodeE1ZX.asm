@@ -1,15 +1,19 @@
 ; Copyright (c) 2022, Milos "baze" Bazelides
 ; This code is released under the terms of the BSD 2-Clause License.
 
-; E1ZX decoder (28 bytes excluding initialization, usually 35 bytes including initialization, 39 bytes max).
+; E1ZX decoder (usually 34..36 bytes including initialization).
 
-; The decoder assumes reverse order. End of stream marker is not supported.
-; The last literal is expected to overwrite opcodes after LDDR.
+; The end of stream marker is not supported by this format. The program is expected
+; to continue after the last literal overwrites opcodes just after LDDR.
 
 IF 1
-		ld	a,128		; Note that the ZX Spectrum's USR function sets A = C upon entry.
-		ld	c,a		; If the start address is #XX80 both registers already equal 128.
 
+; On Sinclair ZX Spectrum the USR function places its argument to BC and sets A = C.
+; Aligning the start address to #XX80 initializes both A and C to 128 which allows us
+; to save a couple of bytes. Also notice the "sneaky" way of initializing B to zero.
+
+;		ld	a,128
+;		ld	c,a
 		ld	hl,SrcAddr
 		ld	de,DstAddr
 EliasLength	add	a,a
@@ -17,7 +21,7 @@ EliasLength	add	a,a
 NextBit		add	a,a
 		jr	nz,NoFetch
 		ld	b,a
-		sub	(hl)		; Fetch and (except for very rare situations) set carry.
+		sub	(hl)		; Fetch and (except for rare situations) set carry.
 		dec	hl
 ;		scf			; Only use in case of warning.
 		rla
@@ -31,7 +35,7 @@ NoFetch		jr	c,EliasLength
 ;		inc	hl		; Option to increase offset to 256.
 		inc	c
 CopyBytes	lddr
-		inc	c		; Prepare the most-significant Elias bit.
+		inc	c		; Prepare the most-significant Elias-Gamma bit.
 		jr	c,NextBit
 		pop	hl
 		dec	hl
@@ -40,8 +44,8 @@ ELSE
 
 ; If we use the USR #XX80 trick described above we can go one step further and place
 ; the compressed stream just before the entry point. This saves another byte because
-; BC already contains the startup address. However, in this case we must pre-decrement
-; rather than post-decrement the stream pointer. The decoder size is 34 bytes.
+; BC already contains the start address and we can initialize HL cheaply. However,
+; we must pre-decrement rather than post-decrement HL. The decoder is 34 bytes long.
 
 		ld	h,b
 		ld	l,c
@@ -52,7 +56,7 @@ NextBit		add	a,a
 		jr	nz,NoFetch
 		ld	b,a
 		dec	hl
-		sub	(hl)		; Fetch and (except for very rare situations) set carry.
+		sub	(hl)		; Fetch and (except for rare situations) set carry.
 ;		scf			; Only use in case of warning.
 		rla
 NoFetch		jr	c,EliasLength

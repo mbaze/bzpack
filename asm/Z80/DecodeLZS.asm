@@ -3,14 +3,13 @@
 
 ; LZS decoder (18 bytes excluding initialization).
 
-; The decoder assumes reverse order. The end of stream marker can be omitted
-; if we let the last literal overwrite opcodes after LDDR and let the code continue.
+; The decoder assumes reverse order. There's a possibility to omit the end of stream
+; marker if we let the last literal overwrite opcodes just after LDDR.
 
-IF 0
+IF 1
 		ld	hl,SrcAddr
 		ld	de,DstAddr
-		ld	b,0		; Ideally this value should be "reused".
-
+		ld	b,0		; Ideally some values should be "reused".
 MainLoop	ld	c,(hl)
 		dec	hl
 		srl	c
@@ -29,19 +28,19 @@ CopyBytes	lddr
 		jr	MainLoop
 ELSE
 
-; On Sinclair ZX Spectrum we can make a couple of assumptions. If the start address is #XX00
-; the USR function will set BC accordingly. Also, if the input stream is placed directly
-; before the entry point we can make the decompressor only 24 bytes long using pre-decrement.
+; On Sinclair ZX Spectrum we can make a couple of assumptions. The USR function places
+; its argument to BC and we can use this side effect to initialize HL and B cheaply.
+; The start address is aligned to 256 bytes and the compressed stream is placed just
+; before the routine's entry point. HL is pre-decremented rather than post-decremented
+; which saves another byte, making the decompressor just 24 bytes long.
 
 		ld	h,b
 		ld	l,c
 		ld	b,c
 		ld	de,DstAddr
-
 MainLoop	dec	hl
 		ld	c,(hl)
 		srl	c
-;		ret	z		; Option to include the end of stream marker.
 ;		inc	c		; Option to increase length to 128.
 		jr	c,CopyBytes
 		dec	hl

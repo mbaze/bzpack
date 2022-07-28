@@ -3,8 +3,8 @@
 
 ; E1 decoder (28 bytes excluding initialization).
 
-; The decoder assumes reverse order. The end of stream marker can be omitted
-; if we let the last literal overwrite opcodes after LDDR and let the code continue.
+; The decoder assumes reverse order. There's a possibility to omit the end of stream
+; marker if we let the last literal overwrite opcodes just after LDDR.
 
 IF 1
 		ld	a,%11000000	; Ideally, these values should be "reused".

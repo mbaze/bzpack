@@ -8,13 +8,13 @@ All currently supported formats are based on the Lempel–Ziv–Storer–Szymans
 1. Strings of uncompressed bytes (literals).
 2. Reusable byte sequences represented as offset-length pairs (phrases).
 
-The way literals and phrases are encoded is different for every format and the efficiency also depends on the nature of input data. Therefore it's best to try multiple options and find the best fit.
+The way literals and phrases are encoded is different for every format and the efficiency also depends on the structure of input data. Therefore it's best to try multiple options and find the best fit.
 
 ### A Note on Elias-Gamma Encoding
 
 The canonical form of Elias-Gamma code consists of *N* zeroes followed by a *(N + 1)*-bit binary number. For instance, the number 12 is encoded as 000**1100**. In his paper "Universal codeword sets and representations of the integers", Peter Elias devised also an alternative form in which the bits are interleaved: **1**0**1**0**0**0**0**.
 
-Assuming that the most significant bit is implicit, the interleaved zeroes can be seen as 1-bit flags which indicate whether another significant bit follows. This interleaved form lends itself to an efficient decoder implementation in assembly language. Bzpack borrows this approach excapt that the flags are inverted. Therefore, the actual code for number 12 would be 1**1**1**0**1**0**0. That means:
+Assuming that the most significant bit is implicit, the interleaved zeroes can be seen as 1-bit flags which indicate whether another significant bit follows. This interleaved form lends itself to an efficient decoder implementation in assembly language. Bzpack borrows this approach except that the flags are inverted. Therefore, the actual code for number 12 would be 1**1**1**0**1**0**0. That is:
 
 * The most significant bit is not stored.
 * Subsequent significant bits are preceded by 1 indicating their presence.
@@ -50,13 +50,13 @@ In the following text symbol *E1* denotes Elias-Gamma code 1..N and *E2* denotes
 
 ### LZS
 
-The LZS is a straightforward byte-aligned format which is interpreted as follows:
+LZS is a straightforward byte-aligned format which is interpreted as follows:
 
 * `ccccccc1` – Copy the next `ccccccc` bytes to the output.
 * `ccccccc0`, `ffffffff` – Copy `ccccccc` bytes from the offset `ffffffff` relative to the current output position.
 * `00000000` or `00000001` – End of stream.
 
-The compression ratio is decent but certainly not spectacular. However, the decoder is very short and this advantage becomes apparent at the extreme end of the scale, e.g. while coding 256-byte intros.
+The compression ratio is decent but certainly not spectacular. However, the decoder is very short and this advantage becomes apparent at the extreme end of the scale, e.g. while coding 256-byte intros. While other methods might produce a shorter stream, the combined length of stream and decoder mostly favors LZS.
 
 Supported options:
 
@@ -66,7 +66,7 @@ Supported options:
 
 ### E1
 
-The E1 format encodes literals as byte sequences preceded by *E1* number denoting the block length. Phrases are stored as *E1* length combined with plain 8-bit offset. Each *E1* code is followed by 1-bit flag indicating the block type.
+The E1 format encodes literals as byte sequences preceded by *E1* number representing the block length. Phrases are stored as *E1* length followed by raw 8-bit offset. There's a 1-bit flag after each *E1* code indicating the block type.
 
 * `E1`, `1` – Copy the next `E1` bytes to the output.
 * `E1`, `0`, `ffffffff` – Copy `E1 + 1` bytes from the offset `ffffffff` relative to the current output position.
@@ -81,7 +81,7 @@ Supported options:
 
 ### E1ZX
 
-E1ZX is an optimized form of E1 which specifically targets Sinclair ZX Spectrum. The stream is exactly the same length but certain values are stored as their two's complements. This allows optimization of the decompressor's initialization sequence, resulting in even shorter code. The total program size (stream + decompressor) usually rivals that of LZS's at the extreme end of the scale.
+E1ZX is an optimized form of E1 which specifically targets Sinclair ZX Spectrum. The stream is exactly the same length but certain values are stored as their complements. This allows simplification of the decompressor's initialization sequence, resulting in even shorter code. 512-byte or 1 KiB demos is where the format is most useful.
 
 Supported options:
 
@@ -110,7 +110,7 @@ Supported options:
 
 ### E1R
 
-The E1R format is another variation of E1 that makes the assumption of no consecutive literals. After each literal there's a flag which tells the decoder either to load a new offset or to reuse the most recent offset.
+E1R is another variant of E1 that makes the assumption of no consecutive literals. After each literal there's a flag which indicates whether to load a new phrase offset or to reuse the most recent offset.
 
 After a literal:
 

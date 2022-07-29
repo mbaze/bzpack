@@ -3,7 +3,7 @@
 
 ; LZS decoder (18 bytes excluding initialization).
 
-; The decoder assumes reverse order. There's a possibility to omit the end of stream
+; The decoder assumes reverse order. There's a possibility to omit the end-of-stream
 ; marker if we let the last literal overwrite opcodes just after LDDR.
 
 IF 1
@@ -13,7 +13,7 @@ IF 1
 MainLoop	ld	c,(hl)
 		dec	hl
 		srl	c
-;		ret	z		; Option to include the end of stream marker.
+;		ret	z		; Option to include the end-of-stream marker.
 ;		inc	c		; Option to increase length to 128.
 		jr	c,CopyBytes
 		push	hl
@@ -32,13 +32,13 @@ ELSE
 ; its argument to BC and we can use this side effect to initialize HL and B cheaply.
 ; The start address is aligned to 256 bytes and the compressed stream is placed just
 ; before the routine's entry point. HL is pre-decremented rather than post-decremented
-; which saves another byte, making the decompressor just 24 bytes long.
+; which saves another byte, making the decompressor just 23 bytes long.
 
-		ld	h,b
-		ld	l,c
-		ld	b,c
 		ld	de,DstAddr
-MainLoop	dec	hl
+		push	bc
+		ld	b,c
+MainLoop1	pop	hl
+MainLoop2	dec	hl
 		ld	c,(hl)
 		srl	c
 ;		inc	c		; Option to increase length to 128.
@@ -50,7 +50,6 @@ MainLoop	dec	hl
 		add	hl,de
 ;		inc	hl		; Option to increase offset to 256.
 CopyBytes	lddr
-		jr	c,MainLoop
-		pop	hl
-		jr	MainLoop
+		jr	c,MainLoop2
+		jr	MainLoop1
 ENDIF

@@ -93,23 +93,6 @@ void CheckOptions(FormatOptions format)
 
 int main(int argCount, char** args)
 {
-    FormatOptions format = {0};
-    format.Id = FormatId::Elias1;
-
-    static const std::map<std::string, std::function<void()>> optionDispatch =
-    {
-        { "-lzs",  [&]() { format.Id = FormatId::Aligned_LZSS; } },
-        { "-e1",   [&]() { format.Id = FormatId::Elias1; } },
-        { "-e1zx", [&]() { format.Id = FormatId::Elias1_ZX; } },
-        { "-e1x",  [&]() { format.Id = FormatId::Elias1_Ext; } },
-        { "-e1r",  [&]() { format.Id = FormatId::Elias1_Rep; } },
-        { "-ue2",  [&]() { format.Id = FormatId::Unary_Elias2; } },
-        { "-r",    [&]() { format.Reverse = 1; } },
-        { "-e",    [&]() { format.AddEndMarker = 1; } },
-        { "-o",    [&]() { format.ExtendOffset = 1; } },
-        { "-l",    [&]() { format.ExtendLength = 1; } }
-    };
-
     if (argCount < 3)
     {
         printf("\nUsage: bzpack.exe <input.raw> <output.bin> [-lzs|-e1|-e1zx|-e1x|-e1r|-ue2] [-r] [-e] [-o] [-l]\n");
@@ -126,6 +109,23 @@ int main(int argCount, char** args)
         printf("-l: Extend maximum block length by 1 byte.\n");
         return 0;
     }
+
+    FormatOptions format = {0};
+    format.Id = FormatId::Elias1;
+
+    static const std::map<std::string, std::function<void()>> optionDispatch =
+    {
+        { "-lzs",  [&]() { format.Id = FormatId::Aligned_LZSS; } },
+        { "-e1",   [&]() { format.Id = FormatId::Elias1; } },
+        { "-e1zx", [&]() { format.Id = FormatId::Elias1_ZX; } },
+        { "-e1x",  [&]() { format.Id = FormatId::Elias1_Ext; } },
+        { "-e1r",  [&]() { format.Id = FormatId::Elias1_Rep; } },
+        { "-ue2",  [&]() { format.Id = FormatId::Unary_Elias2; } },
+        { "-r",    [&]() { format.Reverse = 1; } },
+        { "-e",    [&]() { format.AddEndMarker = 1; } },
+        { "-o",    [&]() { format.ExtendOffset = 1; } },
+        { "-l",    [&]() { format.ExtendLength = 1; } }
+    };
 
     if (argCount > 3)
     {

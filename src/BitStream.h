@@ -36,7 +36,7 @@ private:
 
     std::vector<uint8_t> mBytes;
 
-    uint8_t mWriteMask = 0;
+    uint8_t mWriteBitNum = 0;
     size_t mWriteBitPos = 0;
 
     uint8_t mReadMask = 0;

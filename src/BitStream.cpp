@@ -29,26 +29,21 @@ void BitStream::ReadReset()
 void BitStream::WriteReset()
 {
     mBytes.clear();
-    mWriteMask = 0;
+    mWriteBitNum = 0;
     mWriteBitPos = 0;
     mIssueCarryWarning = false;
 }
 
 void BitStream::WriteBit(bool value)
 {
-    mWriteMask >>= 1;
-
-    if (mWriteMask == 0)
+    if (mWriteBitNum == 0)
     {
-        mWriteMask = 128;
         mWriteBitPos = mBytes.size();
         mBytes.push_back(0);
     }
 
-    if (value)
-    {
-        mBytes[mWriteBitPos] |= mWriteMask;
-    }
+    mWriteBitNum = --mWriteBitNum & 7;
+    mBytes[mWriteBitPos] |= (value << mWriteBitNum);
 }
 
 void BitStream::WriteByte(uint8_t value)
@@ -77,12 +72,8 @@ uint8_t BitStream::ReadByte()
 
 void BitStream::WriteBitNeg(bool value)
 {
-    mWriteMask >>= 1;
-
-    if (mWriteMask == 0)
+    if (mWriteBitNum == 0)
     {
-        mWriteMask = 128;
-
         if (mBytes.size())
         {
             mBytes[mWriteBitPos] = -mBytes[mWriteBitPos];
@@ -93,10 +84,8 @@ void BitStream::WriteBitNeg(bool value)
         mBytes.push_back(0);
     }
 
-    if (value)
-    {
-        mBytes[mWriteBitPos] |= mWriteMask;
-    }
+    mWriteBitNum = --mWriteBitNum & 7;
+    mBytes[mWriteBitPos] |= (value << mWriteBitNum);
 }
 
 uint32_t BitStream::ReadBitNeg()
@@ -118,7 +107,7 @@ void BitStream::FlushBitsNeg()
     if (mBytes.size())
     {
         // Setting unused bits to 1 reduces the chance of there being a zero byte.
-        uint8_t padding = mWriteMask - 1;
+        uint8_t padding = (1 << mWriteBitNum) - 1;
         mBytes[mWriteBitPos] = -(mBytes[mWriteBitPos] | padding);
         mIssueCarryWarning |= (mBytes[mWriteBitPos] == 0);
     }

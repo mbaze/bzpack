@@ -5,7 +5,6 @@
 #include <memory>
 #include <cstdio>
 #include <fstream>
-#include <filesystem>
 #include <functional>
 #include "Compressor.h"
 
@@ -149,21 +148,30 @@ int main(int argCount, char** args)
 
     // Read input file.
 
-    std::basic_ifstream<uint8_t> inputFile(args[1], std::ios::binary);
+    std::basic_ifstream<uint8_t> inputFile(args[1], std::ios::binary | std::ios::ate);
+
     if (!inputFile)
     {
         PrintError(ErrorId::InputFile);
         return 0;
     }
 
-    size_t inputFileSize = std::filesystem::file_size(args[1]);
+    size_t inputFileSize = inputFile.tellg();
+
     if (inputFileSize == 0)
     {
         PrintError(ErrorId::EmptyFile);
         return 0;
     }
 
+    if (!inputFile.seekg(0, std::ios_base::beg))
+    {
+        PrintError(ErrorId::InputFile);
+        return 0;
+    }
+
     std::unique_ptr<uint8_t[]> spInputStream = std::make_unique<uint8_t[]>(inputFileSize);
+
     if (!inputFile.read(spInputStream.get(), inputFileSize))
     {
         PrintError(ErrorId::InputFile);
@@ -173,6 +181,7 @@ int main(int argCount, char** args)
     // Compress data.
 
     BitStream packedStream;
+
     if (!Compress(spInputStream.get(), inputFileSize, format, packedStream))
     {
         PrintError(ErrorId::CompressionFailed);
@@ -187,6 +196,7 @@ int main(int argCount, char** args)
     // Write output file.
 
     std::basic_ofstream<uint8_t> outputFile(args[2], std::ios::binary);
+
     if (!outputFile)
     {
         PrintError(ErrorId::OutputFile);

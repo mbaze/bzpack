@@ -31,6 +31,7 @@ void BitStream::WriteReset()
     mBytes.clear();
     mWriteMask = 0;
     mWriteBitPos = 0;
+    mIssueCarryWarning = false;
 }
 
 void BitStream::WriteBit(bool value)
@@ -57,6 +58,8 @@ void BitStream::WriteByte(uint8_t value)
 
 uint32_t BitStream::ReadBit()
 {
+    mReadMask >>= 1;
+
     if (mReadMask == 0)
     {
         mReadMask = 128;
@@ -64,10 +67,7 @@ uint32_t BitStream::ReadBit()
         mReadBytePos++;
     }
 
-    bool value = mBytes[mReadBitPos] & mReadMask;
-    mReadMask >>= 1;
-
-    return value;
+    return (mBytes[mReadBitPos] & mReadMask) > 0;
 }
 
 uint8_t BitStream::ReadByte()
@@ -101,6 +101,8 @@ void BitStream::WriteBitNeg(bool value)
 
 uint32_t BitStream::ReadBitNeg()
 {
+    mReadMask >>= 1;
+
     if (mReadMask == 0)
     {
         mReadMask = 128;
@@ -108,10 +110,7 @@ uint32_t BitStream::ReadBitNeg()
         mReadBytePos++;
     }
 
-    bool value = -mBytes[mReadBitPos] & mReadMask;
-    mReadMask >>= 1;
-
-    return value;
+    return (-mBytes[mReadBitPos] & mReadMask) > 0;
 }
 
 void BitStream::FlushBitsNeg()

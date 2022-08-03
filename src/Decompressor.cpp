@@ -317,6 +317,8 @@ bool DecodeUE2(BitStream& packedStream, FormatOptions format, size_t inputSize, 
     return true;
 }
 
+// Zero inputSize tells the decompressor to expect the end-of-stream marker.
+
 bool Decompress(BitStream& packedStream, FormatOptions format, size_t inputSize, std::vector<uint8_t>& outputStream)
 {
     bool success = false;

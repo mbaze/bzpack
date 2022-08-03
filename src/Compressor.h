@@ -25,9 +25,7 @@ struct FormatOptions
     uint8_t ExtendLength: 1;
 };
 
-bool Compress(uint8_t* pInputStream, size_t inputSize, FormatOptions format, BitStream& packedStrem);
-
-// Zero inputSize signals the decompressor to expect end of stream marker.
+bool Compress(uint8_t* pInputStream, size_t inputSize, FormatOptions format, BitStream& packedStream);
 bool Decompress(BitStream& packedStream, FormatOptions format, size_t inputSize, std::vector<uint8_t>& outputStream);
 
 #endif // COMPRESSOR_H

@@ -3,17 +3,19 @@
 
 #include <map>
 #include <memory>
-#include <string>
-#include <functional>
 #include <cstdio>
+#include <fstream>
+#include <filesystem>
+#include <functional>
 #include "Compressor.h"
 
 enum ErrorId
 {
-    InvalidOption,
+    InvalidParam,
     InputFile,
     OutputFile,
-    Compression,
+    EmptyFile,
+    CompressionFailed
 };
 
 enum WarningId
@@ -29,8 +31,8 @@ void PrintError(ErrorId error, const char* pString = nullptr)
 
     switch (error)
     {
-        case ErrorId::InvalidOption:
-            printf("Invalid option %s.\n", pString);
+        case ErrorId::InvalidParam:
+            printf("Invalid parameter %s.\n", pString);
             break;
 
         case ErrorId::InputFile:
@@ -41,8 +43,12 @@ void PrintError(ErrorId error, const char* pString = nullptr)
             printf("Cannot create output file.\n");
             break;
 
-        case ErrorId::Compression:
-            printf("Compression failed.");
+        case ErrorId::EmptyFile:
+            printf("Nothing to compress.\n");
+            break;
+
+        case ErrorId::CompressionFailed:
+            printf("Compression failed.\n");
             break;
     }
 }
@@ -69,13 +75,13 @@ void PrintWarning(WarningId warning)
 
 void CheckOptions(FormatOptions format)
 {
-    bool noExtendedLength = (format.Id == FormatId::Elias1);
-    noExtendedLength |= (format.Id == FormatId::Elias1_ZX);
-    noExtendedLength |= (format.Id == FormatId::Elias1_Ext);
-    noExtendedLength |= (format.Id == FormatId::Elias1_Rep);
-    noExtendedLength |= (format.Id == FormatId::Unary_Elias2);
+    bool noExtLength = (format.Id == FormatId::Elias1);
+    noExtLength |= (format.Id == FormatId::Elias1_ZX);
+    noExtLength |= (format.Id == FormatId::Elias1_Ext);
+    noExtLength |= (format.Id == FormatId::Elias1_Rep);
+    noExtLength |= (format.Id == FormatId::Unary_Elias2);
 
-    if (format.ExtendLength && noExtendedLength)
+    if (format.ExtendLength && noExtLength)
     {
         PrintWarning(WarningId::ExtendLength);
     }
@@ -116,7 +122,7 @@ int main(int argCount, char** args)
         printf("-e1r: Elias 1..N phrase / literal length, raw 8-bit (or reused) offset.\n");
         printf("-ue2: Unary literal length, Elias 2..N phrase length, raw 8-bit offset.\n");
         printf("-r: Compress in reverse order.\n");
-        printf("-e: Add end of stream marker.\n");
+        printf("-e: Add end-of-stream marker.\n");
         printf("-o: Extend maximum window offset by 1 byte.\n");
         printf("-l: Extend maximum block length by 1 byte.\n");
         return 0;
@@ -133,7 +139,7 @@ int main(int argCount, char** args)
             }
             else
             {
-                PrintError(ErrorId::InvalidOption, args[i]);
+                PrintError(ErrorId::InvalidParam, args[i]);
                 return 0;
             }
         }
@@ -141,55 +147,53 @@ int main(int argCount, char** args)
 
     CheckOptions(format);
 
-    FILE* pInputFile = fopen(args[1], "rb");
-    if (pInputFile == NULL)
+    // Read input file.
+
+    std::basic_ifstream<uint8_t> inputFile(args[1], std::ios::binary);
+    if (!inputFile)
     {
         PrintError(ErrorId::InputFile);
         return 0;
     }
 
-    if (fseek(pInputFile, 0, SEEK_END))
+    size_t inputFileSize = std::filesystem::file_size(args[1]);
+    if (inputFileSize == 0)
     {
-        fclose(pInputFile);
-        PrintError(ErrorId::InputFile);
+        PrintError(ErrorId::EmptyFile);
         return 0;
     }
-
-    size_t inputFileSize = ftell(pInputFile);
-    rewind(pInputFile);
 
     std::unique_ptr<uint8_t[]> spInputStream = std::make_unique<uint8_t[]>(inputFileSize);
-    size_t bytesRead = fread(spInputStream.get(), 1, inputFileSize, pInputFile);
-    fclose(pInputFile);
-
-    if (bytesRead != inputFileSize)
+    if (!inputFile.read(spInputStream.get(), inputFileSize))
     {
         PrintError(ErrorId::InputFile);
         return 0;
     }
 
+    // Compress data.
+
     BitStream packedStream;
-    if (Compress(spInputStream.get(), inputFileSize, format, packedStream) == false)
+    if (!Compress(spInputStream.get(), inputFileSize, format, packedStream))
     {
-        PrintError(ErrorId::Compression);
+        PrintError(ErrorId::CompressionFailed);
+        return 0;
     }
 
-    if (packedStream.IssueCarryWarning())
+    if (format.Id == FormatId::Elias1_ZX && packedStream.IssueCarryWarning())
     {
         PrintWarning(WarningId::ZxExplicitCarry);
     }
 
-    FILE* pOutputFile = fopen(args[2], "wb");
-    if (pOutputFile == NULL)
+    // Write output file.
+
+    std::basic_ofstream<uint8_t> outputFile(args[2], std::ios::binary);
+    if (!outputFile)
     {
         PrintError(ErrorId::OutputFile);
         return 0;
     }
 
-    size_t bytesWritten = fwrite(packedStream.Data(), 1, packedStream.Size(), pOutputFile);
-    fclose(pOutputFile);
-
-    if (bytesWritten != packedStream.Size())
+    if (!outputFile.write(packedStream.Data(), packedStream.Size()))
     {
         PrintError(ErrorId::OutputFile);
         return 0;

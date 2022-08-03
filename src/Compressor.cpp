@@ -330,7 +330,7 @@ bool Compress(uint8_t* pInputStream, size_t inputSize, FormatOptions format, Bit
     }
 
     std::vector<StreamRef> refs;
-    if (Parse(pInputStream, inputSize, format, refs) == false)
+    if (!Parse(pInputStream, inputSize, format, refs))
     {
         return false;
     }
@@ -370,7 +370,7 @@ bool Compress(uint8_t* pInputStream, size_t inputSize, FormatOptions format, Bit
 #ifdef VERIFY
 
     std::vector<uint8_t> unpackedStream;
-    if (Decompress(packedStream, format, inputSize, unpackedStream) == false)
+    if (!Decompress(packedStream, format, inputSize, unpackedStream))
     {
         return false;
     }

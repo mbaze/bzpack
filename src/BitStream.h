@@ -25,7 +25,7 @@ public:
     uint32_t ReadBit();
     uint8_t ReadByte();
 
-    // These methods are only needed by the E1ZX format.
+    // These methods are only required by the E1ZX format.
 
     void WriteBitNeg(bool value);
     uint32_t ReadBitNeg();

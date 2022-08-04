@@ -58,8 +58,7 @@ uint32_t BitStream::ReadBit()
     if (mReadMask == 0)
     {
         mReadMask = 128;
-        mReadBitPos = mReadBytePos;
-        mReadBytePos++;
+        mReadBitPos = mReadBytePos++;
     }
 
     return (mBytes[mReadBitPos] & mReadMask) > 0;
@@ -70,6 +69,8 @@ uint8_t BitStream::ReadByte()
     return mBytes[mReadBytePos++];
 }
 
+// These methods are only required by the E1ZX format.
+
 void BitStream::WriteBitNeg(bool value)
 {
     if (mWriteBitNum == 0)
@@ -77,7 +78,7 @@ void BitStream::WriteBitNeg(bool value)
         if (mBytes.size())
         {
             mBytes[mWriteBitPos] = -mBytes[mWriteBitPos];
-            mIssueCarryWarning |= (mBytes[mWriteBitPos] == 0);
+            mIssueCarryWarning |= !mBytes[mWriteBitPos];
         }
 
         mWriteBitPos = mBytes.size();
@@ -95,8 +96,7 @@ uint32_t BitStream::ReadBitNeg()
     if (mReadMask == 0)
     {
         mReadMask = 128;
-        mReadBitPos = mReadBytePos;
-        mReadBytePos++;
+        mReadBitPos = mReadBytePos++;
     }
 
     return (-mBytes[mReadBitPos] & mReadMask) > 0;
@@ -104,12 +104,13 @@ uint32_t BitStream::ReadBitNeg()
 
 void BitStream::FlushBitsNeg()
 {
+    // Setting unused bits to 1 reduces the chance of there being a zero byte.
+
     if (mBytes.size())
     {
-        // Setting unused bits to 1 reduces the chance of there being a zero byte.
         uint8_t padding = (1 << mWriteBitNum) - 1;
         mBytes[mWriteBitPos] = -(mBytes[mWriteBitPos] | padding);
-        mIssueCarryWarning |= (mBytes[mWriteBitPos] == 0);
+        mIssueCarryWarning |= !mBytes[mWriteBitPos];
     }
 }
 

@@ -24,8 +24,8 @@ uint32_t GetElias1Cost(uint32_t value)
 
     while (value & mask)
     {
-        count++;
         mask <<= 1;
+        count++;
     }
 
     return (count << 1) + 1;
@@ -40,18 +40,16 @@ void EncodeElias1(BitStream& stream, uint32_t value)
 
     while (value & mask)
     {
-        count++;
         mask <<= 1;
+        count++;
     }
 
     mask = 1 << count;
-    mask >>= 1;
 
-    while (mask)
+    while (mask >>= 1)
     {
         stream.WriteBit(1);
         stream.WriteBit(value & mask);
-        mask >>= 1;
     }
 
     stream.WriteBit(0);
@@ -85,15 +83,15 @@ uint32_t GetElias2Cost(uint32_t value)
     assert(value > 1);
 
     uint32_t mask = ~3;
-    uint32_t bitCount = 1;
+    uint32_t count = 1;
 
     while (value & mask)
     {
-        bitCount++;
         mask <<= 1;
+        count++;
     }
 
-    return bitCount << 1;
+    return count << 1;
 }
 
 void EncodeElias2(BitStream& stream, uint32_t value)
@@ -101,15 +99,15 @@ void EncodeElias2(BitStream& stream, uint32_t value)
     assert(value > 1);
 
     uint32_t mask = ~3;
-    uint32_t bitCount = 0;
+    uint32_t count = 0;
 
     while (value & mask)
     {
-        bitCount++;
         mask <<= 1;
+        count++;
     }
 
-    mask = 1 << bitCount;
+    mask = 1 << count;
 
     while (mask)
     {
@@ -293,7 +291,7 @@ uint32_t DecodeRaw(BitStream& stream, uint32_t numBits)
     return value;
 }
 
-// These methods are only needed by the E1ZX format.
+// These methods are only required by the E1ZX format.
 
 void EncodeElias1Neg(BitStream& stream, uint32_t value)
 {
@@ -304,18 +302,16 @@ void EncodeElias1Neg(BitStream& stream, uint32_t value)
 
     while (value & mask)
     {
-        count++;
         mask <<= 1;
+        count++;
     }
 
     mask = 1 << count;
-    mask >>= 1;
 
-    while (mask)
+    while (mask >>= 1)
     {
         stream.WriteBitNeg(1);
         stream.WriteBitNeg(value & mask);
-        mask >>= 1;
     }
 
     stream.WriteBitNeg(0);

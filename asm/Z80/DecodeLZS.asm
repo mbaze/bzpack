@@ -32,7 +32,7 @@ ELSE
 ; its argument to BC therefore aligning the address to 256 bytes initializes C to zero.
 ; Also HL can be initialized cheaply if we assume that the compressed stream is located
 ; just above the routine's entry point. Using pre-decrement rather than post-decrement
-; makes it even possible to reuse POP HL. The decompressor just 23 bytes long.
+; makes it even possible to reuse POP HL. The decompressor is just 23 bytes long.
 
 		ld	de,DstAddr
 		push	bc

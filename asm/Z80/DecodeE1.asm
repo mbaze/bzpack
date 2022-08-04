@@ -3,8 +3,8 @@
 
 ; E1 decoder (28 bytes excluding initialization).
 
-; The decoder assumes reverse order. There's a possibility to omit the end of stream
-; marker if we let the last literal overwrite opcodes just after LDDR.
+; The decoder assumes reverse order. There's a possibility to omit the end-of-stream
+; marker if we let the output stream overwrite opcodes just after LDDR.
 
 IF 1
 		ld	a,%11000000	; Ideally, these values should be "reused".
@@ -12,7 +12,7 @@ IF 1
 
 		ld	hl,SrcAddr
 		ld	de,DstAddr
-EliasLength	add	a,a
+EliasGamma	add	a,a
 		rl	c
 ;		ret	c		; Option to include the end of stream marker.
 NextBit		add	a,a
@@ -20,7 +20,7 @@ NextBit		add	a,a
 		ld	a,(hl)
 		dec	hl
 		rla
-NoFetch		jr	c,EliasLength
+NoFetch		jr	c,EliasGamma
 		rla			; Literal or phrase?
 		jr	c,CopyBytes
 		push	hl
@@ -45,7 +45,7 @@ ELSE
 
 		ld	hl,SrcAddr
 		ld	de,DstAddr
-EliasLength	add	a,a
+EliasGamma	add	a,a
 		rl	c
 ;		ret	c		; Option to include the end of stream marker.
 NextBit		add	a,a
@@ -54,7 +54,7 @@ NextBit		add	a,a
 		ld	a,(hl)
 		dec	hl
 		rla
-NoFetch		jr	c,EliasLength
+NoFetch		jr	c,EliasGamma
 		rla			; Literal or phrase?
 		jr	c,CopyBytes
 		push	hl

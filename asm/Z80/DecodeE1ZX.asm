@@ -3,8 +3,8 @@
 
 ; E1ZX decoder (usually 34..36 bytes including initialization).
 
-; The end of stream marker is not supported by this format. The program is expected
-; to continue after the last literal overwrites opcodes just after LDDR.
+; The end-of-stream marker is not supported by this format. The program is expected
+; to continue after the output stream overwrites opcodes just after LDDR.
 
 IF 1
 
@@ -16,7 +16,7 @@ IF 1
 
 		ld	hl,SrcAddr
 		ld	de,DstAddr
-EliasLength	add	a,a
+EliasGamma	add	a,a
 		rl	c
 NextBit		add	a,a
 		jr	nz,NoFetch
@@ -25,7 +25,7 @@ NextBit		add	a,a
 		dec	hl
 ;		scf			; Only use in case of warning.
 		rla
-NoFetch		jr	c,EliasLength
+NoFetch		jr	c,EliasGamma
 		rla			; Literal or phrase?
 		jr	c,CopyBytes
 		push	hl
@@ -43,14 +43,14 @@ CopyBytes	lddr
 ELSE
 
 ; If we use the USR #XX80 trick described above we can go one step further and place
-; the compressed stream just before the entry point. This saves another byte because
-; BC already contains the start address and we can initialize HL cheaply. However,
-; we must pre-decrement rather than post-decrement HL. The routine is 34 bytes long.
+; the compressed stream just above the entry point. This saves another byte because
+; BC already contains the start address and HL can be initialized cheaply. We just
+; need to pre-decrement rather than post-decrement HL. The routine is 34 bytes long.
 
 		ld	h,b
 		ld	l,c
 		ld	de,DstAddr
-EliasLength	add	a,a
+EliasGamma	add	a,a
 		rl	c
 NextBit		add	a,a
 		jr	nz,NoFetch
@@ -59,7 +59,7 @@ NextBit		add	a,a
 		sub	(hl)		; Fetch and (except for rare situations) set carry.
 ;		scf			; Only use in case of warning.
 		rla
-NoFetch		jr	c,EliasLength
+NoFetch		jr	c,EliasGamma
 		rla			; Literal or phrase?
 		jr	c,CopyBytes
 		dec	hl

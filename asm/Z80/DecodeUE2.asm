@@ -3,8 +3,8 @@
 
 ; UE2 decoder (35 bytes excluding initialization).
 
-; The decoder assumes reverse order. The end of stream marker can be omitted
-; if we let the last literal overwrite opcodes after LDDR and let the code continue.
+; The decoder assumes reverse order. There's a possibility to omit the end-of-stream
+; marker if we let the output stream overwrite opcodes just after LDDR.
 
 		ld	hl,SrcAddr
 		ld	de,DstAddr
@@ -15,11 +15,11 @@ MainLoop	ld	c,1
 		call	ReadBit		; Literal?
 		jr	c,CopyBytes
 
-EliasLength	call	ReadBit
+EliasGamma	call	ReadBit
 		rl	c
 ;		ret	c		; Option to include the end of stream marker.
 		call	ReadBit
-		jr	c,EliasLength
+		jr	c,EliasGamma
 
 		push	hl
 		ld	l,(hl)

@@ -11,7 +11,7 @@
 		ld	bc,#FF00	; Ideally, these values should be "reused"
 		ld	a,%11000000	; e.g. by aligning the addresses.
 
-EliasLength	add	a,a
+EliasGamma	add	a,a
 		rl	c
 ;		ret	c		; Option to include the end of stream marker.
 NextBit		add	a,a
@@ -19,7 +19,7 @@ NextBit		add	a,a
 		ld	a,(hl)
 		dec	hl
 		rla
-NoFetch		jr	c,EliasLength
+NoFetch		jr	c,EliasGamma
 		rla
 		jr	nc,LoadOffset
 		inc	b		; Was it a phrase?

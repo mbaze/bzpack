@@ -4,15 +4,16 @@
 ; E1ZX decoder (usually 34..36 bytes including initialization).
 
 ; The end-of-stream marker is not supported by this format. The program is expected
-; to continue after the output stream overwrites opcodes just after LDDR.
+; to continue after the output stream overwrites instructions just after LDDR. Both
+; decompressor versions assume aligned start address (#XX80).
 
-IF 1
+IF 0
 
 ; On Sinclair ZX Spectrum the USR function places its argument to BC and sets A = C.
 ; Aligning the start address to #XX80 sets both A and C to 128 and simplifies setup.
-; Normally we would need C = 0 but the most-significant bit gets shifted out anyway.
-; We also no longer need A = 192 because the second ADD A,A is not expected to set
-; Carry. This is now done by SUB (HL). We also "sneakily" initialize B during fetch.
+; Normally we would need C = 0 but the most significant bit gets shifted out anyway.
+; Also A = 128 is sufficient because we don't expect the second ADD A,A to set Carry.
+; This is now ensured by SUB (HL). We also "sneakily" initialize B during fetch.
 
 		ld	hl,SrcAddr
 		ld	de,DstAddr
@@ -44,8 +45,8 @@ ELSE
 
 ; If we use the USR #XX80 trick described above we can go one step further and place
 ; the compressed stream just above the entry point. This saves another byte because
-; BC already contains the start address and HL can be initialized cheaply. We just
-; need to pre-decrement rather than post-decrement HL. The routine is 34 bytes long.
+; BC already contains the start address and HL can be initialized cheaply. However
+; we must pre-decrement rather than post-decrement HL. The routine is 34 bytes long.
 
 		ld	h,b
 		ld	l,c

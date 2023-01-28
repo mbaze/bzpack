@@ -38,8 +38,9 @@ ELSE
 		push	bc
 		ld	b,c
 MainLoop1	pop	hl
-MainLoop2	dec	hl
-		ld	c,(hl)
+		dec	hl
+MainLoop2	ld	c,(hl)
+		dec	hl
 		srl	c
 ;		ret	z		; Option to include the end-of-stream marker.
 ;		inc	c		; Option to increase length to 128.

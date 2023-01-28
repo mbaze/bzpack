@@ -45,7 +45,6 @@ MainLoop2	ld	c,(hl)
 ;		ret	z		; Option to include the end-of-stream marker.
 ;		inc	c		; Option to increase length to 128.
 		jr	c,CopyBytes
-		dec	hl
 		push	hl
 		ld	l,(hl)
 		ld	h,b

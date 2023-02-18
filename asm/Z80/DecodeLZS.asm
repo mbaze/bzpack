@@ -51,6 +51,6 @@ MainLoop2	ld	c,(hl)
 		add	hl,de
 ;		inc	hl		; Option to increase offset to 256.
 CopyBytes	lddr
-		jr	c,MainLoop2
-		jr	MainLoop1
+		jr	nc,MainLoop1
+		jr	MainLoop2
 ENDIF

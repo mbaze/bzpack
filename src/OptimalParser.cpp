@@ -111,7 +111,7 @@ uint32_t GetMatchCost(FormatOptions format, uint32_t offset, uint32_t length, ui
 
         case FormatId::Elias1:
         case FormatId::Elias1_ZX:
-            return GetElias1Cost(length) + 1 + 8;
+            return GetElias1Cost(length - 1) + 1 + 8;
 
         case FormatId::Elias1_Ext:
             return GetElias1Cost(length & 255) + 1 + 8;

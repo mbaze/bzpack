@@ -7,11 +7,14 @@
     <ClCompile Include="..\src\OptimalParser.cpp" />
     <ClCompile Include="..\src\UniversalCodes.cpp" />
     <ClCompile Include="..\src\Decompressor.cpp" />
+    <ClCompile Include="..\src\MatchFinder.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\BitStream.h" />
     <ClInclude Include="..\src\Compressor.h" />
     <ClInclude Include="..\src\OptimalParser.h" />
     <ClInclude Include="..\src\UniversalCodes.h" />
+    <ClInclude Include="..\src\Formats.h" />
+    <ClInclude Include="..\src\MatchFinder.h" />
   </ItemGroup>
 </Project>

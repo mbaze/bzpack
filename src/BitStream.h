@@ -4,7 +4,6 @@
 #ifndef BIT_STREAM_H
 #define BIT_STREAM_H
 
-#include <cstdint>
 #include <vector>
 
 class BitStream

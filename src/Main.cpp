@@ -1,7 +1,7 @@
 // Copyright (c) 2021, Milos "baze" Bazelides
 // This code is released under the terms of the BSD 2-Clause License.
 
-#include <map>
+#include <unordered_map>
 #include <memory>
 #include <cstdio>
 #include <fstream>
@@ -13,7 +13,8 @@ enum ErrorId
     InvalidParam,
     InputFile,
     OutputFile,
-    EmptyFile,
+    FileEmpty,
+    FileTooBig,
     CompressionFailed
 };
 
@@ -21,6 +22,7 @@ enum WarningId
 {
     ExtendLength,
     AddEndMarker,
+    NoSizeGain,
     ZxExplicitCarry
 };
 
@@ -42,8 +44,12 @@ void PrintError(ErrorId error, const char* pString = nullptr)
             printf("Cannot create output file.\n");
             break;
 
-        case ErrorId::EmptyFile:
-            printf("Nothing to compress.\n");
+        case ErrorId::FileEmpty:
+            printf("Input file empty.\n");
+            break;
+
+        case ErrorId::FileTooBig:
+            printf("Input file too big.\n");
             break;
 
         case ErrorId::CompressionFailed:
@@ -66,26 +72,28 @@ void PrintWarning(WarningId warning)
             printf("Option -e is not supported by this format.\n");
             break;
 
+        case WarningId::NoSizeGain:
+            printf("No size gain after compression.\n");
+            break;
+
         case WarningId::ZxExplicitCarry:
-            printf("Make sure that decompressor sets Carry during fetch.\n");
+            printf("Make sure the decompressor sets Carry during fetch.\n");
             break;
     }
 }
 
-void CheckOptions(FormatOptions format)
+void CheckOptions(FormatOptions options)
 {
-    bool noExtLength = (format.Id == FormatId::Elias1);
-    noExtLength |= (format.Id == FormatId::Elias1_ZX);
-    noExtLength |= (format.Id == FormatId::Elias1_Ext);
-    noExtLength |= (format.Id == FormatId::Elias1_Rep);
-    noExtLength |= (format.Id == FormatId::Unary_Elias2);
+    bool noExtLength = (options.id == FormatId::E1);
+    noExtLength |= (options.id == FormatId::E1ZX);
+    noExtLength |= (options.id == FormatId::UE2);
 
-    if (format.ExtendLength && noExtLength)
+    if (options.extendLength && noExtLength)
     {
         PrintWarning(WarningId::ExtendLength);
     }
 
-    if (format.Id == FormatId::Elias1_ZX && format.AddEndMarker)
+    if (options.id == FormatId::E1ZX && options.addEndMarker)
     {
         PrintWarning(WarningId::AddEndMarker);
     }
@@ -95,36 +103,31 @@ int main(int argCount, char** args)
 {
     if (argCount < 3)
     {
-        printf("\nUsage: bzpack.exe <input.raw> <output.bin> [-lzs|-e1|-e1zx|-e1x|-e1r|-ue2] [-r] [-e] [-o] [-l]\n");
+        printf("\nUsage: bzpack.exe <input.raw> <output.bin> [-lz|-e1|-e1zx|-ue2] [-r] [-e] [-o] [-l]\n");
         printf("\nOptions:\n\n");
-        printf("-lzs: Byte-aligned LZSS. Raw 7-bit block length, raw 8-bit offset.\n");
-        printf("-e1: Elias 1..N phrase / literal length, raw 8-bit offset (default).\n");
-        printf("-e1zx: A version of the former slightly optimized for Sinclair ZX Spectrum.\n");
-        printf("-e1x: Elias 1..N phrase / literal length, raw 8-bit (or extended) offset.\n");
-        printf("-e1r: Elias 1..N phrase / literal length, raw 8-bit (or reused) offset.\n");
+        printf("-lz: Byte-aligned LZSS. Raw 7-bit block length, raw 8-bit offset (default).\n");
+        printf("-e1: Elias 1..N block length, raw 8-bit offset.\n");
+        printf("-e1zx: A version of -e1 optimized for Sinclair ZX Spectrum.\n");
         printf("-ue2: Unary literal length, Elias 2..N phrase length, raw 8-bit offset.\n");
         printf("-r: Compress in reverse order.\n");
         printf("-e: Add end-of-stream marker.\n");
-        printf("-o: Extend maximum window offset by 1 byte.\n");
-        printf("-l: Extend maximum block length by 1 byte.\n");
+        printf("-o: Extend maximum window offset by 1.\n");
+        printf("-l: Extend maximum block length by 1.\n");
         return 0;
     }
 
-    FormatOptions format = {0};
-    format.Id = FormatId::Elias1;
+    FormatOptions options = { FormatId::LZ, 0, 0, 0, 0 };
 
-    static const std::map<std::string, std::function<void()>> optionDispatch =
+    static const std::unordered_map<std::string, std::function<void()>> optionDispatch =
     {
-        { "-lzs",  [&]() { format.Id = FormatId::Aligned_LZSS; } },
-        { "-e1",   [&]() { format.Id = FormatId::Elias1; } },
-        { "-e1zx", [&]() { format.Id = FormatId::Elias1_ZX; } },
-        { "-e1x",  [&]() { format.Id = FormatId::Elias1_Ext; } },
-        { "-e1r",  [&]() { format.Id = FormatId::Elias1_Rep; } },
-        { "-ue2",  [&]() { format.Id = FormatId::Unary_Elias2; } },
-        { "-r",    [&]() { format.Reverse = 1; } },
-        { "-e",    [&]() { format.AddEndMarker = 1; } },
-        { "-o",    [&]() { format.ExtendOffset = 1; } },
-        { "-l",    [&]() { format.ExtendLength = 1; } }
+        { "-lz",   [&]() { options.id = FormatId::LZ; } },
+        { "-e1",   [&]() { options.id = FormatId::E1; } },
+        { "-e1zx", [&]() { options.id = FormatId::E1ZX; } },
+        { "-ue2",  [&]() { options.id = FormatId::UE2; } },
+        { "-r",    [&]() { options.reverse = 1; } },
+        { "-e",    [&]() { options.addEndMarker = 1; } },
+        { "-o",    [&]() { options.extendOffset = 1; } },
+        { "-l",    [&]() { options.extendLength = 1; } }
     };
 
     if (argCount > 3)
@@ -144,7 +147,28 @@ int main(int argCount, char** args)
         }
     }
 
-    CheckOptions(format);
+    CheckOptions(options);
+
+    std::unique_ptr<Format> pFormat;
+
+    switch (options.id)
+    {
+    case FormatId::LZ:
+        pFormat = std::make_unique<FormatLZ>(options);
+        break;
+
+    case FormatId::E1:
+        pFormat = std::make_unique<FormatE1>(options);
+        break;
+
+    case FormatId::E1ZX:
+        pFormat = std::make_unique<FormatE1ZX>(options);
+        break;
+
+    case FormatId::UE2:
+        pFormat = std::make_unique<FormatUE2>(options);
+        break;
+    }
 
     // Read input file.
 
@@ -160,7 +184,13 @@ int main(int argCount, char** args)
 
     if (inputFileSize == 0)
     {
-        PrintError(ErrorId::EmptyFile);
+        PrintError(ErrorId::FileEmpty);
+        return 0;
+    }
+
+    if (inputFileSize > 0xFFFF)
+    {
+        PrintError(ErrorId::FileTooBig);
         return 0;
     }
 
@@ -182,13 +212,18 @@ int main(int argCount, char** args)
 
     BitStream packedStream;
 
-    if (!Compress(spInputStream.get(), inputFileSize, format, packedStream))
+    if (!Compress(spInputStream.get(), static_cast<uint16_t>(inputFileSize), *pFormat.get(), packedStream))
     {
         PrintError(ErrorId::CompressionFailed);
         return 0;
     }
 
-    if (format.Id == FormatId::Elias1_ZX && packedStream.IssueCarryWarning())
+    if (packedStream.Size() >= inputFileSize)
+    {
+        PrintWarning(WarningId::NoSizeGain);
+    }
+
+    if (options.id == FormatId::E1ZX && packedStream.IssueCarryWarning())
     {
         PrintWarning(WarningId::ZxExplicitCarry);
     }

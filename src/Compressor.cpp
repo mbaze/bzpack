@@ -11,43 +11,43 @@
 #define VERIFY
 #endif // _DEBUG
 
-bool EncodeLZS(const uint8_t* pInputStream, const std::vector<StreamRef>& refs, FormatOptions format, BitStream& packedStream)
+bool EncodeLZS(const uint8_t* pInput, const std::vector<Match>& parse, FormatOptions options, BitStream& packedStream)
 {
-    if (format.Id != FormatId::Aligned_LZSS)
+    if (options.id != FormatId::LZ)
     {
         return false;
     }
 
     packedStream.WriteReset();
-    size_t i = 0;
+    uint16_t i = 0;
 
-    for (const StreamRef& ref: refs)
+    for (const Match& match: parse)
     {
-        size_t length = ref.length;
-        if (format.ExtendLength) length--;
+        uint16_t length = match.length;
+        if (options.extendLength) length--;
 
-        if (ref.offset)
+        if (match.offset)
         {
-            size_t offset = ref.offset;
-            if (format.ExtendOffset) offset--;
+            uint16_t offset = match.offset;
+            if (options.extendOffset) offset--;
 
             packedStream.WriteByte(static_cast<uint8_t>(length << 1));
             packedStream.WriteByte(static_cast<uint8_t>(offset));
 
-            i += ref.length;
+            i += match.length;
         }
         else
         {
             packedStream.WriteByte(static_cast<uint8_t>(length << 1) | 1);
 
-            for (size_t b = 0; b < ref.length; b++)
+            for (uint16_t b = 0; b < match.length; b++)
             {
-                packedStream.WriteByte(pInputStream[i++]);
+                packedStream.WriteByte(pInput[i++]);
             }
         }
     }
 
-    if (format.AddEndMarker)
+    if (options.addEndMarker)
     {
         packedStream.WriteByte(0);
     }
@@ -55,44 +55,43 @@ bool EncodeLZS(const uint8_t* pInputStream, const std::vector<StreamRef>& refs, 
     return true;
 }
 
-bool EncodeE1(const uint8_t* pInputStream, const std::vector<StreamRef>& refs, FormatOptions format, BitStream& packedStream)
+bool EncodeE1(const uint8_t* pInput, const std::vector<Match>& parse, FormatOptions options, BitStream& packedStream)
 {
-    if (format.Id != FormatId::Elias1)
+    if (options.id != FormatId::E1)
     {
         return false;
     }
 
     packedStream.WriteReset();
-    size_t i = 0;
 
-    for (const StreamRef& ref: refs)
+    for (const Match& match: parse)
     {
-        if (ref.offset)
+        if (match.offset)
         {
-            size_t offset = ref.offset;
-            if (format.ExtendOffset) offset--;
+            uint16_t offset = match.offset;
+            if (options.extendOffset) offset--;
 
-            EncodeElias1(packedStream, ref.length - 1);
+            EncodeElias1(packedStream, match.length - 1);
             packedStream.WriteBit(0);
             packedStream.WriteByte(static_cast<uint8_t>(offset));
 
-            i += ref.length;
+            pInput += match.length;
         }
         else
         {
-            EncodeElias1(packedStream, ref.length);
+            EncodeElias1(packedStream, match.length);
             packedStream.WriteBit(1);
 
-            for (size_t b = 0; b < ref.length; b++)
+            for (uint16_t b = 0; b < match.length; b++)
             {
-                packedStream.WriteByte(pInputStream[i++]);
+                packedStream.WriteByte(*pInput++);
             }
         }
     }
 
-    if (format.AddEndMarker)
+    if (options.addEndMarker)
     {
-        for (size_t i = 0; i < 16; i++)
+        for (uint16_t i = 0; i < 16; i++)
         {
             packedStream.WriteBit(1);
         }
@@ -103,37 +102,36 @@ bool EncodeE1(const uint8_t* pInputStream, const std::vector<StreamRef>& refs, F
     return true;
 }
 
-bool EncodeE1ZX(const uint8_t* pInputStream, const std::vector<StreamRef>& refs, FormatOptions format, BitStream& packedStream)
+bool EncodeE1ZX(const uint8_t* pInput, const std::vector<Match>& parse, FormatOptions options, BitStream& packedStream)
 {
-    if (format.Id != FormatId::Elias1_ZX)
+    if (options.id != FormatId::E1ZX)
     {
         return false;
     }
 
     packedStream.WriteReset();
-    size_t i = 0;
 
-    for (const StreamRef& ref: refs)
+    for (const Match& match: parse)
     {
-        if (ref.offset)
+        if (match.offset)
         {
-            size_t offset = ref.offset;
-            if (format.ExtendOffset) offset--;
+            uint16_t offset = match.offset;
+            if (options.extendOffset) offset--;
 
-            EncodeElias1Neg(packedStream, ref.length - 1);
+            EncodeElias1Neg(packedStream, match.length - 1);
             packedStream.WriteBitNeg(0);
             packedStream.WriteByte(static_cast<uint8_t>(offset));
 
-            i += ref.length;
+            pInput += match.length;
         }
         else
         {
-            EncodeElias1Neg(packedStream, ref.length);
+            EncodeElias1Neg(packedStream, match.length);
             packedStream.WriteBitNeg(1);
 
-            for (size_t b = 0; b < ref.length; b++)
+            for (size_t b = 0; b < match.length; b++)
             {
-                packedStream.WriteByte(pInputStream[i++]);
+                packedStream.WriteByte(*pInput++);
             }
         }
     }
@@ -143,133 +141,9 @@ bool EncodeE1ZX(const uint8_t* pInputStream, const std::vector<StreamRef>& refs,
     return true;
 }
 
-bool EncodeE1X(const uint8_t* pInputStream, const std::vector<StreamRef>& refs, FormatOptions format, BitStream& packedStream)
+bool EncodeUE2(const uint8_t* pInputStream, const std::vector<Match>& refs, FormatOptions format, BitStream& packedStream)
 {
-    if (format.Id != FormatId::Elias1_Ext)
-    {
-        return false;
-    }
-
-    packedStream.WriteReset();
-
-    size_t i = 0;
-    bool wasPhrase = false;
-
-    for (const StreamRef& ref: refs)
-    {
-        if (ref.offset)
-        {
-            size_t offset = ref.offset;
-            if (format.ExtendOffset) offset--;
-
-            EncodeElias1(packedStream, ref.length - 1);
-
-            if (wasPhrase)
-            {
-                packedStream.WriteBit(0);
-            }
-            else
-            {
-                bool longOffset = (offset > 255);
-                packedStream.WriteBit(!longOffset);
-            }
-
-            packedStream.WriteByte(static_cast<uint8_t>(offset & 255));
-
-            i += ref.length;
-        }
-        else
-        {
-            EncodeElias1(packedStream, ref.length);
-            packedStream.WriteBit(1);
-
-            for (size_t b = 0; b < ref.length; b++)
-            {
-                packedStream.WriteByte(pInputStream[i++]);
-            }
-        }
-
-        wasPhrase = (ref.offset > 0);
-    }
-
-    if (format.AddEndMarker)
-    {
-        for (size_t i = 0; i < 16; i++)
-        {
-            packedStream.WriteBit(1);
-        }
-
-        packedStream.WriteBit(0);
-    }
-
-    return true;
-}
-
-bool EncodeE1R(const uint8_t* pInputStream, const std::vector<StreamRef>& refs, FormatOptions format, BitStream& packedStream)
-{
-    if (format.Id != FormatId::Elias1_Rep)
-    {
-        return false;
-    }
-
-    packedStream.WriteReset();
-
-    size_t i = 0;
-    bool wasPhrase = false;
-    uint32_t lastOffset = 0;
-
-    for (const StreamRef& ref: refs)
-    {
-        if (ref.offset)
-        {
-            size_t offset = ref.offset;
-            if (format.ExtendOffset) offset--;
-
-            EncodeElias1(packedStream, ref.length - 1);
-
-            if (wasPhrase || (ref.offset != lastOffset))
-            {
-                packedStream.WriteBit(0);
-                packedStream.WriteByte(static_cast<uint8_t>(offset));
-                lastOffset = ref.offset;
-            }
-            else
-            {
-                packedStream.WriteBit(1);
-            }
-
-            i += ref.length;
-        }
-        else
-        {
-            EncodeElias1(packedStream, ref.length);
-            packedStream.WriteBit(1);
-
-            for (size_t b = 0; b < ref.length; b++)
-            {
-                packedStream.WriteByte(pInputStream[i++]);
-            }
-        }
-
-        wasPhrase = (ref.offset > 0);
-    }
-
-    if (format.AddEndMarker)
-    {
-        for (size_t i = 0; i < 16; i++)
-        {
-            packedStream.WriteBit(1);
-        }
-
-        packedStream.WriteBit(0);
-    }
-
-    return true;
-}
-
-bool EncodeUE2(const uint8_t* pInputStream, const std::vector<StreamRef>& refs, FormatOptions format, BitStream& packedStream)
-{
-    if (format.Id != FormatId::Unary_Elias2)
+    if (format.id != FormatId::UE2)
     {
         return false;
     }
@@ -277,12 +151,12 @@ bool EncodeUE2(const uint8_t* pInputStream, const std::vector<StreamRef>& refs, 
     packedStream.WriteReset();
     size_t i = 0;
 
-    for (const StreamRef& ref: refs)
+    for (const Match& ref: refs)
     {
         if (ref.offset)
         {
             size_t offset = ref.offset;
-            if (format.ExtendOffset) offset--;
+            if (format.extendOffset) offset--;
 
             packedStream.WriteBit(0);
             EncodeElias2(packedStream, ref.length);
@@ -300,7 +174,7 @@ bool EncodeUE2(const uint8_t* pInputStream, const std::vector<StreamRef>& refs, 
         }
     }
 
-    if (format.AddEndMarker)
+    if (format.addEndMarker)
     {
         packedStream.WriteBit(0);
 
@@ -315,50 +189,43 @@ bool EncodeUE2(const uint8_t* pInputStream, const std::vector<StreamRef>& refs, 
     return true;
 }
 
-bool Compress(uint8_t* pInputStream, size_t inputSize, FormatOptions format, BitStream& packedStream)
+bool Compress(uint8_t* pInput, uint16_t inputSize, const Format& format, BitStream& packedStream)
 {
+    if (pInput == nullptr || inputSize == 0)
+    {
+        return false;
+    }
+
     bool success = false;
+    FormatOptions options = format.GetOptions();
 
-    if (pInputStream == nullptr || inputSize == 0)
+    if (options.reverse)
+    {
+        std::reverse(pInput, pInput + inputSize);
+    }
+
+    std::vector<Match> parse;
+    if (!Parse(parse, pInput, inputSize, format))
     {
         return false;
     }
 
-    if (format.Reverse)
+    switch (options.id)
     {
-        std::reverse(pInputStream, pInputStream + inputSize);
-    }
-
-    std::vector<StreamRef> refs;
-    if (!Parse(pInputStream, inputSize, format, refs))
-    {
-        return false;
-    }
-
-    switch (format.Id)
-    {
-        case FormatId::Aligned_LZSS:
-            success = EncodeLZS(pInputStream, refs, format, packedStream);
+        case FormatId::LZ:
+            success = EncodeLZS(pInput, parse, options, packedStream);
             break;
 
-        case FormatId::Elias1:
-            success = EncodeE1(pInputStream, refs, format, packedStream);
+        case FormatId::E1:
+            success = EncodeE1(pInput, parse, options, packedStream);
             break;
 
-        case FormatId::Elias1_ZX:
-            success = EncodeE1ZX(pInputStream, refs, format, packedStream);
+        case FormatId::E1ZX:
+            success = EncodeE1ZX(pInput, parse, options, packedStream);
             break;
 
-        case FormatId::Elias1_Ext:
-            success = EncodeE1X(pInputStream, refs, format, packedStream);
-            break;
-
-        case FormatId::Elias1_Rep:
-            success = EncodeE1R(pInputStream, refs, format, packedStream);
-            break;
-
-        case FormatId::Unary_Elias2:
-            success = EncodeUE2(pInputStream, refs, format, packedStream);
+        case FormatId::UE2:
+            success = EncodeUE2(pInput, parse, options, packedStream);
             break;
     }
 
@@ -370,17 +237,17 @@ bool Compress(uint8_t* pInputStream, size_t inputSize, FormatOptions format, Bit
 #ifdef VERIFY
 
     std::vector<uint8_t> unpackedStream;
-    if (!Decompress(packedStream, format, inputSize, unpackedStream))
+    if (!Decompress(packedStream, options, inputSize, unpackedStream))
     {
         return false;
     }
 
-    if (format.Reverse)
+    if (options.reverse)
     {
         std::reverse(unpackedStream.begin(), unpackedStream.end());
     }
 
-    if (strncmp(reinterpret_cast<const char*>(pInputStream), reinterpret_cast<const char*>(unpackedStream.data()), inputSize))
+    if (strncmp(reinterpret_cast<const char*>(pInput), reinterpret_cast<const char*>(unpackedStream.data()), inputSize))
     {
         assert(0);
         return false;
@@ -388,7 +255,7 @@ bool Compress(uint8_t* pInputStream, size_t inputSize, FormatOptions format, Bit
 
 #endif // VERIFY
 
-    if (format.Reverse)
+    if (options.reverse)
     {
         packedStream.Reverse();
     }

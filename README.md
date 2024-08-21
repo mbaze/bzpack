@@ -1,14 +1,14 @@
 # bzpack
 
-Bzpack is a data compression utility aimed at retrocomputing and demoscene enthusiasts. Given the artificially imposed size limits on programs like 256-byte, 512-byte or 1 KiB intros, the ability to implement a short decoder is nearly as important as the efficiency of the compression format itself. Bzpack doesn’t claim to be a state-of-the-art, general-purpose packer like Einar Saukas' excellent [ZX0](https://github.com/einar-saukas/ZX0). The goal is to achieve acceptable trade-off between simplicity and efficiency in order to minimize the overall program length. Special consideration was given to vintage computing platform Sinclair ZX Spectrum.
+Bzpack is a data compression utility designed for retrocomputing and demoscene enthusiasts. Given the stringent size limits on programs like 256-byte, 512-byte, or 1 KiB intros, the ability to implement a compact decoder is nearly as important as the efficiency of the compression format itself. While Bzpack doesn't aim to be a state-of-the-art, general-purpose packer like Einar Saukas' excellent [ZX0](https://github.com/einar-saukas/ZX0), its goal is to strike a balance between simplicity and efficiency to minimize the overall program size. Special consideration has been given to vintage computing platform Sinclair ZX Spectrum.
 
 ## Format Overview
 
-All currently supported formats are based on the Lempel–Ziv–Storer–Szymanski algorithm. The compressed stream consists of two block types:
+All currently supported formats are based on the Lempel–Ziv–Storer–Szymanski algorithm. The compressed stream is composed of two block types:
 1. Strings of uncompressed bytes (literals).
 2. Reusable byte sequences represented as offset-length pairs (phrases).
 
-The way literals and phrases are encoded is different for every format and the efficiency also depends on the structure of input data. Therefore it's best to try multiple options and find the best fit.
+The encoding methods for literals and phrases vary across formats, and the efficiency depends on the structure of the input data. Therefore, it is recommended to try multiple formats to determine the best fit.
 
 ### A Note on Elias-Gamma Encoding
 
@@ -48,9 +48,9 @@ In the following text symbol *E1* denotes Elias-Gamma code 1..N and *E2* denotes
 
 ## Format Description
 
-### LZS
+### LZ
 
-LZS is a straightforward byte-aligned format which is interpreted as follows:
+LZ is a straightforward byte-aligned format which is interpreted as follows:
 
 * `ccccccc1` – Copy the next `ccccccc` bytes to the output.
 * `ccccccc0`, `ffffffff` – Copy `ccccccc` bytes from the offset `ffffffff` relative to the current output position.
@@ -87,50 +87,6 @@ Supported options:
 
 * Offset increment (1..256 instead of 1..255).
 
-### E1X
-
-The E1X format is similar to E1. However, in this format there can be no consecutive literals which means that only a phrase (or end of stream) can follow a literal. The "spare" flag after a literal acts as additional offset bit (although inverted). The format is interpreted as follows:
-
-After a literal:
-
-* `E1`, `0`, `ffffffff` – Copy `E1 + 1` bytes from the offset `1ffffffff` relative to the current output position.
-* `E1`, `1`, `ffffffff` – Copy `E1 + 1` bytes from the offset `0ffffffff` relative to the current output position.
-
-After a phrase:
-
-* `E1`, `0`, `ffffffff` – Copy `E1 + 1` bytes from the offset `0ffffffff` relative to the current output position.
-* `E1`, `1` – Copy the next `E1` bytes to the output.
-
-The limitation of this method is that the compression algorithm will fail if there's a literal exceeding the length of 255. However, this is unlikely and E1X usually outperforms E1 enough to justify its slightly longer decoder.
-
-Supported options:
-
-* Offset increment (1..256 / 1..512 instead of 1..255 / 1..511).
-* End of stream marker.
-
-### E1R
-
-E1R is another variant of E1 that makes the assumption of no consecutive literals. After each literal there's a flag which indicates whether to load a new phrase offset or to reuse the most recent offset.
-
-After a literal:
-
-* `E1`, `0`, `ffffffff` – Copy `E1 + 1` bytes from the offset `ffffffff` relative to the current output position.
-* `E1`, `1` – Copy `E1 + 1` bytes from the most recent offset.
-
-After a phrase:
-
-* `E1`, `0`, `ffffffff` – Copy `E1 + 1` bytes from the offset `ffffffff` relative to the current output position.
-* `E1`, `1` – Copy the next `E1` bytes to the output.
-
-The compression algorithm will fail in the unlikely case of a literal exceeding the length of 255. Overall, E1R appears to be an improvement over E1X if there's structured data such as sprites or unrolled loops.
-
-Supported options:
-
-* Offset increment (1..256 instead of 1..255).
-* End of stream marker.
-
-**Note:** The support for this format is still highly experimental. Output produced from the parser cannot be considered close to optimal.
-
 ### UE2
 
 The UE2 format encodes literals on a per-byte basis. For every literal byte there’s a 1-bit flag indicating the byte’s presence. If the flag is not set, there's a phrase which is stored as *E2* length combined with plain 8-bit offset.
@@ -145,12 +101,6 @@ Supported options:
 
 * Offset increment (1..256 instead of 1..255).
 * End of stream marker.
-
-## Comparison
-
-The following chart shows the relative performance of ZX7mini, ZX2, E1 and E1X formats on a corpus of ZX Spectrum intros. Note that this comparison doesn't take into account the decoder size.
-
-![image](https://user-images.githubusercontent.com/37623188/131914074-9e2bd774-f234-454d-9e48-06e76fa052cd.png)
 
 #### Thanks
 

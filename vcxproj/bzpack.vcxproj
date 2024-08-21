@@ -23,12 +23,15 @@
     <ClCompile Include="..\src\Compressor.cpp" />
     <ClCompile Include="..\src\Decompressor.cpp" />
     <ClCompile Include="..\src\Main.cpp" />
+    <ClCompile Include="..\src\MatchFinder.cpp" />
     <ClCompile Include="..\src\OptimalParser.cpp" />
     <ClCompile Include="..\src\UniversalCodes.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\BitStream.h" />
     <ClInclude Include="..\src\Compressor.h" />
+    <ClInclude Include="..\src\Formats.h" />
+    <ClInclude Include="..\src\MatchFinder.h" />
     <ClInclude Include="..\src\OptimalParser.h" />
     <ClInclude Include="..\src\UniversalCodes.h" />
   </ItemGroup>

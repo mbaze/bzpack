@@ -72,7 +72,7 @@ public:
     {
         mLimits.minMatchLength = 2;
         mLimits.maxMatchOffset = options.extendOffset ? 256 : 255;
-        mLimits.maxMatchLength = 255;
+        mLimits.maxMatchLength = 256;
         mLimits.maxLiteralLength = 255;
     }
 
@@ -95,7 +95,7 @@ public:
     {
         mLimits.minMatchLength = 2;
         mLimits.maxMatchOffset = options.extendOffset ? 256 : 255;
-        mLimits.maxMatchLength = 255;
+        mLimits.maxMatchLength = 256;
         mLimits.maxLiteralLength = 255;
     }
 

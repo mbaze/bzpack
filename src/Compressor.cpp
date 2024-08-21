@@ -141,40 +141,39 @@ bool EncodeE1ZX(const uint8_t* pInput, const std::vector<Match>& parse, FormatOp
     return true;
 }
 
-bool EncodeUE2(const uint8_t* pInputStream, const std::vector<Match>& refs, FormatOptions format, BitStream& packedStream)
+bool EncodeUE2(const uint8_t* pInput, const std::vector<Match>& parse, FormatOptions options, BitStream& packedStream)
 {
-    if (format.id != FormatId::UE2)
+    if (options.id != FormatId::UE2)
     {
         return false;
     }
 
     packedStream.WriteReset();
-    size_t i = 0;
 
-    for (const Match& ref: refs)
+    for (const Match& match: parse)
     {
-        if (ref.offset)
+        if (match.offset)
         {
-            size_t offset = ref.offset;
-            if (format.extendOffset) offset--;
+            size_t offset = match.offset;
+            if (options.extendOffset) offset--;
 
             packedStream.WriteBit(0);
-            EncodeElias2(packedStream, ref.length);
+            EncodeElias2(packedStream, match.length);
             packedStream.WriteByte(static_cast<uint8_t>(offset));
 
-            i += ref.length;
+            pInput += match.length;
         }
         else
         {
-            for (size_t b = 0; b < ref.length; b++)
+            for (size_t b = 0; b < match.length; b++)
             {
                 packedStream.WriteBit(1);
-                packedStream.WriteByte(pInputStream[i++]);
+                packedStream.WriteByte(*pInput++);
             }
         }
     }
 
-    if (format.addEndMarker)
+    if (options.addEndMarker)
     {
         packedStream.WriteBit(0);
 

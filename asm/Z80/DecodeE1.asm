@@ -28,7 +28,7 @@ NoFetch		jr	c,EliasGamma
 		ld	h,b
 		add	hl,de
 ;		inc	hl		; Option to increase offset to 256.
-		inc	c
+		inc	bc
 CopyBytes	lddr
 		inc	c		; Prepare the most-significant Elias-Gamma bit.
 		jr	c,NextBit
@@ -62,7 +62,7 @@ NoFetch		jr	c,EliasGamma
 		ld	h,b
 		add	hl,de
 ;		inc	hl		; Option to increase offset to 256.
-		inc	c
+		inc	bc
 CopyBytes	lddr
 		inc	c		; Prepare the most-significant Elias-Gamma bit.
 		jr	c,NextBit

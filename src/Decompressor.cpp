@@ -145,23 +145,22 @@ bool DecodeE1ZX(BitStream& packedStream, FormatOptions options, uint16_t inputSi
     return true;
 }
 
-bool DecodeUE2(BitStream& packedStream, FormatOptions options, size_t inputSize, std::vector<uint8_t>& outputStream)
+bool DecodeUE2(BitStream& packedStream, FormatOptions options, size_t inputSize, std::vector<uint8_t>& output)
 {
     if (options.id != FormatId::UE2)
     {
         return false;
     }
 
-    bool checkEndMarker = (inputSize == 0);
-
-    outputStream.clear();
+    output.clear();
     packedStream.ReadReset();
+    bool checkEndMarker = (inputSize == 0);
 
     while (true)
     {
         if (packedStream.ReadBit())
         {
-            outputStream.push_back(packedStream.ReadByte());
+            output.push_back(packedStream.ReadByte());
         }
         else
         {
@@ -172,16 +171,16 @@ bool DecodeUE2(BitStream& packedStream, FormatOptions options, size_t inputSize,
                 break;
             }
 
-            size_t offset = packedStream.ReadByte();
+            uint16_t offset = packedStream.ReadByte();
             if (options.extendOffset) offset++;
 
             while (length--)
             {
-                outputStream.push_back(outputStream[outputStream.size() - offset]);
+                output.push_back(output[output.size() - offset]);
             }
         }
 
-        if (!checkEndMarker && outputStream.size() >= inputSize)
+        if (!checkEndMarker && output.size() >= inputSize)
         {
             break;
         }

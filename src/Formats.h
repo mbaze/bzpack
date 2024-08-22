@@ -17,10 +17,10 @@ struct FormatOptions
 
 struct FormatLimits
 {
-    uint16_t minMatchLength = 2;
-    uint16_t maxMatchOffset = 0xFFFF;
-    uint16_t maxMatchLength = 0xFFFF;
     uint16_t maxLiteralLength = 0xFFFF;
+    uint16_t minMatchLength = 2;
+    uint16_t maxMatchLength = 0xFFFF;
+    uint16_t maxMatchOffset = 0xFFFF;
 };
 
 class Format
@@ -28,7 +28,7 @@ class Format
 public:
 
     Format() = delete;
-    Format(FormatOptions options) { mOptions = options; }
+    Format(FormatOptions options): mOptions(options) {}
 
     FormatOptions GetOptions() const { return mOptions; }
     FormatLimits GetLimits() const { return mLimits; }
@@ -47,10 +47,10 @@ public:
 
     FormatLZ(FormatOptions options): Format(options)
     {
-        mLimits.minMatchLength = 2;
-        mLimits.maxMatchOffset = options.extendOffset ? 256 : 255;
-        mLimits.maxMatchLength = options.extendLength ? 128 : 127;
         mLimits.maxLiteralLength = options.extendLength ? 128 : 127;
+        mLimits.minMatchLength = 2;
+        mLimits.maxMatchLength = options.extendLength ? 128 : 127;
+        mLimits.maxMatchOffset = options.extendOffset ? 256 : 255;
     }
 
     uint32_t GetLiteralCost(uint16_t length) const override
@@ -70,10 +70,10 @@ public:
 
     FormatE1(FormatOptions options): Format(options)
     {
-        mLimits.minMatchLength = 2;
-        mLimits.maxMatchOffset = options.extendOffset ? 256 : 255;
-        mLimits.maxMatchLength = 256;
         mLimits.maxLiteralLength = 255;
+        mLimits.minMatchLength = 2;
+        mLimits.maxMatchLength = 256;
+        mLimits.maxMatchOffset = options.extendOffset ? 256 : 255;
     }
 
     uint32_t GetLiteralCost(uint16_t length) const override
@@ -93,10 +93,10 @@ public:
 
     FormatE1ZX(FormatOptions options): Format(options)
     {
-        mLimits.minMatchLength = 2;
-        mLimits.maxMatchOffset = options.extendOffset ? 256 : 255;
-        mLimits.maxMatchLength = 256;
         mLimits.maxLiteralLength = 255;
+        mLimits.minMatchLength = 2;
+        mLimits.maxMatchLength = 256;
+        mLimits.maxMatchOffset = options.extendOffset ? 256 : 255;
     }
 
     uint32_t GetLiteralCost(uint16_t length) const override
@@ -116,10 +116,10 @@ public:
 
     FormatUE2(FormatOptions options): Format(options)
     {
-        mLimits.minMatchLength = 2;
-        mLimits.maxMatchOffset = options.extendOffset ? 256 : 255;
-        mLimits.maxMatchLength = 255;
         mLimits.maxLiteralLength = 0xFFFF;
+        mLimits.minMatchLength = 2;
+        mLimits.maxMatchLength = 255;
+        mLimits.maxMatchOffset = options.extendOffset ? 256 : 255;
     }
 
     uint32_t GetLiteralCost(uint16_t length) const override

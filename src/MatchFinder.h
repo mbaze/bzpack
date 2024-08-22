@@ -8,6 +8,8 @@
 
 struct Match
 {
+    Match(uint16_t o, uint16_t l): offset(o), length(l) {}
+
     uint16_t offset;
     uint16_t length;
 };
@@ -26,12 +28,13 @@ private:
 
     const uint8_t* mInputPtr;
     uint16_t mInputSize;
-    uint16_t mWindowSize;
+
     uint16_t mMinMatchLength;
     uint16_t mMaxMatchLength;
+    uint16_t mMaxMatchOffset;
 
-    int32_t mHash[65536];
-    int32_t mList[65536];
+    uint16_t mHash[65536];
+    uint16_t mList[65536];
 };
 
 #endif // MATCH_FINDER_H

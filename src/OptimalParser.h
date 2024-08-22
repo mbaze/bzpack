@@ -7,7 +7,7 @@
 #include "Formats.h"
 #include "MatchFinder.h"
 
-struct Node
+struct PathNode
 {
     uint16_t offset = 0;
     uint16_t length = 0;

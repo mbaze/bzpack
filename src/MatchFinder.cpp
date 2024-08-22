@@ -7,25 +7,25 @@ MatchFinder::MatchFinder(const uint8_t* pInput, uint16_t inputSize, const Format
 {
     mInputPtr = pInput;
     mInputSize = inputSize;
-    mWindowSize = limits.maxMatchOffset;
+
     mMinMatchLength = limits.minMatchLength;
     mMaxMatchLength = limits.maxMatchLength;
+    mMaxMatchOffset = limits.maxMatchOffset;
 
-    for (size_t i = 0; i < 65536; i++)
-    {
-        mHash[i] = -mWindowSize;
-        mList[i] = -mWindowSize;
-    }
+    // 0xFFFF is the end marker since no match can begin at the last byte.
+
+    std::fill(std::begin(mHash), std::end(mHash), 0xFFFF);
+    std::fill(std::begin(mList), std::end(mList), 0xFFFF);
 }
 
-uint16_t MatchFinder::GetMatchLength(uint16_t inputPos, uint16_t matchPos) const
+inline uint16_t MatchFinder::GetMatchLength(uint16_t inputPos, uint16_t matchPos) const
 {
     // We already know that the first two bytes match.
 
     uint16_t endPos = inputPos + std::min<uint16_t>(mInputSize - inputPos, mMaxMatchLength);
+    uint16_t matchLength = 2;
     inputPos += 2;
     matchPos += 2;
-    uint16_t matchLength = 2;
 
     while (inputPos < endPos)
     {
@@ -42,20 +42,17 @@ uint16_t MatchFinder::GetMatchLength(uint16_t inputPos, uint16_t matchPos) const
 
 void MatchFinder::FindMatches(std::vector<Match>& matches, uint16_t inputPos)
 {
+    uint16_t windowPos = inputPos - std::min<uint16_t>(inputPos, mMaxMatchOffset);
     uint16_t key = mInputPtr[inputPos] | (mInputPtr[inputPos + 1] << 8);
-    int32_t matchPos = mHash[key];
-    int32_t minMatchPos = inputPos - mWindowSize;
+    uint16_t matchPos = mHash[key];
 
-    while (matchPos > minMatchPos)
+    while (matchPos != 0xFFFF && matchPos >= windowPos)
     {
         uint16_t matchLength = GetMatchLength(inputPos, matchPos);
 
         for (uint16_t length = mMinMatchLength; length <= matchLength; length++)
         {
-            Match match;
-            match.offset = inputPos - matchPos;
-            match.length = length;
-            matches.push_back(match);
+            matches.emplace_back(inputPos - matchPos, length);
         }
 
         matchPos = mList[matchPos];

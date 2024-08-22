@@ -16,7 +16,7 @@ bool Parse(std::vector<Match>& parse, const uint8_t* pInput, uint16_t inputSize,
     std::vector<Match> matches;
     matches.reserve(256);
 
-    std::vector<Node> nodes(inputSize + 1);
+    std::vector<PathNode> nodes(inputSize + 1);
     nodes[0].cost = 0;
 
     // Forward pass.
@@ -64,13 +64,10 @@ bool Parse(std::vector<Match>& parse, const uint8_t* pInput, uint16_t inputSize,
 
     // Backward pass.
 
-    parse.clear();
-    size_t position = inputSize;
-
-    while (position)
+    while (inputSize)
     {
-        parse.push_back({nodes[position].offset, nodes[position].length});
-        position -= nodes[position].length;
+        parse.emplace_back(nodes[inputSize].offset, nodes[inputSize].length);
+        inputSize -= nodes[inputSize].length;
     }
 
     std::reverse(parse.begin(), parse.end());

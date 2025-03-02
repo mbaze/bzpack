@@ -1,5 +1,5 @@
 // Copyright (c) 2021, Milos "baze" Bazelides
-// This code is released under the terms of the BSD 2-Clause License.
+// This code is licensed under the BSD 2-Clause License.
 
 #include <cassert>
 #include "UniversalCodes.h"
@@ -19,16 +19,13 @@ uint32_t GetElias1Cost(uint32_t value)
 {
     assert(value > 0);
 
-    uint32_t mask = ~1;
-    uint32_t count = 0;
-
-    while (value & mask)
+    uint32_t cost = 1;
+    while (value >>= 1)
     {
-        mask <<= 1;
-        count++;
+        cost += 2;
     }
 
-    return (count << 1) + 1;
+    return cost;
 }
 
 void EncodeElias1(BitStream& stream, uint32_t value)

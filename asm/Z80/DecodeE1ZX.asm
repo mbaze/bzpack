@@ -1,5 +1,5 @@
 ; Copyright (c) 2022, Milos "baze" Bazelides
-; This code is released under the terms of the BSD 2-Clause License.
+; This code is licensed under the BSD 2-Clause License.
 
 ; E1ZX decoder (usually 34..36 bytes including initialization).
 

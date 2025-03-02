@@ -1,5 +1,5 @@
 ; Copyright (c) 2021, Aleksey "introspec" Pichugin, Milos "baze" Bazelides, Pavel "Zilog" Cimbal
-; This code is released under the terms of the BSD 2-Clause License.
+; This code is licensed under the BSD 2-Clause License.
 
 ; E1 decoder (28 bytes excluding initialization).
 

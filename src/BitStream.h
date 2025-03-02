@@ -1,5 +1,5 @@
 // Copyright (c) 2021, Milos "baze" Bazelides
-// This code is released under the terms of the BSD 2-Clause License.
+// This code is licensed under the BSD 2-Clause License.
 
 #ifndef BIT_STREAM_H
 #define BIT_STREAM_H

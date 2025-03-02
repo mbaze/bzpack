@@ -1,5 +1,5 @@
 // Copyright (c) 2021, Milos "baze" Bazelides
-// This code is released under the terms of the BSD 2-Clause License.
+// This code is licensed under the BSD 2-Clause License.
 
 #include <unordered_map>
 #include <memory>
@@ -103,12 +103,13 @@ int main(int argCount, char** args)
 {
     if (argCount < 3)
     {
-        printf("\nUsage: bzpack.exe <input.raw> <output.bin> [-lz|-e1|-e1zx|-ue2] [-r] [-e] [-o] [-l]\n");
+        printf("\nUsage: bzpack.exe <input.raw> <output.bin> [-lz|-e1|-e1zx|-zx2|-ue2] [-r] [-e] [-o] [-l]\n");
         printf("\nOptions:\n\n");
-        printf("-lz: Byte-aligned LZSS. Raw 7-bit block length, raw 8-bit offset (default).\n");
-        printf("-e1: Elias 1..N block length, raw 8-bit offset.\n");
+        printf("-lz: Byte-aligned LZSS. Raw 7-bit length, raw 8-bit offset (default).\n");
+        printf("-e1: Elias 1..N length, raw 8-bit offset.\n");
         printf("-e1zx: A version of -e1 optimized for Sinclair ZX Spectrum.\n");
-        printf("-ue2: Unary literal length, Elias 2..N phrase length, raw 8-bit offset.\n");
+        printf("-zx2: Elias 1..N length, raw 8-bit offset or repeat offset.\n");
+        printf("-ue2: Unary literal length, Elias 2..N match length, raw 8-bit offset.\n");
         printf("-r: Compress in reverse order.\n");
         printf("-e: Add end-of-stream marker.\n");
         printf("-o: Extend maximum window offset by 1.\n");
@@ -116,18 +117,19 @@ int main(int argCount, char** args)
         return 0;
     }
 
-    FormatOptions options = { FormatId::LZ, 0, 0, 0, 0 };
+    FormatOptions options = {FormatId::LZ, 0, 0, 0, 0};
 
     static const std::unordered_map<std::string, std::function<void()>> optionDispatch =
     {
-        { "-lz",   [&]() { options.id = FormatId::LZ; } },
-        { "-e1",   [&]() { options.id = FormatId::E1; } },
-        { "-e1zx", [&]() { options.id = FormatId::E1ZX; } },
-        { "-ue2",  [&]() { options.id = FormatId::UE2; } },
-        { "-r",    [&]() { options.reverse = 1; } },
-        { "-e",    [&]() { options.addEndMarker = 1; } },
-        { "-o",    [&]() { options.extendOffset = 1; } },
-        { "-l",    [&]() { options.extendLength = 1; } }
+        {"-lz",   [&]() { options.id = FormatId::LZ; }},
+        {"-e1",   [&]() { options.id = FormatId::E1; }},
+        {"-e1zx", [&]() { options.id = FormatId::E1ZX; }},
+        {"-zx2",  [&]() { options.id = FormatId::ZX2; }},
+        {"-ue2",  [&]() { options.id = FormatId::UE2; }},
+        {"-r",    [&]() { options.reverse = 1; }},
+        {"-e",    [&]() { options.addEndMarker = 1; }},
+        {"-o",    [&]() { options.extendOffset = 1; }},
+        {"-l",    [&]() { options.extendLength = 1; }}
     };
 
     if (argCount > 3)
@@ -155,6 +157,10 @@ int main(int argCount, char** args)
     {
     case FormatId::LZ:
         pFormat = std::make_unique<FormatLZ>(options);
+        break;
+
+    case FormatId::ZX2:
+        pFormat = std::make_unique<FormatZX2>(options);
         break;
 
     case FormatId::E1:
@@ -210,9 +216,8 @@ int main(int argCount, char** args)
 
     // Compress data.
 
-    BitStream packedStream;
-
-    if (!Compress(spInputStream.get(), static_cast<uint16_t>(inputFileSize), *pFormat.get(), packedStream))
+    BitStream packedStream = Compress(spInputStream.get(), static_cast<uint16_t>(inputFileSize), *pFormat.get());
+    if (packedStream.Size() == 0)
     {
         PrintError(ErrorId::CompressionFailed);
         return 0;

@@ -1,5 +1,5 @@
 ; Copyright (c) 2017, 2022, Milos "baze" Bazelides
-; This code is released under the terms of the BSD 2-Clause License.
+; This code is licensed under the BSD 2-Clause License.
 
 ; LZS decoder (18 bytes excluding initialization).
 

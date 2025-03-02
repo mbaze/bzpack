@@ -1,263 +1,305 @@
 // Copyright (c) 2021, Milos "baze" Bazelides
-// This code is released under the terms of the BSD 2-Clause License.
+// This code is licensed under the BSD 2-Clause License.
 
 #include <cassert>
 #include <algorithm>
 #include "Compressor.h"
 #include "OptimalParser.h"
+#include "DijkstraParser.h"
 #include "UniversalCodes.h"
 
 #ifdef _DEBUG
 #define VERIFY
 #endif // _DEBUG
 
-bool EncodeLZS(const uint8_t* pInput, const std::vector<Match>& parse, FormatOptions options, BitStream& packedStream)
+BitStream EncodeLZ(const uint8_t* pInput, const std::vector<ParseStep>& parse, const Format& format)
 {
-    if (options.id != FormatId::LZ)
+    if (format.Id() != FormatId::LZ || !parse.size())
+        return {};
+
+    BitStream stream;
+
+    for (const ParseStep& parseStep: parse)
     {
-        return false;
-    }
+        uint16_t length = format.ExtendLength() ? parseStep.length - 1 : parseStep.length;
 
-    packedStream.WriteReset();
-    uint16_t i = 0;
-
-    for (const Match& match: parse)
-    {
-        uint16_t length = match.length;
-        if (options.extendLength) length--;
-
-        if (match.offset)
+        if (parseStep.offset)
         {
-            uint16_t offset = match.offset;
-            if (options.extendOffset) offset--;
+            uint16_t offset = format.ExtendOffset() ? parseStep.offset - 1 : parseStep.offset;
 
-            packedStream.WriteByte(static_cast<uint8_t>(length << 1));
-            packedStream.WriteByte(static_cast<uint8_t>(offset));
+            stream.WriteByte(static_cast<uint8_t>(length << 1));
+            stream.WriteByte(static_cast<uint8_t>(offset));
 
-            i += match.length;
+            pInput += parseStep.length;
         }
         else
         {
-            packedStream.WriteByte(static_cast<uint8_t>(length << 1) | 1);
+            stream.WriteByte(static_cast<uint8_t>(length << 1) | 1);
 
-            for (uint16_t b = 0; b < match.length; b++)
+            for (uint16_t i = 0; i < parseStep.length; i++)
             {
-                packedStream.WriteByte(pInput[i++]);
+                stream.WriteByte(*pInput++);
             }
         }
     }
 
-    if (options.addEndMarker)
+    if (format.AddEndMarker())
     {
-        packedStream.WriteByte(0);
+        stream.WriteByte(0);
     }
 
-    return true;
+    return stream;
 }
 
-bool EncodeE1(const uint8_t* pInput, const std::vector<Match>& parse, FormatOptions options, BitStream& packedStream)
+BitStream EncodeZX2(const uint8_t* pInput, const std::vector<ParseStep>& parse, const Format& format)
 {
-    if (options.id != FormatId::E1)
-    {
-        return false;
-    }
+    if (format.Id() != FormatId::ZX2 || !parse.size())
+        return {};
 
-    packedStream.WriteReset();
+    BitStream stream;
 
-    for (const Match& match: parse)
+    uint16_t repOffset = 0;
+    bool wasLiteral = false;
+
+    for (const ParseStep& parseStep: parse)
     {
-        if (match.offset)
+        if (parseStep.offset)
         {
-            uint16_t offset = match.offset;
-            if (options.extendOffset) offset--;
+            if (wasLiteral && (parseStep.offset == repOffset))
+            {
+                stream.WriteBit(1);
+                EncodeElias1(stream, parseStep.length);
+            }
+            else
+            {
+                uint16_t offset = format.ExtendOffset() ? parseStep.offset - 1 : parseStep.offset;
 
-            EncodeElias1(packedStream, match.length - 1);
-            packedStream.WriteBit(0);
-            packedStream.WriteByte(static_cast<uint8_t>(offset));
+                stream.WriteBit(0);
+                stream.WriteByte(static_cast<uint8_t>(offset));
+                EncodeElias1(stream, parseStep.length - 1);
+            }
 
-            pInput += match.length;
+            pInput += parseStep.length;
+            repOffset = parseStep.offset;
+            wasLiteral = false;
         }
         else
         {
-            EncodeElias1(packedStream, match.length);
-            packedStream.WriteBit(1);
-
-            for (uint16_t b = 0; b < match.length; b++)
+            if (stream.Size())
             {
-                packedStream.WriteByte(*pInput++);
+                stream.WriteBit(1);
+            }
+
+            EncodeElias1(stream, parseStep.length);
+
+            for (uint16_t i = 0; i < parseStep.length; i++)
+            {
+                stream.WriteByte(*pInput++);
+            }
+
+            wasLiteral = true;
+        }
+    }
+
+    if (format.AddEndMarker())
+    {
+        stream.WriteByte(255);
+    }
+
+    return stream;
+}
+
+BitStream EncodeE1(const uint8_t* pInput, const std::vector<ParseStep>& parse, const Format& format)
+{
+    if (format.Id() != FormatId::E1 || !parse.size())
+        return {};
+
+    BitStream stream;
+
+    for (const ParseStep& parseStep: parse)
+    {
+        if (parseStep.offset)
+        {
+            uint16_t offset = format.ExtendOffset() ? parseStep.offset - 1 : parseStep.offset;
+
+            EncodeElias1(stream, parseStep.length - 1);
+            stream.WriteBit(0);
+            stream.WriteByte(static_cast<uint8_t>(offset));
+
+            pInput += parseStep.length;
+        }
+        else
+        {
+            EncodeElias1(stream, parseStep.length);
+            stream.WriteBit(1);
+
+            for (uint16_t i = 0; i < parseStep.length; i++)
+            {
+                stream.WriteByte(*pInput++);
             }
         }
     }
 
-    if (options.addEndMarker)
+    if (format.AddEndMarker())
     {
         for (uint16_t i = 0; i < 16; i++)
         {
-            packedStream.WriteBit(1);
+            stream.WriteBit(1);
         }
 
-        packedStream.WriteBit(0);
+        stream.WriteBit(0);
     }
 
-    return true;
+    return stream;
 }
 
-bool EncodeE1ZX(const uint8_t* pInput, const std::vector<Match>& parse, FormatOptions options, BitStream& packedStream)
+BitStream EncodeE1ZX(const uint8_t* pInput, const std::vector<ParseStep>& parse, const Format& format)
 {
-    if (options.id != FormatId::E1ZX)
-    {
-        return false;
-    }
+    if (format.Id() != FormatId::E1ZX || !parse.size())
+        return {};
 
-    packedStream.WriteReset();
+    BitStream stream;
 
-    for (const Match& match: parse)
+    for (const ParseStep& parseStep: parse)
     {
-        if (match.offset)
+        if (parseStep.offset)
         {
-            uint16_t offset = match.offset;
-            if (options.extendOffset) offset--;
+            uint16_t offset = format.ExtendOffset() ? parseStep.offset - 1 : parseStep.offset;
 
-            EncodeElias1Neg(packedStream, match.length - 1);
-            packedStream.WriteBitNeg(0);
-            packedStream.WriteByte(static_cast<uint8_t>(offset));
+            EncodeElias1Neg(stream, parseStep.length - 1);
+            stream.WriteBitNeg(0);
+            stream.WriteByte(static_cast<uint8_t>(offset));
 
-            pInput += match.length;
+            pInput += parseStep.length;
         }
         else
         {
-            EncodeElias1Neg(packedStream, match.length);
-            packedStream.WriteBitNeg(1);
+            EncodeElias1Neg(stream, parseStep.length);
+            stream.WriteBitNeg(1);
 
-            for (size_t b = 0; b < match.length; b++)
+            for (size_t i = 0; i < parseStep.length; i++)
             {
-                packedStream.WriteByte(*pInput++);
+                stream.WriteByte(*pInput++);
             }
         }
     }
 
-    packedStream.FlushBitsNeg();
+    stream.FlushBitsNeg();
 
-    return true;
+    return stream;
 }
 
-bool EncodeUE2(const uint8_t* pInput, const std::vector<Match>& parse, FormatOptions options, BitStream& packedStream)
+BitStream EncodeUE2(const uint8_t* pInput, const std::vector<ParseStep>& parse, const Format& format)
 {
-    if (options.id != FormatId::UE2)
-    {
-        return false;
-    }
+    if (format.Id() != FormatId::UE2 || !parse.size())
+        return {};
 
-    packedStream.WriteReset();
+    BitStream stream;
 
-    for (const Match& match: parse)
+    for (const ParseStep& parseStep: parse)
     {
-        if (match.offset)
+        if (parseStep.offset)
         {
-            size_t offset = match.offset;
-            if (options.extendOffset) offset--;
+            uint16_t offset = format.ExtendOffset() ? parseStep.offset - 1 : parseStep.offset;
 
-            packedStream.WriteBit(0);
-            EncodeElias2(packedStream, match.length);
-            packedStream.WriteByte(static_cast<uint8_t>(offset));
+            stream.WriteBit(0);
+            EncodeElias2(stream, parseStep.length);
+            stream.WriteByte(static_cast<uint8_t>(offset));
 
-            pInput += match.length;
+            pInput += parseStep.length;
         }
         else
         {
-            for (size_t b = 0; b < match.length; b++)
+            for (size_t i = 0; i < parseStep.length; i++)
             {
-                packedStream.WriteBit(1);
-                packedStream.WriteByte(*pInput++);
+                stream.WriteBit(1);
+                stream.WriteByte(*pInput++);
             }
         }
     }
 
-    if (options.addEndMarker)
+    if (format.AddEndMarker())
     {
-        packedStream.WriteBit(0);
+        stream.WriteBit(0);
 
         for (size_t i = 0; i < 15; i++)
         {
-            packedStream.WriteBit(1);
+            stream.WriteBit(1);
         }
 
-        packedStream.WriteBit(0);
+        stream.WriteBit(0);
     }
 
-    return true;
+    return stream;
 }
 
-bool Compress(uint8_t* pInput, uint16_t inputSize, const Format& format, BitStream& packedStream)
+BitStream Compress(uint8_t* pInput, uint16_t inputSize, const Format& format)
 {
     if (pInput == nullptr || inputSize == 0)
-    {
-        return false;
-    }
+        return {};
 
-    bool success = false;
-    FormatOptions options = format.GetOptions();
-
-    if (options.reverse)
-    {
+    if (format.Reverse())
         std::reverse(pInput, pInput + inputSize);
-    }
 
-    std::vector<Match> parse;
-    if (!Parse(parse, pInput, inputSize, format))
-    {
-        return false;
-    }
+    BitStream stream;
+    std::vector<ParseStep> parse;
 
-    switch (options.id)
+    switch (format.Id())
     {
         case FormatId::LZ:
-            success = EncodeLZS(pInput, parse, options, packedStream);
+            parse = Parse(pInput, inputSize, format);
+            stream = EncodeLZ(pInput, parse, format);
             break;
 
+        case FormatId::ZX2:
+        {
+            DijkstraParser parser(pInput, inputSize, format);
+            parse = parser.Parse();
+            stream = EncodeZX2(pInput, parse, format);
+            break;
+        }
+
         case FormatId::E1:
-            success = EncodeE1(pInput, parse, options, packedStream);
+            parse = Parse(pInput, inputSize, format);
+            stream = EncodeE1(pInput, parse, format);
             break;
 
         case FormatId::E1ZX:
-            success = EncodeE1ZX(pInput, parse, options, packedStream);
+            parse = Parse(pInput, inputSize, format);
+            stream = EncodeE1ZX(pInput, parse, format);
             break;
 
         case FormatId::UE2:
-            success = EncodeUE2(pInput, parse, options, packedStream);
+            parse = Parse(pInput, inputSize, format);
+            stream = EncodeUE2(pInput, parse, format);
             break;
     }
 
-    if (!success)
-    {
-        return false;
-    }
+    if (stream.Size() == 0)
+        return {};
 
 #ifdef VERIFY
 
-    std::vector<uint8_t> unpackedStream;
-    if (!Decompress(packedStream, options, inputSize, unpackedStream))
-    {
-        return false;
-    }
+    std::vector<uint8_t> data = Decompress(stream, format, inputSize);
+    if (data.size() == 0)
+        return {};
 
-    if (options.reverse)
-    {
-        std::reverse(unpackedStream.begin(), unpackedStream.end());
-    }
+    if (format.Reverse())
+        std::reverse(data.begin(), data.end());
 
-    if (strncmp(reinterpret_cast<const char*>(pInput), reinterpret_cast<const char*>(unpackedStream.data()), inputSize))
+    for (uint16_t i = 0; i < inputSize; i++)
     {
-        assert(0);
-        return false;
+        if (pInput[i] != data.data()[i])
+        {
+            assert(0);
+            return {};
+        }
     }
 
 #endif // VERIFY
 
-    if (options.reverse)
-    {
-        packedStream.Reverse();
-    }
+    if (format.Reverse())
+        stream.Reverse();
 
-    return true;
+    return stream;
 }

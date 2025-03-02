@@ -1,5 +1,5 @@
 // Copyright (c) 2021, Milos "baze" Bazelides
-// This code is released under the terms of the BSD 2-Clause License.
+// This code is licensed under the BSD 2-Clause License.
 
 #include <algorithm>
 #include "BitStream.h"
@@ -39,7 +39,7 @@ void BitStream::WriteBit(bool value)
     if (mWriteBitNum == 0)
     {
         mWriteBitPos = mBytes.size();
-        mBytes.push_back(0);
+        mBytes.emplace_back(0);
     }
 
     mWriteBitNum = --mWriteBitNum & 7;
@@ -48,7 +48,7 @@ void BitStream::WriteBit(bool value)
 
 void BitStream::WriteByte(uint8_t value)
 {
-    mBytes.push_back(value);
+    mBytes.emplace_back(value);
 }
 
 uint32_t BitStream::ReadBit()
@@ -82,7 +82,7 @@ void BitStream::WriteBitNeg(bool value)
         }
 
         mWriteBitPos = mBytes.size();
-        mBytes.push_back(0);
+        mBytes.emplace_back(0);
     }
 
     mWriteBitNum = --mWriteBitNum & 7;

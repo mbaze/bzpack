@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -22,17 +22,20 @@
     <ClCompile Include="..\src\BitStream.cpp" />
     <ClCompile Include="..\src\Compressor.cpp" />
     <ClCompile Include="..\src\Decompressor.cpp" />
+    <ClCompile Include="..\src\DijkstraParser.cpp" />
     <ClCompile Include="..\src\Main.cpp" />
-    <ClCompile Include="..\src\MatchFinder.cpp" />
+    <ClCompile Include="..\src\PrefixMatcher.cpp" />
     <ClCompile Include="..\src\OptimalParser.cpp" />
     <ClCompile Include="..\src\UniversalCodes.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\BitStream.h" />
     <ClInclude Include="..\src\Compressor.h" />
+    <ClInclude Include="..\src\DijkstraParser.h" />
     <ClInclude Include="..\src\Formats.h" />
-    <ClInclude Include="..\src\MatchFinder.h" />
+    <ClInclude Include="..\src\PrefixMatcher.h" />
     <ClInclude Include="..\src\OptimalParser.h" />
+    <ClInclude Include="..\src\CommonTypes.h" />
     <ClInclude Include="..\src\UniversalCodes.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

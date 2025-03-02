@@ -18,23 +18,24 @@ data. Therefore, trying multiple formats is recommended to determine the best fi
 
 ### A Note on Elias-Gamma Encoding
 
-The canonical form of Elias-Gamma code consists of *N* leading zeroes followed by a *(N + 1)*-bit binary number. For example,
-the number 12 is encoded as 000**1100**. In his paper "Universal codeword sets and representations of the integers", Peter Elias
-also proposed an alternative form in which the bits are interleaved: **1**0**1**0**0**0**0**. In this interleaved form, assuming
-the most significant bit is implicit, the zeroes act as 1-bit flags indicating whether another significant bit follows. This
-format enables efficient decoder implementation in assembly language. Bzpack adopts this approach with one modification: the
-flags are inverted. As a result, the actual code for the number 12 becomes  1**1**1**0**1**0**0. That is:
+The canonical form of the Elias-Gamma code consists of `N` leading zeroes followed by a `(N + 1)`-bit binary number. For
+example, the number 12 is encoded as 000**1100**. In his paper "Universal codeword sets and representations of the integers",
+Peter Elias also proposed an alternative representation in which the bits are interleaved: **1**0**1**0**0**0**0**. In this
+format, the most significant bit is always present, and the zeroes act as 1-bit flags indicating whether another significant
+bit follows. This representation is particularly well-suited for efficient decoder implementation in assembly language.
+Bzpack adopts this approach with one minor tweak: the flags are inverted. As a result, the actual code for the number 12
+becomes 1**1**1**0**1**0**0, where:
 
-* The most significant bit is not stored.
+* The most significant bit is implicitly assumed.
 * Each subsequent significant bit is preceded by a 1, indicating its presence.
-* 0 marks the end of the sequence.
+* A 0 marks the end of the sequence.
 
 ### Elias-Gamma 1..N vs 2..N
 
 The Elias-Gamma code represents positive integers in the range 1..N. However, by shifting the range to 2..N, the resulting
 codewords can sometimes be optimized for the most common match lengths.
 
-Regular Elias-Gamma code 1..N:
+Standard Elias-Gamma code for the range 1..N:
 ```
 1: 0
 2: 100
@@ -44,7 +45,7 @@ Regular Elias-Gamma code 1..N:
 6: 11100
 7: 11110
 ```
-Offset Elias-Gamma code 2..N:
+Offset Elias-Gamma code for the range 2..N:
 ```
 2: 00
 3: 10
@@ -54,7 +55,7 @@ Offset Elias-Gamma code 2..N:
 7: 1110
 8: 010100
 ```
-In the following text symbol *E1* denotes Elias-Gamma code 1..N and *E2* denotes Elias-Gamma code 2..N.
+In the following text, the symbol `E1` represents the Elias-Gamma code for the range 1..N, while `E2` represents the Elias-Gamma code for 2..N.
 
 ## Description of Supported Formats
 
@@ -78,7 +79,7 @@ Supported options:
 
 ### E1
 
-The E1 format encodes block length as an *E1* value, followed by a 1-bit flag indicating the block type:
+The E1 format encodes block length as an `E1` value, followed by a 1-bit flag indicating the block type:
 
 * `E1`, `1` – Copy the next `E1` bytes to the output.
 * `E1`, `0`, `ffffffff` – Copy `E1 + 1` bytes from an offset of `ffffffff`, relative to the current output position.
@@ -113,13 +114,13 @@ encoded as follows:
 (255 indicates the end of stream).
 * `1`, `E1` – If following a literal, copy `E1` bytes from the most recent offset.
 
-The format employs an experimental exhaustive parser designed to produce globally optimal results. However, compression may take
-even several minutes when the block size approaches or exceeds 8 kilobytes.
+The format uses an experimental exhaustive parser that, in theory, achieves a globally optimal encoding cost. However,
+compression may take even several minutes when the block size approaches or exceeds 8 kilobytes.
 
 ### UE2
 
 The UE2 format encodes literals on a per-byte basis, using 1-bit flag for each byte. If the flag is not set, it indicates
-a match of length *E2* combined with plain 8-bit offset.
+a match of length `E2` combined with plain 8-bit offset.
 
 * `1`, `bbbbbbbb` – Copy byte `bbbbbbbb` to the output.
 * `0`, `E2`, `ffffffff` – Copy `E2` bytes from an offset of `ffffffff`, relative to the current output position.
@@ -133,7 +134,7 @@ Supported options:
 * Offset increment (1..256 instead of 1..255).
 * End-of-stream marker.
 
-#### Thanks
+#### Acknowledgments
 
 I would like to acknowledge the contributions of Aleksey "introspec" Pichugin, Slavomir "Busy" Labsky and
 Pavel "Zilog" Cimbal. I would also like to take this opportunity to recognize the work of Einar Saukas.

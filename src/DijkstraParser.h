@@ -33,6 +33,10 @@ private:
 
     bool ShouldEnqueue(uint16_t inputPos, uint16_t repOffset, uint32_t cost);
 
+#ifdef BASELINE_COST_PRUNING
+    uint32_t ComputeGreedyParseCost();
+#endif // BASELINE_COST_PRUNING
+
     const uint8_t* mInputPtr;
     const uint16_t mInputSize;
     const Format& mFormat;

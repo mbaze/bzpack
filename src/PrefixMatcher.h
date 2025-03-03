@@ -23,6 +23,7 @@ public:
     );
 
     std::vector<Match> FindMatches(uint16_t inputPos, bool allowBytes = false) const;
+    Match FindLongestMatch(uint16_t inputPos);
 
 private:
 

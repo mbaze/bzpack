@@ -55,7 +55,8 @@ Offset Elias-Gamma code for the range 2..N:
 7: 1110
 8: 010100
 ```
-In the following text, the symbol `E1` represents the Elias-Gamma code for the range 1..N, while `E2` represents the Elias-Gamma code for 2..N.
+In the following text, the symbol `E1` represents the Elias-Gamma code for the range 1..N, while `E2` represents the
+Elias-Gamma code for 2..N.
 
 ## Description of Supported Formats
 
@@ -95,8 +96,8 @@ Supported options:
 ### E1ZX
 
 E1ZX is an optimized variant of E1, specifically designed for the Sinclair ZX Spectrum. While the stream length remains
-unchanged, certain values are stored as their complements, simplifying decompressor initialization and further reducing
-code size. This format is primarily intended for 512-byte and 1024-byte intros.
+unchanged, certain values are stored as their complements, simplifying decompressor initialization and further reducing code
+size. This format is primarily intended for 512-byte and 1024-byte intros.
 
 Supported options:
 

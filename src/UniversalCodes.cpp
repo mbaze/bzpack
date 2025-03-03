@@ -32,16 +32,13 @@ void EncodeElias1(BitStream& stream, uint32_t value)
 {
     assert(value > 0);
 
-    uint32_t mask = ~1;
-    uint32_t count = 0;
+    uint32_t copy = value;
+    uint32_t mask = 1;
 
-    while (value & mask)
+    while (copy >>= 1)
     {
         mask <<= 1;
-        count++;
     }
-
-    mask = 1 << count;
 
     while (mask >>= 1)
     {
@@ -95,16 +92,13 @@ void EncodeElias2(BitStream& stream, uint32_t value)
 {
     assert(value > 1);
 
-    uint32_t mask = ~3;
-    uint32_t count = 0;
+    uint32_t copy = value >> 1;
+    uint32_t mask = 1;
 
-    while (value & mask)
+    while (copy >>= 1)
     {
         mask <<= 1;
-        count++;
     }
-
-    mask = 1 << count;
 
     while (mask)
     {

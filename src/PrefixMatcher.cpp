@@ -73,6 +73,24 @@ std::vector<Match> PrefixMatcher::FindMatches(uint16_t inputPos, bool allowBytes
     return matches;
 }
 
+Match PrefixMatcher::FindLongestMatch(uint16_t inputPos)
+{
+    uint16_t maxLength = mMinMatchLength - 1;
+    uint16_t maxOffset = 0;
+
+    for (uint16_t matchPos: mMatchPositions[inputPos])
+    {
+        uint16_t length = GetMatchLength(inputPos, matchPos);
+        if (length > maxLength)
+        {
+            maxLength = length;
+            maxOffset = inputPos - matchPos;
+        }
+    }
+
+    return {maxLength, maxOffset};
+}
+
 uint16_t PrefixMatcher::GetMatchLength(uint16_t inputPos, uint16_t matchPos) const
 {
     const uint8_t* pInput = mInputPtr + inputPos;

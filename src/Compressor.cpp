@@ -51,64 +51,6 @@ BitStream EncodeLZ(const uint8_t* pInput, const std::vector<ParseStep>& parse, c
     return stream;
 }
 
-BitStream EncodeZX2(const uint8_t* pInput, const std::vector<ParseStep>& parse, const Format& format)
-{
-    if (format.Id() != FormatId::ZX2 || !parse.size())
-        return {};
-
-    BitStream stream;
-
-    uint16_t repOffset = 0;
-    bool wasLiteral = false;
-
-    for (const ParseStep& parseStep: parse)
-    {
-        if (parseStep.offset)
-        {
-            if (wasLiteral && (parseStep.offset == repOffset))
-            {
-                stream.WriteBit(1);
-                EncodeElias1(stream, parseStep.length);
-            }
-            else
-            {
-                uint16_t offset = format.ExtendOffset() ? parseStep.offset - 1 : parseStep.offset;
-
-                stream.WriteBit(0);
-                stream.WriteByte(static_cast<uint8_t>(offset));
-                EncodeElias1(stream, parseStep.length - 1);
-            }
-
-            pInput += parseStep.length;
-            repOffset = parseStep.offset;
-            wasLiteral = false;
-        }
-        else
-        {
-            if (stream.Size())
-            {
-                stream.WriteBit(1);
-            }
-
-            EncodeElias1(stream, parseStep.length);
-
-            for (uint16_t i = 0; i < parseStep.length; i++)
-            {
-                stream.WriteByte(*pInput++);
-            }
-
-            wasLiteral = true;
-        }
-    }
-
-    if (format.AddEndMarker())
-    {
-        stream.WriteByte(255);
-    }
-
-    return stream;
-}
-
 BitStream EncodeE1(const uint8_t* pInput, const std::vector<ParseStep>& parse, const Format& format)
 {
     if (format.Id() != FormatId::E1 || !parse.size())
@@ -189,6 +131,64 @@ BitStream EncodeE1ZX(const uint8_t* pInput, const std::vector<ParseStep>& parse,
     return stream;
 }
 
+BitStream EncodeZX2(const uint8_t* pInput, const std::vector<ParseStep>& parse, const Format& format)
+{
+    if (format.Id() != FormatId::ZX2 || !parse.size())
+        return {};
+
+    BitStream stream;
+
+    uint16_t repOffset = 0;
+    bool wasLiteral = false;
+
+    for (const ParseStep& parseStep: parse)
+    {
+        if (parseStep.offset)
+        {
+            if (wasLiteral && (parseStep.offset == repOffset))
+            {
+                stream.WriteBit(1);
+                EncodeElias1(stream, parseStep.length);
+            }
+            else
+            {
+                uint16_t offset = format.ExtendOffset() ? parseStep.offset - 1 : parseStep.offset;
+
+                stream.WriteBit(0);
+                stream.WriteByte(static_cast<uint8_t>(offset));
+                EncodeElias1(stream, parseStep.length - 1);
+            }
+
+            pInput += parseStep.length;
+            repOffset = parseStep.offset;
+            wasLiteral = false;
+        }
+        else
+        {
+            if (stream.Size())
+            {
+                stream.WriteBit(1);
+            }
+
+            EncodeElias1(stream, parseStep.length);
+
+            for (uint16_t i = 0; i < parseStep.length; i++)
+            {
+                stream.WriteByte(*pInput++);
+            }
+
+            wasLiteral = true;
+        }
+    }
+
+    if (format.AddEndMarker())
+    {
+        stream.WriteByte(255);
+    }
+
+    return stream;
+}
+
 BitStream EncodeUE2(const uint8_t* pInput, const std::vector<ParseStep>& parse, const Format& format)
 {
     if (format.Id() != FormatId::UE2 || !parse.size())
@@ -251,14 +251,6 @@ BitStream Compress(uint8_t* pInput, uint16_t inputSize, const Format& format)
             stream = EncodeLZ(pInput, parse, format);
             break;
 
-        case FormatId::ZX2:
-        {
-            DijkstraParser parser(pInput, inputSize, format);
-            parse = parser.Parse();
-            stream = EncodeZX2(pInput, parse, format);
-            break;
-        }
-
         case FormatId::E1:
             parse = Parse(pInput, inputSize, format);
             stream = EncodeE1(pInput, parse, format);
@@ -268,6 +260,14 @@ BitStream Compress(uint8_t* pInput, uint16_t inputSize, const Format& format)
             parse = Parse(pInput, inputSize, format);
             stream = EncodeE1ZX(pInput, parse, format);
             break;
+
+        case FormatId::ZX2:
+        {
+            DijkstraParser parser(pInput, inputSize, format);
+            parse = parser.Parse();
+            stream = EncodeZX2(pInput, parse, format);
+            break;
+        }
 
         case FormatId::UE2:
             parse = Parse(pInput, inputSize, format);

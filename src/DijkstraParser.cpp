@@ -7,27 +7,14 @@
 #define COST_INDEX_64(cost, index) \
     ((static_cast<uint64_t>(cost) << 32) | static_cast<uint64_t>(index))
 
-bool DijkstraParser::ShouldEnqueue(uint16_t inputPos, uint16_t repOffset, uint32_t cost)
-{
-    uint32_t key = (repOffset << 16) | inputPos;
-
-    auto result = mPosRepCosts.try_emplace(key, cost);
-    if (result.second)
-        return true;
-
-    // Prune if a new arrival to the same state doesn't reduce the cost.
-
-    if (cost >= result.first->second)
-        return false;
-
-    result.first->second = cost;
-
-    return true;
-}
-
 std::vector<ParseStep> DijkstraParser::Parse()
 {
     uint32_t bestPathIndex = 0;
+
+#ifdef BASELINE_COST_PRUNING
+    uint32_t baselineCost = ComputeGreedyParseCost();
+#endif // BASELINE_COST_PRUNING
+
     std::vector<uint32_t> posCosts(mInputSize, 0xFFFFFFFF);
 
     std::vector<PathNode> nodes;
@@ -51,6 +38,12 @@ std::vector<ParseStep> DijkstraParser::Parse()
             bestPathIndex = nodeIndex;
             break;
         }
+
+#ifdef BASELINE_COST_PRUNING
+        // Prune this path if it can't improve upon the greedy parse.
+        if (cost >= baselineCost)
+            continue;
+#endif // BASELINE_COST_PRUNING
 
         // Consider all available matches (if not already explored by a previous path).
 
@@ -125,3 +118,60 @@ std::vector<ParseStep> DijkstraParser::Parse()
 
     return parse;
 }
+
+bool DijkstraParser::ShouldEnqueue(uint16_t inputPos, uint16_t repOffset, uint32_t cost)
+{
+    uint32_t key = (repOffset << 16) | inputPos;
+
+    auto result = mPosRepCosts.try_emplace(key, cost);
+    if (result.second)
+        return true;
+
+    // Prune if a new arrival to the same state doesn't reduce the cost.
+
+    if (cost >= result.first->second)
+        return false;
+
+    result.first->second = cost;
+
+    return true;
+}
+
+#ifdef BASELINE_COST_PRUNING
+
+uint32_t DijkstraParser::ComputeGreedyParseCost()
+{
+    uint32_t cost = 0;
+    uint16_t inputPos = 0;
+    uint16_t literalLength = 0;
+
+    while (inputPos < mInputSize)
+    {
+        Match match = mMatcher.FindLongestMatch(inputPos);
+        if (match.offset)
+        {
+            if (literalLength)
+            {
+                cost += mFormat.GetLiteralCost(literalLength);
+                literalLength = 0;
+            }
+
+            cost += mFormat.GetMatchCost(match.length, match.offset);
+            inputPos += match.length;
+        }
+        else
+        {
+            literalLength++;
+            inputPos++;        
+        }
+    }
+
+    if (literalLength)
+    {
+        cost += mFormat.GetLiteralCost(literalLength);
+    }
+
+    return cost;
+}
+
+#endif // BASELINE_COST_PRUNING

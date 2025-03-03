@@ -52,73 +52,6 @@ std::vector<uint8_t> DecodeLZ(BitStream& stream, const Format& format, uint16_t 
     return data;
 }
 
-std::vector<uint8_t> DecodeZX2(BitStream& stream, const Format& format, uint16_t inputSize)
-{
-    if (format.Id() != FormatId::ZX2)
-        return {};
-
-    stream.ReadReset();
-    std::vector<uint8_t> data;
-
-    uint16_t repOffset = 0;
-    bool wasLiteral = false;
-
-    while (true)
-    {
-        bool flag = (data.size() == 0) ? true : stream.ReadBit();
-
-        if (flag)
-        {
-            if (wasLiteral)
-            {
-                uint16_t length = DecodeElias1(stream);
-
-                while (length--)
-                {
-                    data.emplace_back(data[data.size() - repOffset]);
-                }
-
-                wasLiteral = false;
-            }
-            else
-            {
-                uint16_t length = DecodeElias1(stream);
-
-                while (length--)
-                {
-                    data.emplace_back(stream.ReadByte());
-                }
-
-                wasLiteral = true;
-            }
-        }
-        else
-        {
-            uint16_t offset = stream.ReadByte();
-            if (format.ExtendOffset())
-                offset++;
-
-            if (format.AddEndMarker() && offset > 255)
-                break;
-
-            uint16_t length = DecodeElias1(stream) + 1;
-
-            while (length--)
-            {
-                data.emplace_back(data[data.size() - offset]);
-            }
-
-            repOffset = offset;
-            wasLiteral = false;
-        }
-
-        if (!format.AddEndMarker() && data.size() >= inputSize)
-            break;
-    }
-
-    return data;
-}
-
 std::vector<uint8_t> DecodeE1(BitStream& stream, const Format& format, uint16_t inputSize)
 {
     if (format.Id() != FormatId::E1)
@@ -202,6 +135,73 @@ std::vector<uint8_t> DecodeE1ZX(BitStream& stream, const Format& format, uint16_
     return data;
 }
 
+std::vector<uint8_t> DecodeZX2(BitStream& stream, const Format& format, uint16_t inputSize)
+{
+    if (format.Id() != FormatId::ZX2)
+        return {};
+
+    stream.ReadReset();
+    std::vector<uint8_t> data;
+
+    uint16_t repOffset = 0;
+    bool wasLiteral = false;
+
+    while (true)
+    {
+        bool flag = (data.size() == 0) ? true : stream.ReadBit();
+
+        if (flag)
+        {
+            if (wasLiteral)
+            {
+                uint16_t length = DecodeElias1(stream);
+
+                while (length--)
+                {
+                    data.emplace_back(data[data.size() - repOffset]);
+                }
+
+                wasLiteral = false;
+            }
+            else
+            {
+                uint16_t length = DecodeElias1(stream);
+
+                while (length--)
+                {
+                    data.emplace_back(stream.ReadByte());
+                }
+
+                wasLiteral = true;
+            }
+        }
+        else
+        {
+            uint16_t offset = stream.ReadByte();
+            if (format.ExtendOffset())
+                offset++;
+
+            if (format.AddEndMarker() && offset > 255)
+                break;
+
+            uint16_t length = DecodeElias1(stream) + 1;
+
+            while (length--)
+            {
+                data.emplace_back(data[data.size() - offset]);
+            }
+
+            repOffset = offset;
+            wasLiteral = false;
+        }
+
+        if (!format.AddEndMarker() && data.size() >= inputSize)
+            break;
+    }
+
+    return data;
+}
+
 std::vector<uint8_t> DecodeUE2(BitStream& stream, const Format& format, size_t inputSize)
 {
     if (format.Id() != FormatId::UE2)
@@ -252,16 +252,16 @@ std::vector<uint8_t> Decompress(BitStream& stream, const Format& format, uint16_
             data = DecodeLZ(stream, format, inputSize);
             break;
 
-        case FormatId::ZX2:
-            data = DecodeZX2(stream, format, inputSize);
-            break;
-
         case FormatId::E1:
             data = DecodeE1(stream, format, inputSize);
             break;
 
         case FormatId::E1ZX:
             data = DecodeE1ZX(stream, format, inputSize);
+            break;
+
+        case FormatId::ZX2:
+            data = DecodeZX2(stream, format, inputSize);
             break;
 
         case FormatId::UE2:

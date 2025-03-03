@@ -9,35 +9,35 @@
 		ld	hl,SrcAddr
 		ld	de,DstAddr
 
-		ld	b,0
 		ld	a,128
-
 Literal		call	EliasGamma
 		lddr
-		add	a,a
-		jr	nc,Match
+		rla
+		jr	nc,NewOffset
 
 		call	EliasGamma
-CopyMatch	push	hl
-		push	ix
-		pop	hl
+RepOffset	push	hl
+		ex	af,af'
+		ld	h,0
+		ld	l,a
+		ex	af,af'
 		add	hl,de
 		lddr
 		pop	hl
-		add	a,a
+		rla
 		jr	c,Literal
 
-Match		ld	c,(hl)
-		inc	c
+NewOffset	ex	af,af'
+		ld	a,(hl)
+		inc	a
 		ret	z
 		dec	hl
-		push	bc
-		pop	ix
+		ex	af,af'
 		call	EliasGamma
 		inc	bc
-		jr	CopyMatch
+		jr	RepOffset
 
-EliasGamma	ld	c,1
+EliasGamma	ld	bc,1
 EliasLoop	add	a,a
 		jr	nz,NoFetch
 		ld	a,(hl)

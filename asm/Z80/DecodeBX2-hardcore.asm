@@ -29,10 +29,10 @@ DecodeLoop	call	EliasGamma
 		jr	c,RepOffset
 
 NewOffset	inc	bc
-		dec	hl
 		ex	af,af'
 		ld	a,(hl)
 		ex	af,af'
+		dec	hl
 
 RepOffset	push	hl
 		ex	af,af'
@@ -48,8 +48,8 @@ EliasGamma	inc	c
 EliasLoop	add	a,a
 		jr	nz,NoFetch
 		ld	b,a
-		dec	hl
 		ld	a,(hl)
+		dec	hl
 		rla
 NoFetch		ret	nc
 		add	a,a

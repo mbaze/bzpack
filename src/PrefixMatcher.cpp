@@ -15,34 +15,40 @@ PrefixMatcher::PrefixMatcher(const uint8_t* pInput, uint16_t inputSize, uint16_t
     // Initialize lists that track past positions of single bytes and 2-byte sequences in the input.
 
     std::vector<std::vector<uint16_t>> byteOccurrences(256);
-    std::vector<std::vector<uint16_t>> matchOccurrences(65536);
-
     mBytePositions = std::make_unique<std::vector<uint16_t>[]>(inputSize);
-    mMatchPositions = std::make_unique<std::vector<uint16_t>[]>(inputSize);
 
     for (uint16_t inputPos = 0; inputPos < inputSize; inputPos++)
     {
         uint8_t byte = pInput[inputPos];
-        uint16_t match = (pInput[inputPos + 1] << 8) | byte;
         uint16_t windowPos = inputPos - std::min<uint16_t>(inputPos, maxMatchOffset);
 
         for (auto i = byteOccurrences[byte].rbegin(); i != byteOccurrences[byte].rend(); i++)
         {
-            if (*i < windowPos)
-                break;
-
-            mBytePositions[inputPos].emplace_back(*i);
-        }
-
-        for (auto i = matchOccurrences[match].rbegin(); i != matchOccurrences[match].rend(); i++)
-        {
-            if (*i < windowPos)
-                break;
-
-            mMatchPositions[inputPos].emplace_back(*i);
+            if (*i >= windowPos)
+            {
+                mBytePositions[inputPos].emplace_back(*i);
+            }
         }
 
         byteOccurrences[byte].emplace_back(inputPos);
+    }
+
+    std::vector<std::vector<uint16_t>> matchOccurrences(65536);
+    mMatchPositions = std::make_unique<std::vector<uint16_t>[]>(inputSize);
+
+    for (uint16_t inputPos = 0; inputPos < inputSize - 1; inputPos++)
+    {
+        uint16_t match = (pInput[inputPos + 1] << 8) | pInput[inputPos];
+        uint16_t windowPos = inputPos - std::min<uint16_t>(inputPos, maxMatchOffset);
+
+        for (auto i = matchOccurrences[match].rbegin(); i != matchOccurrences[match].rend(); i++)
+        {
+            if (*i >= windowPos)
+            {
+                mMatchPositions[inputPos].emplace_back(*i);
+            }
+        }
+
         matchOccurrences[match].emplace_back(inputPos);
     }
 }

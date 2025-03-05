@@ -28,11 +28,11 @@ DecodeLoop	call	EliasGamma
 		rla
 		jr	c,RepOffset
 
-NewOffset	inc	c
-		ex	af,af'
+NewOffset	ex	af,af'
 		ld	a,(hl)
 		ex	af,af'
 		dec	hl
+		inc	c
 
 RepOffset	push	hl
 		ex	af,af'

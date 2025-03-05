@@ -13,19 +13,20 @@
 DecodeLoop	call	EliasGamma
 		rla
 		jr	nc,NewOffset
+
 		lddr
 
 		call	EliasGamma
 		rla
 		jr	c,RepOffset
 
-NewOffset	inc	bc
-		ex	af,af'
+NewOffset	ex	af,af'
 		ld	a,(hl)
-		inc	a
+		or	a
 		ret	z
-		dec	hl
 		ex	af,af'
+		dec	hl
+		inc	bc
 
 RepOffset	push	hl
 		ex	af,af'

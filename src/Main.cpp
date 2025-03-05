@@ -103,12 +103,12 @@ int main(int argCount, char** args)
 {
     if (argCount < 3)
     {
-        printf("\nUsage: bzpack.exe <input.raw> <output.bin> [-lz|-e1|-e1zx|-zx2|-ue2] [-r] [-e] [-o] [-l]\n");
+        printf("\nUsage: bzpack.exe <input.raw> <output.bin> [-lz|-e1|-e1zx|-bx2|-ue2] [-r] [-e] [-o] [-l]\n");
         printf("\nOptions:\n\n");
         printf("-lz: Byte-aligned LZSS. Raw 7-bit length, raw 8-bit offset (default).\n");
         printf("-e1: Elias 1..N length, raw 8-bit offset.\n");
         printf("-e1zx: A version of -e1 optimized for Sinclair ZX Spectrum.\n");
-        printf("-zx2: Elias 1..N length, raw 8-bit offset or repeat offset.\n");
+        printf("-bx2: Elias 1..N length, raw 8-bit offset or repeat offset.\n");
         printf("-ue2: Unary literal length, Elias 2..N match length, raw 8-bit offset.\n");
         printf("-r: Compress in reverse order.\n");
         printf("-e: Add end-of-stream marker.\n");
@@ -124,7 +124,7 @@ int main(int argCount, char** args)
         {"-lz",   [&]() { options.id = FormatId::LZ; }},
         {"-e1",   [&]() { options.id = FormatId::E1; }},
         {"-e1zx", [&]() { options.id = FormatId::E1ZX; }},
-        {"-zx2",  [&]() { options.id = FormatId::ZX2; }},
+        {"-bx2",  [&]() { options.id = FormatId::BX2; }},
         {"-ue2",  [&]() { options.id = FormatId::UE2; }},
         {"-r",    [&]() { options.reverse = 1; }},
         {"-e",    [&]() { options.addEndMarker = 1; }},
@@ -159,16 +159,16 @@ int main(int argCount, char** args)
         pFormat = std::make_unique<FormatLZ>(options);
         break;
 
-    case FormatId::ZX2:
-        pFormat = std::make_unique<FormatZX2>(options);
-        break;
-
     case FormatId::E1:
         pFormat = std::make_unique<FormatE1>(options);
         break;
 
     case FormatId::E1ZX:
         pFormat = std::make_unique<FormatE1ZX>(options);
+        break;
+
+    case FormatId::BX2:
+        pFormat = std::make_unique<FormatBX2>(options);
         break;
 
     case FormatId::UE2:

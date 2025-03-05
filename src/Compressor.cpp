@@ -131,13 +131,12 @@ BitStream EncodeE1ZX(const uint8_t* pInput, const std::vector<ParseStep>& parse,
     return stream;
 }
 
-BitStream EncodeZX2(const uint8_t* pInput, const std::vector<ParseStep>& parse, const Format& format)
+BitStream EncodeBX2(const uint8_t* pInput, const std::vector<ParseStep>& parse, const Format& format)
 {
-    if (format.Id() != FormatId::ZX2 || !parse.size())
+    if (format.Id() != FormatId::BX2 || !parse.size())
         return {};
 
     BitStream stream;
-
     uint16_t repOffset = 0;
     bool wasLiteral = false;
 
@@ -147,43 +146,37 @@ BitStream EncodeZX2(const uint8_t* pInput, const std::vector<ParseStep>& parse, 
         {
             if (wasLiteral && (parseStep.offset == repOffset))
             {
-                stream.WriteBit(1);
                 EncodeElias1(stream, parseStep.length);
+                stream.WriteBit(1);
             }
             else
             {
-                uint16_t offset = format.ExtendOffset() ? parseStep.offset - 1 : parseStep.offset;
-
-                stream.WriteBit(0);
-                stream.WriteByte(static_cast<uint8_t>(offset));
                 EncodeElias1(stream, parseStep.length - 1);
+                stream.WriteBit(0);
+                stream.WriteByte(static_cast<uint8_t>(parseStep.offset));
             }
 
             pInput += parseStep.length;
             repOffset = parseStep.offset;
-            wasLiteral = false;
         }
         else
         {
-            if (stream.Size())
-            {
-                stream.WriteBit(1);
-            }
-
             EncodeElias1(stream, parseStep.length);
+            stream.WriteBit(1);
 
             for (uint16_t i = 0; i < parseStep.length; i++)
             {
                 stream.WriteByte(*pInput++);
             }
-
-            wasLiteral = true;
         }
+
+        wasLiteral = !parseStep.offset;
     }
 
     if (format.AddEndMarker())
     {
-        stream.WriteByte(255);
+        EncodeElias1(stream, 1);
+        stream.WriteByte(0);
     }
 
     return stream;
@@ -239,7 +232,9 @@ BitStream Compress(uint8_t* pInput, uint16_t inputSize, const Format& format)
         return {};
 
     if (format.Reverse())
+    {
         std::reverse(pInput, pInput + inputSize);
+    }
 
     BitStream stream;
     std::vector<ParseStep> parse;
@@ -261,11 +256,11 @@ BitStream Compress(uint8_t* pInput, uint16_t inputSize, const Format& format)
             stream = EncodeE1ZX(pInput, parse, format);
             break;
 
-        case FormatId::ZX2:
+        case FormatId::BX2:
         {
             DijkstraParser parser(pInput, inputSize, format);
             parse = parser.Parse();
-            stream = EncodeZX2(pInput, parse, format);
+            stream = EncodeBX2(pInput, parse, format);
             break;
         }
 
@@ -285,7 +280,9 @@ BitStream Compress(uint8_t* pInput, uint16_t inputSize, const Format& format)
         return {};
 
     if (format.Reverse())
+    {
         std::reverse(data.begin(), data.end());
+    }
 
     for (uint16_t i = 0; i < inputSize; i++)
     {
@@ -299,7 +296,9 @@ BitStream Compress(uint8_t* pInput, uint16_t inputSize, const Format& format)
 #endif // VERIFY
 
     if (format.Reverse())
+    {
         stream.Reverse();
+    }
 
     return stream;
 }

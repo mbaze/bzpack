@@ -30,7 +30,7 @@ becomes 1**1**1**0**1**0**0, where:
 * Each subsequent significant bit is preceded by a 1, indicating its presence.
 * A 0 marks the end of the sequence.
 
-### Elias-Gamma 1..N vs 2..N
+#### Elias-Gamma 1..N vs 2..N
 
 The Elias-Gamma code represents positive integers in the range 1..N. However, by shifting the range to 2..N, the resulting
 codewords can sometimes be optimized for the most common match lengths.
@@ -103,20 +103,19 @@ Supported options:
 
 * Offset increment (1..256 instead of 1..255).
 
-### ZX2
+### BX2
 
-ZX2, as the name suggests, is a format heavily based on Einar Saukas' [ZX2](https://github.com/einar-saukas/ZX2), with
-minor modifications to align it with other Bzpack formats. Since ZX2 disallows consecutive literals, this implicit constraint
-enables a 1-bit flag to distinguish between a regular match and a 'repeat match' that reuses the most recent offset. Blocks are
-encoded as follows:
+BX2 is a slight modification of Einar Saukas' [ZX2](https://github.com/einar-saukas/ZX2) that allows for a more efficient
+decoder. The format disallows consecutive literals and this implicit constraint frees up one bit of information, allowing
+a distinction between a regular match and a 'repeat match' that reuses the most recent offset. Blocks are encoded as follows:
 
-* `1`, `E1` – Copy the next `E1` bytes to the output (the flag is omitted for the first literal).
-* `0`, `E1`, `ffffffff` – Copy `E1 + 1` bytes from an offset of `ffffffff`, relative to the current output position
-(255 indicates the end of stream).
-* `1`, `E1` – If following a literal, copy `E1` bytes from the most recent offset.
+* `E1`, `1` – Copy the next `E1` bytes to the output.
+* `E1`, `0`, `ffffffff` – Copy `E1 + 1` bytes from an offset of `ffffffff`, relative to the current output position.
+An offset of 0 indicates the end of the stream.
+* `E1`, `1` – If following a literal, copy `E1` bytes from the most recent offset.
 
-The format uses an experimental exhaustive parser that, in theory, achieves a globally optimal encoding cost. However,
-compression may take even several minutes when the block size approaches or exceeds 8 kilobytes.
+The format employs an experimental exhaustive parser that, in theory, achieves a globally optimal encoding. However,
+compression may take even several minutes for blocks of 8 KiB or higher.
 
 ### UE2
 

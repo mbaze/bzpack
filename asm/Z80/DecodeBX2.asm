@@ -1,10 +1,8 @@
 ; Copyright (c) 2025, Milos "baze" Bazelides
 ; This code is licensed under the BSD 2-Clause License.
 
-; BX2 decoder (58 bytes with initialization, 52 bytes excluding initialization).
+; Reverse BX2 decoder (58 bytes with setup, 52 bytes excluding setup).
 ; This work is inspired by Einar Saukas' ZX2 (https://github.com/einar-saukas/ZX2).
-
-; The decoder assumes reverse order.
 
 		ld	hl,SrcAddr
 		ld	de,DstAddr

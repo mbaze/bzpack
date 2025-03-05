@@ -21,10 +21,12 @@ std::vector<uint8_t> DecodeLZ(BitStream& stream, const Format& format, uint16_t 
             break;
 
         bool isLiteral = (length & 1);
-
         length >>= 1;
+
         if (format.ExtendLength())
+        {
             length++;
+        }
 
         if (isLiteral)
         {
@@ -36,8 +38,11 @@ std::vector<uint8_t> DecodeLZ(BitStream& stream, const Format& format, uint16_t 
         else
         {
             uint16_t offset = stream.ReadByte();
+
             if (format.ExtendOffset())
+            {
                 offset++;
+            }
 
             while (length--)
             {
@@ -77,10 +82,12 @@ std::vector<uint8_t> DecodeE1(BitStream& stream, const Format& format, uint16_t 
         else
         {
             length++;
-
             size_t offset = stream.ReadByte();
+
             if (format.ExtendOffset())
+            {
                 offset++;
+            }
 
             while (length--)
             {
@@ -117,10 +124,12 @@ std::vector<uint8_t> DecodeE1ZX(BitStream& stream, const Format& format, uint16_
         else
         {
             length++;
-
             uint16_t offset = stream.ReadByte();
+
             if (format.ExtendOffset())
+            {
                 offset++;
+            }
 
             while (length--)
             {
@@ -214,13 +223,14 @@ std::vector<uint8_t> DecodeUE2(BitStream& stream, const Format& format, size_t i
             uint16_t length = DecodeElias2(stream);
 
             if (format.AddEndMarker() && length > 255)
-            {
                 break;
-            }
 
             uint16_t offset = stream.ReadByte();
+
             if (format.ExtendOffset())
+            {
                 offset++;
+            }
 
             while (length--)
             {
@@ -263,7 +273,9 @@ std::vector<uint8_t> Decompress(BitStream& stream, const Format& format, uint16_
     }
 
     if (format.Reverse())
+    {
         std::reverse(data.begin(), data.end());
+    }
 
     return data;
 }

@@ -73,7 +73,7 @@ std::vector<Match> PrefixMatcher::FindMatches(uint16_t inputPos, bool allowBytes
     return matches;
 }
 
-Match PrefixMatcher::FindLongestMatch(uint16_t inputPos)
+Match PrefixMatcher::FindLongestMatch(uint16_t inputPos) const
 {
     uint16_t maxLength = mMinMatchLength - 1;
     uint16_t maxOffset = 0;

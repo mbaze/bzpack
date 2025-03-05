@@ -13,13 +13,13 @@ MainLoop	ld	c,(hl)
 		dec	hl
 		srl	c
 ;		ret	z		; Option to include the end-of-stream marker.
-;		inc	c		; Option to increase length to 128.
+;		inc	c		; Option to extend the block length.
 		jr	c,CopyBytes
 		push	hl
 		ld	l,(hl)
 		ld	h,b
 		add	hl,de
-;		inc	hl		; Option to increase offset to 256.
+;		inc	hl		; Option to extend the offset range.
 CopyBytes	lddr
 		jr	c,MainLoop
 		pop	hl

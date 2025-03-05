@@ -14,7 +14,7 @@ IF 1
 		ld	de,DstAddr
 EliasGamma	add	a,a
 		rl	c
-;		ret	c		; Option to include the end of stream marker.
+;		ret	c		; Option to include the end-of-stream marker.
 NextBit		add	a,a
 		jr	nz,NoFetch
 		ld	a,(hl)
@@ -27,7 +27,7 @@ NoFetch		jr	c,EliasGamma
 		ld	l,(hl)
 		ld	h,b
 		add	hl,de
-;		inc	hl		; Option to increase offset to 256.
+;		inc	hl		; Option to extend the offset range.
 		inc	bc
 CopyBytes	lddr
 		inc	c		; Prepare the most-significant Elias-Gamma bit.
@@ -47,7 +47,7 @@ ELSE
 		ld	de,DstAddr
 EliasGamma	add	a,a
 		rl	c
-;		ret	c		; Option to include the end of stream marker.
+;		ret	c		; Option to include the end-of-stream marker.
 NextBit		add	a,a
 		jr	nz,NoFetch
 		ld	b,a		; Initialize B to zero before the first use.
@@ -61,7 +61,7 @@ NoFetch		jr	c,EliasGamma
 		ld	l,(hl)
 		ld	h,b
 		add	hl,de
-;		inc	hl		; Option to increase offset to 256.
+;		inc	hl		; Option to extend the offset range.
 		inc	bc
 CopyBytes	lddr
 		inc	c		; Prepare the most-significant Elias-Gamma bit.

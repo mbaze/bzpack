@@ -1,7 +1,7 @@
 ; Copyright (c) 2022, Milos "baze" Bazelides
 ; This code is licensed under the BSD 2-Clause License.
 
-; Reverse LZS "hardcore" decoder (23 byte with setup, 18 bytes excluding setup).
+; Reverse LZS "hardcore" decoder (23 bytes with setup, 18 bytes excluding setup).
 
 ; This decoder is optimized for the Sinclair ZX Spectrum and operates under the following
 ; assumptions:

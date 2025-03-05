@@ -10,8 +10,8 @@ Special consideration has been given to vintage computing platform Sinclair ZX S
 
 All supported formats are based on the Lempel–Ziv–Storer–Szymanski algorithm. The compressed stream consists of two block types:
 
-1. Strings of uncompressed bytes (literals).
-2. Reusable byte sequences represented as offset-length pairs (matches).
+1. Literals: Strings of uncompressed bytes stored directly in the stream.
+2. Matches: Repeated byte sequences represented as offset-length pairs, where the offset is relative to the output pointer.
 
 The encoding methods for literals and matches vary between formats, and their efficiency depends on the structure of the input
 data. Therefore, trying multiple formats is recommended to determine the best fit.

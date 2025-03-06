@@ -29,9 +29,9 @@ The encoding methods for literals and matches vary between formats, and their ef
 data. Therefore, trying multiple formats is recommended to determine the best fit. Generally, numbers are represented either as
 raw bytes or as Elias-Gamma values, read from a bit stream that works independently of natural byte boundaries.
 
-### A Note on Elias-Gamma Encoding
+### Elias-Gamma Encoding
 
-The canonical form of the Elias-Gamma code consists of `N` leading zeroes followed by a `(N + 1)`-bit binary number. For
+The canonical form of the Elias-Gamma code consists of **N** leading zeroes followed by a **(N + 1)**-bit binary number. For
 example, the number 12 is encoded as 000**1100**. In his paper "Universal codeword sets and representations of the integers",
 Peter Elias also proposed an alternative representation in which the bits are interleaved: **1**0**1**0**0**0**0**. In this
 format, the most significant bit is always present, and the zeroes act as 1-bit flags indicating whether another significant

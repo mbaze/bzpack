@@ -122,10 +122,10 @@ BX2 is a slight modification of Einar Saukas' [ZX2](https://github.com/einar-sau
 decoder. The format disallows consecutive literals and this implicit constraint frees up one bit of information, allowing
 a distinction between a regular match and a 'repeat match' that reuses the most recent offset. Blocks are encoded as follows:
 
-* `E1`, `1` – Copy the next `E1` bytes to the output.
+* `E1`, `1` – If following a match, copy the next `E1` bytes to the output. If following a literal, copy `E1` bytes from the
+most recent offset.
 * `E1`, `0`, `ffffffff` – Copy `E1 + 1` bytes from an offset of `ffffffff`, relative to the current output position.
 An offset of 0 indicates the end of the stream.
-* `E1`, `1` – If following a literal, copy `E1` bytes from the most recent offset.
 
 The format employs an experimental exhaustive parser that, in theory, achieves a globally optimal encoding. However,
 compression may take even several minutes for blocks of 8 KiB or higher.

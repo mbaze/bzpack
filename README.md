@@ -16,14 +16,14 @@ For example, to compress a file called "demo.bin" using the BX2 format with the 
 
 `bzpack.exe -bx2 -e demo.bin demo.bx2`
 
-A complete list of options can be accessed from the command line by running bzpack without any parameters.
+A complete list of options can be accessed from the command line by running Bzpack without any parameters.
 
 ## Format Overview
 
 All supported formats are based on the Lempel–Ziv–Storer–Szymanski algorithm. The compressed stream consists of two block types:
 
-1. *Literals:* Strings of uncompressed bytes stored directly in the stream.
-2. *Matches:* Repeated byte sequences represented as offset-length pairs, where the offset is relative to the output position.
+1. **Literals:** Strings of uncompressed bytes stored directly in the stream.
+2. **Matches:** Repeated byte sequences represented as offset-length pairs, where the offset is relative to the output position.
 
 The encoding methods for literals and matches vary between formats, and their efficiency depends on the structure of the input
 data. Therefore, trying multiple formats is recommended to determine the best fit. Generally, numbers are represented either as

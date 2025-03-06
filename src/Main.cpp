@@ -1,11 +1,11 @@
 // Copyright (c) 2021, Milos "baze" Bazelides
 // This code is licensed under the BSD 2-Clause License.
 
-#include <unordered_map>
 #include <memory>
 #include <cstdio>
 #include <fstream>
 #include <functional>
+#include <unordered_map>
 #include "Compressor.h"
 
 enum ErrorId
@@ -101,9 +101,9 @@ void CheckOptions(FormatOptions options)
 
 int main(int argCount, char** args)
 {
-    if (argCount < 3)
+    if (argCount < 2)
     {
-        printf("\nUsage: bzpack.exe <input.raw> <output.bin> [-lz|-e1|-e1zx|-bx2|-ue2] [-r] [-e] [-o] [-l]\n");
+        printf("\nUsage: bzpack.exe [-lz|-e1|-e1zx|-bx2|-ue2] [-r] [-e] [-o] [-l] <inputFile> [outputFile]\n");
         printf("\nOptions:\n\n");
         printf("-lz: Byte-aligned LZSS. Raw 7-bit length, raw 8-bit offset (default).\n");
         printf("-e1: Elias 1..N length, raw 8-bit offset.\n");
@@ -112,38 +112,54 @@ int main(int argCount, char** args)
         printf("-ue2: Unary literal length, Elias 2..N match length, raw 8-bit offset.\n");
         printf("-r: Compress in reverse order.\n");
         printf("-e: Add end-of-stream marker.\n");
-        printf("-o: Extend maximum window offset by 1.\n");
-        printf("-l: Extend maximum block length by 1.\n");
+        printf("-o: Extend the offset range by 1.\n");
+        printf("-l: Extend the block length by 1.\n");
         return 0;
     }
 
+    std::unique_ptr<Format> spFormat;
+    std::string inputName, outputName = ".lz";
     FormatOptions options = {FormatId::LZ, 0, 0, 0, 0};
 
-    static const std::unordered_map<std::string, std::function<void()>> optionDispatch =
+    static const std::unordered_map<std::string, std::function<void()>> actions =
     {
-        {"-lz",   [&]() { options.id = FormatId::LZ; }},
-        {"-e1",   [&]() { options.id = FormatId::E1; }},
-        {"-e1zx", [&]() { options.id = FormatId::E1ZX; }},
-        {"-bx2",  [&]() { options.id = FormatId::BX2; }},
-        {"-ue2",  [&]() { options.id = FormatId::UE2; }},
+        {"-lz",   [&]() { options.id = FormatId::LZ; outputName = ".lz"; }},
+        {"-e1",   [&]() { options.id = FormatId::E1; outputName = ".e1"; }},
+        {"-e1zx", [&]() { options.id = FormatId::E1ZX; outputName = ".e1zx"; }},
+        {"-bx2",  [&]() { options.id = FormatId::BX2; outputName = ".bx2"; }},
+        {"-ue2",  [&]() { options.id = FormatId::UE2; outputName = ".ue2"; }},
         {"-r",    [&]() { options.reverse = 1; }},
         {"-e",    [&]() { options.addEndMarker = 1; }},
         {"-o",    [&]() { options.extendOffset = 1; }},
         {"-l",    [&]() { options.extendLength = 1; }}
     };
 
-    if (argCount > 3)
+    // Process command line arguments.
+
+    for (int i = 1; i < argCount; i++)
     {
-        for (int i = 3; i < argCount; i++)
+        auto iAction = actions.find(args[i]);
+        if (iAction != actions.end())
         {
-            auto option = optionDispatch.find(args[i]);
-            if (option != optionDispatch.end())
+            iAction->second();
+        }
+        else
+        {
+            if (i == argCount - 1)
             {
-                option->second();
+                inputName = args[i];
+                outputName = inputName + outputName;
+                break;
+            }
+            else if (i == argCount - 2)
+            {
+                inputName = args[i];
+                outputName = args[i + 1];
+                break;
             }
             else
             {
-                PrintError(ErrorId::InvalidParam, args[i]);
+                PrintError(ErrorId::InvalidParam, args[i + 2]);
                 return 0;
             }
         }
@@ -151,34 +167,32 @@ int main(int argCount, char** args)
 
     CheckOptions(options);
 
-    std::unique_ptr<Format> pFormat;
-
     switch (options.id)
     {
     case FormatId::LZ:
-        pFormat = std::make_unique<FormatLZ>(options);
+        spFormat = std::make_unique<FormatLZ>(options);
         break;
 
     case FormatId::E1:
-        pFormat = std::make_unique<FormatE1>(options);
+        spFormat = std::make_unique<FormatE1>(options);
         break;
 
     case FormatId::E1ZX:
-        pFormat = std::make_unique<FormatE1ZX>(options);
+        spFormat = std::make_unique<FormatE1ZX>(options);
         break;
 
     case FormatId::BX2:
-        pFormat = std::make_unique<FormatBX2>(options);
+        spFormat = std::make_unique<FormatBX2>(options);
         break;
 
     case FormatId::UE2:
-        pFormat = std::make_unique<FormatUE2>(options);
+        spFormat = std::make_unique<FormatUE2>(options);
         break;
     }
 
     // Read input file.
 
-    std::basic_ifstream<uint8_t> inputFile(args[1], std::ios::binary | std::ios::ate);
+    std::basic_ifstream<uint8_t> inputFile(inputName, std::ios::binary | std::ios::ate);
 
     if (!inputFile)
     {
@@ -216,7 +230,7 @@ int main(int argCount, char** args)
 
     // Compress data.
 
-    BitStream packedStream = Compress(spInputStream.get(), static_cast<uint16_t>(inputFileSize), *pFormat.get());
+    BitStream packedStream = Compress(spInputStream.get(), static_cast<uint16_t>(inputFileSize), *spFormat.get());
     if (packedStream.Size() == 0)
     {
         PrintError(ErrorId::CompressionFailed);
@@ -235,7 +249,7 @@ int main(int argCount, char** args)
 
     // Write output file.
 
-    std::basic_ofstream<uint8_t> outputFile(args[2], std::ios::binary);
+    std::basic_ofstream<uint8_t> outputFile(outputName, std::ios::binary);
 
     if (!outputFile)
     {

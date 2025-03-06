@@ -218,7 +218,12 @@ int main(int argCount, char** args)
         }
         else
         {
-            if (i == argCount - 1)
+            if (args[i][0] == '-')
+            {
+                PrintError(ErrorId::InvalidParam, args[i]);
+                return 1;
+            }
+            else if (i == argCount - 1)
             {
                 inputName = args[i];
                 outputName = inputName + outputName;

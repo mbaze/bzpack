@@ -99,6 +99,78 @@ void CheckOptions(FormatOptions options)
     }
 }
 
+std::vector<uint8_t> ReadFile(const char* pFileName)
+{
+    std::basic_ifstream<uint8_t> file(pFileName, std::ios::binary | std::ios::ate);
+
+    if (!file)
+    {
+        PrintError(ErrorId::InputFile);
+        return {};
+    }
+
+    std::streampos fileSize = file.tellg();
+
+    if (fileSize < 0)
+    {
+        PrintError(ErrorId::InputFile);
+        return {};
+    }
+
+    if (fileSize == 0)
+    {
+        PrintError(ErrorId::FileEmpty);
+        return {};
+    }
+
+    if (fileSize > 0xFFFF)
+    {
+        PrintError(ErrorId::FileTooBig);
+        return {};
+    }
+
+    if (!file.seekg(0, std::ios_base::beg))
+    {
+        PrintError(ErrorId::InputFile);
+        return {};
+    }
+
+    std::vector<uint8_t> bytes(static_cast<size_t>(fileSize));
+
+    if (!file.read(bytes.data(), fileSize))
+    {
+        PrintError(ErrorId::InputFile);
+        return {};
+    }
+
+    if (file.gcount() != fileSize)
+    {
+        PrintError(ErrorId::InputFile);
+        return {};
+    }
+
+    return bytes;
+}
+
+bool WriteFile(const char* pFileName, const uint8_t* pData, size_t size)
+{
+    std::basic_ofstream<uint8_t> outputFile(pFileName, std::ios::binary);
+
+    if (!outputFile)
+    {
+        PrintError(ErrorId::OutputFile);
+        return false;
+    }
+
+    if (!outputFile.write(pData, size))
+    {
+        PrintError(ErrorId::OutputFile);
+        return false;
+    }
+
+    return true;
+}
+
 int main(int argCount, char** args)
 {
     if (argCount < 2)
@@ -117,9 +189,10 @@ int main(int argCount, char** args)
         return 0;
     }
 
-    std::unique_ptr<Format> spFormat;
-    std::string inputName, outputName = ".lz";
+    std::string inputName;
+    std::string outputName = ".lz";
     FormatOptions options = {FormatId::LZ, 0, 0, 0, 0};
+    std::unique_ptr<Format> spFormat;
 
     static const std::unordered_map<std::string, std::function<void()>> actions =
     {
@@ -160,7 +233,7 @@ int main(int argCount, char** args)
             else
             {
                 PrintError(ErrorId::InvalidParam, args[i + 2]);
-                return 0;
+                return 1;
             }
         }
     }
@@ -192,52 +265,22 @@ int main(int argCount, char** args)
 
     // Read input file.
 
-    std::basic_ifstream<uint8_t> inputFile(inputName, std::ios::binary | std::ios::ate);
-
-    if (!inputFile)
+    std::vector<uint8_t> inputStream = ReadFile(inputName.c_str());
+    if (inputStream.size() == 0)
     {
-        PrintError(ErrorId::InputFile);
-        return 0;
+        return 1;
     }
 
-    size_t inputFileSize = inputFile.tellg();
+    // Compress the input stream.
 
-    if (inputFileSize == 0)
-    {
-        PrintError(ErrorId::FileEmpty);
-        return 0;
-    }
-
-    if (inputFileSize > 0xFFFF)
-    {
-        PrintError(ErrorId::FileTooBig);
-        return 0;
-    }
-
-    if (!inputFile.seekg(0, std::ios_base::beg))
-    {
-        PrintError(ErrorId::InputFile);
-        return 0;
-    }
-
-    std::unique_ptr<uint8_t[]> spInputStream = std::make_unique<uint8_t[]>(inputFileSize);
-
-    if (!inputFile.read(spInputStream.get(), inputFileSize))
-    {
-        PrintError(ErrorId::InputFile);
-        return 0;
-    }
-
-    // Compress data.
-
-    BitStream packedStream = Compress(spInputStream.get(), static_cast<uint16_t>(inputFileSize), *spFormat.get());
+    BitStream packedStream = Compress(inputStream.data(), static_cast<uint16_t>(inputStream.size()), *spFormat.get());
     if (packedStream.Size() == 0)
     {
         PrintError(ErrorId::CompressionFailed);
-        return 0;
+        return 1;
     }
 
-    if (packedStream.Size() >= inputFileSize)
+    if (packedStream.Size() >= inputStream.size())
     {
         PrintWarning(WarningId::NoSizeGain);
     }
@@ -249,18 +292,9 @@ int main(int argCount, char** args)
 
     // Write output file.
 
-    std::basic_ofstream<uint8_t> outputFile(outputName, std::ios::binary);
-
-    if (!outputFile)
+    if (!WriteFile(outputName.c_str(), packedStream.Data(), packedStream.Size()))
     {
-        PrintError(ErrorId::OutputFile);
-        return 0;
-    }
-
-    if (!outputFile.write(packedStream.Data(), packedStream.Size()))
-    {
-        PrintError(ErrorId::OutputFile);
-        return 0;
+        return 1;    
     }
 
     return 0;

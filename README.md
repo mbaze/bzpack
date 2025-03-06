@@ -34,12 +34,12 @@ raw bytes or as Elias-Gamma values, read from a bit stream that works independen
 The canonical form of the Elias-Gamma code consists of **N** leading zeroes followed by a **(N + 1)**-bit binary number. For
 example, the number 12 is encoded as 000**1100**. In his paper "Universal codeword sets and representations of the integers",
 Peter Elias also proposed an alternative representation in which the bits are interleaved: **1**0**1**0**0**0**0**. In this
-format, the most significant bit is always present, and the zeroes act as 1-bit flags indicating whether another significant
-bit follows. This representation is particularly well-suited for efficient decoder implementation in assembly language.Bzpack
+format, the most significant bit is assumed, and the zeroes act as 1-bit flags indicating whether another significant bit
+follows. This representation is particularly well-suited for efficient decoder implementation in assembly language. Bzpack
 adopts this approach with one minor tweak: the flags are inverted. As a result, the actual code for the number 12 becomes
 1**1**1**0**1**0**0, where:
 
-* The most significant bit is implicitly assumed.
+* The most significant bit is not stored.
 * Each subsequent significant bit is preceded by a 1, indicating its presence.
 * A 0 marks the end of the sequence.
 

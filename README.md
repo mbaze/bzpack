@@ -1,10 +1,11 @@
 # bzpack
 
-Bzpack is a data compression utility designed for retrocomputing and demoscene enthusiasts. Given the stringent size limits
-on programs like 256-byte, 512-byte, or 1024-byte intros, implementing a compact decoder is almost as crucial as the efficiency
-of the compression format itself. While Bzpack isn't intended to be a general-purpose packer like Einar Saukas' excellent
-[ZX0](https://github.com/einar-saukas/ZX0), its goal is to balance simplicity and efficiency to minimize overall program size.
-Special consideration has been given to vintage computing platform Sinclair ZX Spectrum.
+Bzpack is a data compression utility designed for retrocomputing and sizecoding enthusiasts. Given the stringent size limits
+on programs like 256-byte, 512-byte, or 1024-byte intros, implementing a compact decoder becomes as crucial as the efficiency
+of the compression format. While Bzpack isn't intended to be a general-purpose packer like Einar Saukas' excellent
+[ZX0](https://github.com/einar-saukas/ZX0), it aims to strike a balance between simplicity and efficiency, since advanced
+coding schemes may not produce a short enough stream to justify the larger decoder size. Special consideration has been given
+to vintage computing platform Sinclair ZX Spectrum.
 
 ## Usage
 

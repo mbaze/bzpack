@@ -41,7 +41,7 @@ public:
     virtual ~Format() = default;
     virtual uint32_t GetLiteralCost(uint16_t length) const = 0;
     virtual uint32_t GetMatchCost(uint16_t length, uint16_t offset) const = 0;
-    virtual uint32_t GetMatchCost(uint16_t length, uint16_t offset, uint16_t repOffset) const = 0;
+    virtual uint32_t GetRepMatchCost(uint16_t length) const = 0;
 
     FormatId Id() const { return mFormatId; }
 
@@ -98,9 +98,9 @@ public:
         return 8 + 8;
     }
 
-    uint32_t GetMatchCost(uint16_t length, uint16_t offset, uint16_t repOffset) const override
+    uint32_t GetRepMatchCost(uint16_t length) const override
     {
-        return 8 + 8;
+        return 0xFFFFFFFF;
     }
 };
 
@@ -128,9 +128,9 @@ public:
         return GetElias1Cost(length - 1) + 1 + 8;
     }
 
-    uint32_t GetMatchCost(uint16_t length, uint16_t offset, uint16_t repOffset) const override
+    uint32_t GetRepMatchCost(uint16_t length) const override
     {
-        return GetMatchCost(length, offset);
+        return 0xFFFFFFFF;
     }
 };
 
@@ -158,55 +158,9 @@ public:
         return GetElias1Cost(length - 1) + 1 + 8;
     }
 
-    uint32_t GetMatchCost(uint16_t length, uint16_t offset, uint16_t repOffset) const override
+    uint32_t GetRepMatchCost(uint16_t length) const override
     {
-        return GetMatchCost(length, offset);
-    }
-};
-
-class FormatZX2: public Format
-{
-public:
-
-    FormatZX2() = delete;
-
-    FormatZX2(FormatOptions options): Format{options}
-    {
-        mMaxLiteralLength = 0xFFFF;
-        mMinMatchLength = 2;
-        mMaxMatchLength = 0xFFFF;
-
-        if (mAddEndMarker)
-        {
-            mExtendOffset = true;
-            mMaxMatchOffset = 255;
-        }
-        else
-        {
-            mMaxMatchOffset = mExtendOffset ? 256 : 255;
-        }
-    }
-
-    uint32_t GetLiteralCost(uint16_t length) const override
-    {
-        return 1 + GetElias1Cost(length) + (length << 3);
-    }
-
-    uint32_t GetMatchCost(uint16_t length, uint16_t offset) const override
-    {
-        return 1 + 8 + GetElias1Cost(length - 1);
-    }
-
-    uint32_t GetMatchCost(uint16_t length, uint16_t offset, uint16_t repOffset) const override
-    {
-        if (offset == repOffset)
-        {
-            return 1 + GetElias1Cost(length);
-        }
-        else
-        {
-            return 1 + 8 + GetElias1Cost(length - 1);
-        }
+        return 0xFFFFFFFF;
     }
 };
 
@@ -231,19 +185,12 @@ public:
 
     uint32_t GetMatchCost(uint16_t length, uint16_t offset) const override
     {
-        return GetElias1Cost(length - 1) + 8 + 1;
+        return GetElias1Cost(length - 1) + 1 + 8;
     }
 
-    uint32_t GetMatchCost(uint16_t length, uint16_t offset, uint16_t repOffset) const override
+    uint32_t GetRepMatchCost(uint16_t length) const override
     {
-        if (offset == repOffset)
-        {
-            return GetElias1Cost(length) + 1;
-        }
-        else
-        {
-            return GetElias1Cost(length - 1) + 8 + 1;
-        }
+        return GetElias1Cost(length) + 1;
     }
 };
 
@@ -271,9 +218,9 @@ public:
         return 1 + GetElias2Cost(length) + 8;
     }
 
-    uint32_t GetMatchCost(uint16_t length, uint16_t offset, uint16_t repOffset) const override
+    uint32_t GetRepMatchCost(uint16_t length) const override
     {
-        return GetMatchCost(length, offset);
+        return 0xFFFFFFFF;
     }
 };
 

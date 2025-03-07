@@ -74,7 +74,7 @@ std::vector<ParseStep> DijkstraParser::Parse()
                     continue;
 
                 uint32_t newPos = node.inputPos + match.length;
-                uint32_t newCost = cost + mFormat.GetMatchCost(match.length, match.offset, node.repOffset);
+                uint32_t newCost = cost + mFormat.GetRepMatchCost(match.length);
 
                 if (ShouldEnqueue(newPos, node.repOffset, newCost))
                 {

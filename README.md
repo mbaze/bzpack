@@ -19,9 +19,12 @@ For example, to compress a file called "demo.bin" using the BX2 format with the 
 Here's a list of supported command line options:
 
 `-r` - Compress (and decompress) in reverse direction. In practice, this option helps reduce the decoder size.
+
 `-e` - Add an end-of-stream marker. Useful for general-purpose decompression, but not needed for minimalist programs.
+
 `-o` - Extend the offset range by 1. Supported by some formats; can produce a slightly shorter stream at the cost of a larger
 decoder.
+
 `-l` - Extend the block length by 1. Supported by some formats; similarly, can result in a shorter stream, but requires a larger
 decoder.
 

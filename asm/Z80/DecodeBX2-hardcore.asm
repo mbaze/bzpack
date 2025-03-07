@@ -7,7 +7,7 @@
 ; assumptions, which are easily met in minimalist demoscene programs:
 
 ; 1) The program is launched from BASIC using USR, with a start address of #7F80.
-;    This ensures both A and C are set to 128, and B is initialized to 127.
+;    This ensures that A and C are set to 128, and B is set to 127.
 ; 2) The first block is a literal of at least two bytes in length.
 ; 3) No literal exceeds 255 bytes, and no match exceeds 254 bytes.
 ; 4) The compressed stream is placed immediately above the entry point.

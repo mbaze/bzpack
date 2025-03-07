@@ -11,8 +11,9 @@
 enum ErrorId
 {
     InvalidParam,
-    InputFile,
-    OutputFile,
+    InputFileMissing,
+    InputFileError,
+    OutputFileError,
     FileEmpty,
     FileTooBig,
     CompressionFailed
@@ -36,20 +37,24 @@ void PrintError(ErrorId error, const char* pString = nullptr)
             printf("Invalid parameter %s.\n", pString);
             break;
 
-        case ErrorId::InputFile:
-            printf("Cannot open input file.\n");
+        case ErrorId::InputFileMissing:
+            printf("Input file is missing.\n");
             break;
 
-        case ErrorId::OutputFile:
-            printf("Cannot create output file.\n");
+        case ErrorId::InputFileError:
+            printf("Unable to open the input file.\n");
+            break;
+
+        case ErrorId::OutputFileError:
+            printf("Unable to create the output file.\n");
             break;
 
         case ErrorId::FileEmpty:
-            printf("Input file empty.\n");
+            printf("The input file is empty.\n");
             break;
 
         case ErrorId::FileTooBig:
-            printf("Input file too big.\n");
+            printf("The input file is too large.\n");
             break;
 
         case ErrorId::CompressionFailed:
@@ -105,7 +110,7 @@ std::vector<uint8_t> ReadFile(const char* pFileName)
 
     if (!file)
     {
-        PrintError(ErrorId::InputFile);
+        PrintError(ErrorId::InputFileError);
         return {};
     }
 
@@ -113,7 +118,7 @@ std::vector<uint8_t> ReadFile(const char* pFileName)
 
     if (fileSize < 0)
     {
-        PrintError(ErrorId::InputFile);
+        PrintError(ErrorId::InputFileError);
         return {};
     }
 
@@ -131,7 +136,7 @@ std::vector<uint8_t> ReadFile(const char* pFileName)
 
     if (!file.seekg(0, std::ios_base::beg))
     {
-        PrintError(ErrorId::InputFile);
+        PrintError(ErrorId::InputFileError);
         return {};
     }
 
@@ -139,13 +144,13 @@ std::vector<uint8_t> ReadFile(const char* pFileName)
 
     if (!file.read(bytes.data(), fileSize))
     {
-        PrintError(ErrorId::InputFile);
+        PrintError(ErrorId::InputFileError);
         return {};
     }
 
     if (file.gcount() != fileSize)
     {
-        PrintError(ErrorId::InputFile);
+        PrintError(ErrorId::InputFileError);
         return {};
     }
 
@@ -158,13 +163,13 @@ bool WriteFile(const char* pFileName, const uint8_t* pData, size_t size)
 
     if (!outputFile)
     {
-        PrintError(ErrorId::OutputFile);
+        PrintError(ErrorId::OutputFileError);
         return false;
     }
 
     if (!outputFile.write(pData, size))
     {
-        PrintError(ErrorId::OutputFile);
+        PrintError(ErrorId::OutputFileError);
         return false;
     }
 
@@ -189,18 +194,16 @@ int main(int argCount, char** args)
         return 0;
     }
 
-    std::string inputName;
-    std::string outputName = ".lz";
+    std::string suffix = ".lz";
     FormatOptions options = {FormatId::LZ, 0, 0, 0, 0};
-    std::unique_ptr<Format> spFormat;
 
     static const std::unordered_map<std::string, std::function<void()>> actions =
     {
-        {"-lz",   [&]() { options.id = FormatId::LZ; outputName = ".lz"; }},
-        {"-e1",   [&]() { options.id = FormatId::E1; outputName = ".e1"; }},
-        {"-e1zx", [&]() { options.id = FormatId::E1ZX; outputName = ".e1zx"; }},
-        {"-bx2",  [&]() { options.id = FormatId::BX2; outputName = ".bx2"; }},
-        {"-ue2",  [&]() { options.id = FormatId::UE2; outputName = ".ue2"; }},
+        {"-lz",   [&]() { options.id = FormatId::LZ; suffix = ".lz"; }},
+        {"-e1",   [&]() { options.id = FormatId::E1; suffix = ".e1"; }},
+        {"-e1zx", [&]() { options.id = FormatId::E1ZX; suffix = ".e1zx"; }},
+        {"-bx2",  [&]() { options.id = FormatId::BX2; suffix = ".bx2"; }},
+        {"-ue2",  [&]() { options.id = FormatId::UE2; suffix = ".ue2"; }},
         {"-r",    [&]() { options.reverse = 1; }},
         {"-e",    [&]() { options.addEndMarker = 1; }},
         {"-o",    [&]() { options.extendOffset = 1; }},
@@ -209,41 +212,55 @@ int main(int argCount, char** args)
 
     // Process command line arguments.
 
+    std::string inputName, outputName;
+
     for (int i = 1; i < argCount; i++)
     {
-        auto iAction = actions.find(args[i]);
-        if (iAction != actions.end())
-        {
-            iAction->second();
-        }
-        else
+        if (inputName.empty())
         {
             if (args[i][0] == '-')
             {
-                PrintError(ErrorId::InvalidParam, args[i]);
-                return 1;
-            }
-            else if (i == argCount - 1)
-            {
-                inputName = args[i];
-                outputName = inputName + outputName;
-                break;
-            }
-            else if (i == argCount - 2)
-            {
-                inputName = args[i];
-                outputName = args[i + 1];
-                break;
+                auto iAction = actions.find(args[i]);
+                if (iAction != actions.end())
+                {
+                    iAction->second();
+                }
+                else
+                {
+                    PrintError(ErrorId::InvalidParam, args[i]);
+                    return 1;
+                }
             }
             else
             {
-                PrintError(ErrorId::InvalidParam, args[i + 2]);
-                return 1;
+                inputName = args[i];
             }
+        }
+        else if (outputName.empty())
+        {
+            outputName = args[i];
+        }
+        else
+        {
+            PrintError(ErrorId::InvalidParam, args[i]);
+            return 1;
         }
     }
 
+    if (inputName.empty())
+    {
+        PrintError(ErrorId::InputFileMissing);
+        return 1;
+    }
+
+    if (outputName.empty())
+    {
+        outputName = inputName + suffix;
+    }
+
     CheckOptions(options);
+
+    std::unique_ptr<Format> spFormat;
 
     switch (options.id)
     {

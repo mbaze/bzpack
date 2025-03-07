@@ -17,7 +17,7 @@ For example, to compress a file called "demo.bin" using the BX2 format with the 
 
 `bzpack.exe -bx2 -e demo.bin demo.bx2`
 
-Here's a list of supported command line options:
+Here’s a list of supported command-line options (excluding compression format names):
 
 * `-r` - Compress (and decompress) in reverse direction. In practice, this option helps reduce the decoder size.
 * `-e` - Add an end-of-stream marker. Useful for general-purpose decompression, but not needed for minimalist programs.

@@ -34,7 +34,7 @@ PrefixMatcher::PrefixMatcher(const uint8_t* pInput, uint16_t inputSize, uint16_t
     }
 
     std::vector<std::vector<uint16_t>> matchOccurrences(65536);
-    mMatchPositions = std::make_unique<std::vector<uint16_t>[]>(inputSize);
+    mLongestMatches = std::make_unique<std::vector<Match>[]>(inputSize);
 
     for (uint16_t inputPos = 0; inputPos < inputSize - 1; inputPos++)
     {
@@ -45,11 +45,21 @@ PrefixMatcher::PrefixMatcher(const uint8_t* pInput, uint16_t inputSize, uint16_t
         {
             if (*i >= windowPos)
             {
-                mMatchPositions[inputPos].emplace_back(*i);
+                mLongestMatches[inputPos].emplace_back(0, *i);
             }
         }
 
         matchOccurrences[match].emplace_back(inputPos);
+    }
+
+    // Calculate the longest available match length at each position.
+
+    for (uint16_t inputPos = 0; inputPos < inputSize; inputPos++)
+    {
+        for (Match& match: mLongestMatches[inputPos])
+        {
+            match.length = GetMatchLength(inputPos, match.offset);
+        }
     }
 }
 
@@ -67,12 +77,14 @@ std::vector<Match> PrefixMatcher::FindMatches(uint16_t inputPos, bool allowBytes
         }
     }
 
-    for (uint16_t matchPos: mMatchPositions[inputPos])
+    for (const Match& match: mLongestMatches[inputPos])
     {
-        uint16_t matchLength = GetMatchLength(inputPos, matchPos);
-        for (uint16_t length = mMinMatchLength; length <= matchLength; length++)
+        // In this case, the precomputed match.offset is the absolute input position.
+        uint16_t offset = inputPos - match.offset;
+
+        for (uint16_t length = mMinMatchLength; length <= match.length; length++)
         {
-            matches.emplace_back(length, inputPos - matchPos);
+            matches.emplace_back(length, offset);
         }
     }
 
@@ -84,13 +96,12 @@ Match PrefixMatcher::FindLongestMatch(uint16_t inputPos) const
     uint16_t maxLength = mMinMatchLength - 1;
     uint16_t maxOffset = 0;
 
-    for (uint16_t matchPos: mMatchPositions[inputPos])
+    for (const Match& match: mLongestMatches[inputPos])
     {
-        uint16_t length = GetMatchLength(inputPos, matchPos);
-        if (length > maxLength)
+        if (match.length > maxLength)
         {
-            maxLength = length;
-            maxOffset = inputPos - matchPos;
+            maxLength = match.length;
+            maxOffset = inputPos - match.offset;
         }
     }
 

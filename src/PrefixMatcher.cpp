@@ -24,10 +24,10 @@ PrefixMatcher::PrefixMatcher(const uint8_t* pInput, uint16_t inputSize, uint16_t
 
         for (auto i = byteOccurrences[byte].rbegin(); i != byteOccurrences[byte].rend(); i++)
         {
-            if (*i >= windowPos)
-            {
-                mBytePositions[inputPos].emplace_back(*i);
-            }
+            if (*i < windowPos)
+                break;
+
+            mBytePositions[inputPos].emplace_back(*i);
         }
 
         byteOccurrences[byte].emplace_back(inputPos);
@@ -43,10 +43,10 @@ PrefixMatcher::PrefixMatcher(const uint8_t* pInput, uint16_t inputSize, uint16_t
 
         for (auto i = matchOccurrences[match].rbegin(); i != matchOccurrences[match].rend(); i++)
         {
-            if (*i >= windowPos)
-            {
-                mLongestMatches[inputPos].emplace_back(0, *i);
-            }
+            if (*i < windowPos)
+                break;
+
+            mLongestMatches[inputPos].emplace_back(0, *i);
         }
 
         matchOccurrences[match].emplace_back(inputPos);
@@ -67,19 +67,20 @@ std::vector<Match> PrefixMatcher::FindMatches(uint16_t inputPos, bool allowBytes
 {
     std::vector<Match> matches;
 
+    // Single-byte matches help set up useful repeat offsets.
+
     if (allowBytes)
     {
-        // Single-byte matches help set up useful repeat offsets.
-
         for (uint16_t bytePos: mBytePositions[inputPos])
         {
             matches.emplace_back(1, inputPos - bytePos);
         }
     }
 
+    // In this case, the precomputed match.offset is the absolute input position.
+
     for (const Match& match: mLongestMatches[inputPos])
     {
-        // In this case, the precomputed match.offset is the absolute input position.
         uint16_t offset = inputPos - match.offset;
 
         for (uint16_t length = mMinMatchLength; length <= match.length; length++)

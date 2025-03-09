@@ -10,7 +10,7 @@
 		ld	de,DstAddr
 		ld	a,%10000000
 
-MainLoop	ld	c,1
+DecodeLoop	ld	c,1
 		call	ReadBit
 		jr	c,CopyBytes
 
@@ -26,10 +26,10 @@ EliasGamma	call	ReadBit
 		add	hl,de
 ;		inc	hl		; Option to extend the offset range.
 CopyBytes	lddr
-		jr	c,MainLoop
+		jr	c,DecodeLoop
 		pop	hl
 		dec	hl
-		jr	MainLoop
+		jr	DecodeLoop
 
 ReadBit		add	a,a
 		ret	nz

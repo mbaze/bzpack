@@ -14,9 +14,9 @@
 		ld	de,DstAddr
 		push	bc
 		ld	b,c
-MainLoop1	pop	hl
+DecodeLoop1	pop	hl
 		dec	hl
-MainLoop2	ld	c,(hl)
+DecodeLoop2	ld	c,(hl)
 		dec	hl
 		srl	c
 		jr	c,CopyBytes
@@ -25,5 +25,5 @@ MainLoop2	ld	c,(hl)
 		ld	h,b
 		add	hl,de
 CopyBytes	lddr
-		jr	nc,MainLoop1
-		jr	MainLoop2
+		jr	nc,DecodeLoop1
+		jr	DecodeLoop2

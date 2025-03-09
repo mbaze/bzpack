@@ -9,7 +9,7 @@
 		ld	hl,SrcAddr
 		ld	de,DstAddr
 		ld	b,0		; Ideally, some values should be "reused".
-MainLoop	ld	c,(hl)
+DecodeLoop	ld	c,(hl)
 		dec	hl
 		srl	c
 ;		ret	z		; Option to include the end-of-stream marker.
@@ -21,7 +21,7 @@ MainLoop	ld	c,(hl)
 		add	hl,de
 ;		inc	hl		; Option to extend the offset range.
 CopyBytes	lddr
-		jr	c,MainLoop
+		jr	c,DecodeLoop
 		pop	hl
 		dec	hl
-		jr	MainLoop
+		jr	DecodeLoop

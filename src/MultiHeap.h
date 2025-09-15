@@ -57,8 +57,6 @@ private:
     {
         while (true)
         {
-            _ASSERT(mHeap.size());
-
             size_t lastChild = std::min((parent + 1) << BITS, mHeap.size() - 1);
             size_t minChild = parent;
 

@@ -19,31 +19,33 @@ void BitStream::Reverse()
     std::reverse(mBytes.begin(), mBytes.end());
 }
 
-void BitStream::ReadReset()
+void BitStream::ResetForRead()
 {
-    mReadMask = 0;
-    mReadBitPos = 0;
-    mReadBytePos = 0;
+    mReadBitMask = 0;
+    mReadBitCursor = 0;
+    mReadByteCursor = 0;
 }
 
-void BitStream::WriteReset()
+void BitStream::ResetForWrite()
 {
-    mBytes.clear();
-    mWriteBitNum = 0;
     mWriteBitPos = 0;
+    mWriteBitCursor = 0;
+    mBytes.clear();
     mIssueCarryWarning = false;
+
+    ResetForRead();
 }
 
 void BitStream::WriteBit(bool value)
 {
-    if (mWriteBitNum == 0)
+    if (mWriteBitPos == 0)
     {
-        mWriteBitPos = mBytes.size();
+        mWriteBitCursor = mBytes.size();
         mBytes.emplace_back(0);
     }
 
-    mWriteBitNum = --mWriteBitNum & 7;
-    mBytes[mWriteBitPos] |= (value << mWriteBitNum);
+    mWriteBitPos = --mWriteBitPos & 7;
+    mBytes[mWriteBitCursor] |= (value << mWriteBitPos);
 }
 
 void BitStream::WriteByte(uint8_t value)
@@ -53,53 +55,53 @@ void BitStream::WriteByte(uint8_t value)
 
 uint32_t BitStream::ReadBit()
 {
-    mReadMask >>= 1;
+    mReadBitMask >>= 1;
 
-    if (mReadMask == 0)
+    if (mReadBitMask == 0)
     {
-        mReadMask = 128;
-        mReadBitPos = mReadBytePos++;
+        mReadBitMask = 128;
+        mReadBitCursor = mReadByteCursor++;
     }
 
-    return (mBytes[mReadBitPos] & mReadMask) > 0;
+    return (mBytes[mReadBitCursor] & mReadBitMask) > 0;
 }
 
 uint8_t BitStream::ReadByte()
 {
-    return mBytes[mReadBytePos++];
+    return mBytes[mReadByteCursor++];
 }
 
-// These methods are only required by the E1ZX format.
+// Only used by the E1ZX format.
 
 void BitStream::WriteBitNeg(bool value)
 {
-    if (mWriteBitNum == 0)
+    if (mWriteBitPos == 0)
     {
         if (mBytes.size())
         {
-            mBytes[mWriteBitPos] = -mBytes[mWriteBitPos];
-            mIssueCarryWarning |= !mBytes[mWriteBitPos];
+            mBytes[mWriteBitCursor] = -mBytes[mWriteBitCursor];
+            mIssueCarryWarning |= !mBytes[mWriteBitCursor];
         }
 
-        mWriteBitPos = mBytes.size();
+        mWriteBitCursor = mBytes.size();
         mBytes.emplace_back(0);
     }
 
-    mWriteBitNum = --mWriteBitNum & 7;
-    mBytes[mWriteBitPos] |= (value << mWriteBitNum);
+    mWriteBitPos = --mWriteBitPos & 7;
+    mBytes[mWriteBitCursor] |= (value << mWriteBitPos);
 }
 
 uint32_t BitStream::ReadBitNeg()
 {
-    mReadMask >>= 1;
+    mReadBitMask >>= 1;
 
-    if (mReadMask == 0)
+    if (mReadBitMask == 0)
     {
-        mReadMask = 128;
-        mReadBitPos = mReadBytePos++;
+        mReadBitMask = 128;
+        mReadBitCursor = mReadByteCursor++;
     }
 
-    return (-mBytes[mReadBitPos] & mReadMask) > 0;
+    return (-mBytes[mReadBitCursor] & mReadBitMask) > 0;
 }
 
 void BitStream::FlushBitsNeg()
@@ -108,9 +110,9 @@ void BitStream::FlushBitsNeg()
 
     if (mBytes.size())
     {
-        uint8_t padding = (1 << mWriteBitNum) - 1;
-        mBytes[mWriteBitPos] = -(mBytes[mWriteBitPos] | padding);
-        mIssueCarryWarning |= !mBytes[mWriteBitPos];
+        uint8_t padding = (1 << mWriteBitPos) - 1;
+        mBytes[mWriteBitCursor] = -(mBytes[mWriteBitCursor] | padding);
+        mIssueCarryWarning |= !mBytes[mWriteBitCursor];
     }
 }
 

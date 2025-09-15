@@ -8,7 +8,7 @@
 
 uint32_t GetElias1Cost(uint32_t value);
 void EncodeElias1(BitStream& stream, uint32_t value);
-uint32_t DecodeElias1(BitStream& stream);
+uint32_t DecodeElias1(BitStream& stream, uint32_t value = 1);
 
 uint32_t GetElias2Cost(uint32_t value);
 void EncodeElias2(BitStream& stream, uint32_t value);
@@ -26,12 +26,17 @@ uint32_t GetVbinCost(uint32_t value);
 void EncodeVbin(BitStream& stream, uint32_t value);
 uint32_t DecodeVbin(BitStream& stream);
 
-void EncodeRaw(BitStream& stream, uint32_t value, uint32_t bits);
-uint32_t DecodeRaw(BitStream& stream, uint32_t bits);
+void EncodeRaw(BitStream& stream, uint32_t value, uint32_t bitCount);
+uint32_t DecodeRaw(BitStream& stream, uint32_t bitCount);
 
-// These methods are only required by the E1ZX format.
+// Only used by the E1ZX format.
 
 void EncodeElias1Neg(BitStream& stream, uint32_t value);
 uint32_t DecodeElias1Neg(BitStream& stream);
+
+// Only used by the BX0 format.
+
+bool EncodeElias1WithoutFlag(BitStream& stream, uint32_t value);
+uint32_t DecodeElias1WithFlag(BitStream& stream, bool flag);
 
 #endif // UNIVERSAL_CODES_H

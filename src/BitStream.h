@@ -11,12 +11,17 @@ class BitStream
 
 public:
 
+    BitStream()
+    {
+        ResetForWrite();
+    }
+
     size_t Size() const;
     const uint8_t* Data() const;
     void Reverse();
 
-    void ReadReset();
-    void WriteReset();
+    void ResetForRead();
+    void ResetForWrite();
 
     void WriteBit(bool value);
     void WriteByte(uint8_t value);
@@ -24,7 +29,7 @@ public:
     uint32_t ReadBit();
     uint8_t ReadByte();
 
-    // These methods are only required by the E1ZX format.
+    // Only used by the E1ZX format.
 
     void WriteBitNeg(bool value);
     uint32_t ReadBitNeg();
@@ -35,14 +40,14 @@ private:
 
     std::vector<uint8_t> mBytes;
 
-    uint8_t mWriteBitNum = 0;
-    size_t mWriteBitPos = 0;
+    uint8_t mWriteBitPos;
+    size_t mWriteBitCursor;
 
-    uint8_t mReadMask = 0;
-    size_t mReadBitPos = 0;
-    size_t mReadBytePos = 0;
+    uint8_t mReadBitMask;
+    size_t mReadBitCursor;
+    size_t mReadByteCursor;
 
-    bool mIssueCarryWarning = false;
+    bool mIssueCarryWarning;
 };
 
 #endif // BIT_STREAM_H

@@ -4,7 +4,6 @@
 #ifndef PREFIX_MATCHER_H
 #define PREFIX_MATCHER_H
 
-#include <memory>
 #include <vector>
 #include "CommonTypes.h"
 
@@ -36,8 +35,8 @@ private:
     const uint16_t mMaxMatchLength;
     const uint16_t mMaxMatchOffset;
 
-    std::unique_ptr<std::vector<uint16_t>[]> mBytePositions;
-    std::unique_ptr<std::vector<Match>[]> mLongestMatches;
+    std::vector<std::vector<uint16_t>> mBytePositions;
+    std::vector<std::vector<Match>> mLongestMatches;
 };
 
 #endif // PREFIX_MATCHER_H

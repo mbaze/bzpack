@@ -1,12 +1,13 @@
 // Copyright (c) 2021, Milos "baze" Bazelides
 // This code is licensed under the BSD 2-Clause License.
 
-#include <memory>
 #include <cstdio>
 #include <fstream>
 #include <functional>
 #include <unordered_map>
-#include "Compressor.h"
+#include "Compression.h"
+
+#include <windows.h>
 
 enum ErrorId
 {
@@ -178,13 +179,16 @@ bool WriteFile(const char* pFileName, const uint8_t* pData, size_t size)
 
 int main(int argCount, char** args)
 {
+    std::unique_ptr<Format> formatBX0 = Format::Create({FormatId::BX0, 1, 0, 0, 0});
+
     if (argCount < 2)
     {
-        printf("\nUsage: bzpack.exe [-lz|-e1|-e1zx|-bx2|-ue2] [-r] [-e] [-o] [-l] <inputFile> [outputFile]\n");
+        printf("\nUsage: bzpack.exe [-lz|-e1|-e1zx|-bx0|-bx2|-ue2] [-r] [-e] [-o] [-l] <inputFile> [outputFile]\n");
         printf("\nOptions:\n\n");
         printf("-lz: Byte-aligned LZSS. Raw 7-bit length, raw 8-bit offset (default).\n");
         printf("-e1: Elias 1..N length, raw 8-bit offset.\n");
-        printf("-e1zx: A version of -e1 optimized for Sinclair ZX Spectrum.\n");
+        printf("-e1zx: A version of -e1 optimized for the Sinclair ZX Spectrum.\n");
+        printf("-bx0: Elias 1..N length, combined raw/Elias offset or repeat offset.\n");
         printf("-bx2: Elias 1..N length, raw 8-bit offset or repeat offset.\n");
         printf("-ue2: Unary literal length, Elias 2..N match length, raw 8-bit offset.\n");
         printf("-r: Compress in reverse order.\n");
@@ -202,6 +206,7 @@ int main(int argCount, char** args)
         {"-lz",   [&]() { options.id = FormatId::LZ; suffix = ".lz"; }},
         {"-e1",   [&]() { options.id = FormatId::E1; suffix = ".e1"; }},
         {"-e1zx", [&]() { options.id = FormatId::E1ZX; suffix = ".e1zx"; }},
+        {"-bx0",  [&]() { options.id = FormatId::BX0; suffix = ".bx0"; }},
         {"-bx2",  [&]() { options.id = FormatId::BX2; suffix = ".bx2"; }},
         {"-ue2",  [&]() { options.id = FormatId::UE2; suffix = ".ue2"; }},
         {"-r",    [&]() { options.reverse = 1; }},
@@ -260,29 +265,11 @@ int main(int argCount, char** args)
 
     CheckOptions(options);
 
-    std::unique_ptr<Format> spFormat;
-
-    switch (options.id)
+    std::unique_ptr<Format> spFormat = Format::Create(options);
+    if (spFormat == nullptr)
     {
-    case FormatId::LZ:
-        spFormat = std::make_unique<FormatLZ>(options);
-        break;
-
-    case FormatId::E1:
-        spFormat = std::make_unique<FormatE1>(options);
-        break;
-
-    case FormatId::E1ZX:
-        spFormat = std::make_unique<FormatE1ZX>(options);
-        break;
-
-    case FormatId::BX2:
-        spFormat = std::make_unique<FormatBX2>(options);
-        break;
-
-    case FormatId::UE2:
-        spFormat = std::make_unique<FormatUE2>(options);
-        break;
+        PrintError(ErrorId::CompressionFailed);
+        return 1;
     }
 
     // Read input file.

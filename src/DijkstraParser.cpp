@@ -1,8 +1,8 @@
 // Copyright (c) 2025, Milos "baze" Bazelides
 // This code is licensed under the BSD 2-Clause License.
 
-#include <queue>
 #include "DijkstraParser.h"
+#include "MultiHeap.h"
 
 #define COST_INDEX_64(cost, index) \
     ((static_cast<uint64_t>(cost) << 32) | static_cast<uint64_t>(index))
@@ -20,16 +20,14 @@ std::vector<ParseStep> DijkstraParser::Parse()
     std::vector<PathNode> nodes;
     nodes.emplace_back(0, 0, 0, 0xFFFFFFFF, 0);
 
-    std::priority_queue<uint64_t, std::vector<uint64_t>, std::greater<uint64_t>> queue;
-    queue.emplace(0);
+    MultiHeap<uint64_t> heap;
+    heap.Push(0);
 
-    while (!queue.empty())
+    while (heap.Size())
     {
-        uint64_t queueTop = queue.top();
-        uint32_t nodeIndex = static_cast<uint32_t>(queueTop);
-        uint32_t cost = static_cast<uint32_t>(queueTop >> 32);
-        queue.pop();
-
+        uint64_t heapTop = heap.Pop();
+        uint32_t cost = static_cast<uint32_t>(heapTop >> 32);
+        uint32_t nodeIndex = static_cast<uint32_t>(heapTop);
         PathNode node = nodes[nodeIndex];
 
         if (node.inputPos >= mInputSize)
@@ -58,7 +56,7 @@ std::vector<ParseStep> DijkstraParser::Parse()
 
                 if (ShouldEnqueue(newPos, match.offset, newCost))
                 {
-                    queue.emplace(COST_INDEX_64(newCost, nodes.size()));
+                    heap.Push(COST_INDEX_64(newCost, nodes.size()));
                     nodes.emplace_back(nodeIndex, newPos, match.length, match.offset, match.offset);
                 }
             }
@@ -78,7 +76,7 @@ std::vector<ParseStep> DijkstraParser::Parse()
 
                 if (ShouldEnqueue(newPos, node.repOffset, newCost))
                 {
-                    queue.emplace(COST_INDEX_64(newCost, nodes.size()));
+                    heap.Push(COST_INDEX_64(newCost, nodes.size()));
                     nodes.emplace_back(nodeIndex, newPos, match.length, match.offset, match.offset);
                 }
             }
@@ -97,7 +95,7 @@ std::vector<ParseStep> DijkstraParser::Parse()
 
                 if (ShouldEnqueue(newPos, node.repOffset, newCost))
                 {
-                    queue.emplace(COST_INDEX_64(newCost, nodes.size()));
+                    heap.Push(COST_INDEX_64(newCost, nodes.size()));
                     nodes.emplace_back(nodeIndex, newPos, length, 0, node.repOffset);
                 }
             }
@@ -122,19 +120,20 @@ std::vector<ParseStep> DijkstraParser::Parse()
 bool DijkstraParser::ShouldEnqueue(uint16_t inputPos, uint16_t repOffset, uint32_t cost)
 {
     uint32_t key = (repOffset << 16) | inputPos;
+    auto iHash = mPosRepCosts.find(key);
 
-    auto result = mPosRepCosts.try_emplace(key, cost);
-    if (result.second)
+    if (iHash == mPosRepCosts.end())
+    {
+        mPosRepCosts[key] = cost;
         return true;
+    }
+    else if (cost < iHash->second)
+    {
+        iHash->second = cost;
+        return true;
+    }
 
-    // Prune if a new arrival to the same state doesn't reduce the cost.
-
-    if (cost >= result.first->second)
-        return false;
-
-    result.first->second = cost;
-
-    return true;
+    return false;
 }
 
 #ifdef BASELINE_COST_PRUNING

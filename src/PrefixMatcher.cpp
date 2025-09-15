@@ -15,7 +15,7 @@ PrefixMatcher::PrefixMatcher(const uint8_t* pInput, uint16_t inputSize, uint16_t
     // Initialize lists that track past positions of single bytes and 2-byte sequences in the input.
 
     std::vector<std::vector<uint16_t>> byteOccurrences(256);
-    mBytePositions = std::make_unique<std::vector<uint16_t>[]>(inputSize);
+    mBytePositions.resize(inputSize);
 
     for (uint16_t inputPos = 0; inputPos < inputSize; inputPos++)
     {
@@ -34,7 +34,7 @@ PrefixMatcher::PrefixMatcher(const uint8_t* pInput, uint16_t inputSize, uint16_t
     }
 
     std::vector<std::vector<uint16_t>> matchOccurrences(65536);
-    mLongestMatches = std::make_unique<std::vector<Match>[]>(inputSize);
+    mLongestMatches.resize(inputSize);
 
     for (uint16_t inputPos = 0; inputPos < inputSize - 1; inputPos++)
     {

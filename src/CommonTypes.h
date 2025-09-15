@@ -9,7 +9,8 @@
 struct Match
 {
     Match(uint16_t length, uint16_t offset):
-        length{length}, offset{offset} {}
+        length{length}, offset{offset}
+    {}
 
     uint16_t length;
     uint16_t offset;
@@ -18,7 +19,8 @@ struct Match
 struct ParseStep
 {
     ParseStep(uint16_t length, uint16_t offset):
-        length{length}, offset{offset} {}
+        length{length}, offset{offset}
+    {}
 
     uint16_t length;
     uint16_t offset;

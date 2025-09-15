@@ -4,13 +4,14 @@
 #ifndef FORMATS_H
 #define FORMATS_H
 
-#include "UniversalCodes.h"
+#include <memory>
 
 enum FormatId
 {
     LZ,
     E1,
     E1ZX,
+    BX0,
     BX2,
     UE2,
 };
@@ -29,16 +30,10 @@ class Format
 public:
 
     Format() = delete;
-
-    Format(FormatOptions options):
-        mFormatId(static_cast<FormatId>(options.id)),
-        mReverse(options.reverse),
-        mAddEndMarker(options.addEndMarker),
-        mExtendOffset(options.extendOffset),
-        mExtendLength(options.extendLength)
-    {}
-
     virtual ~Format() = default;
+
+    static std::unique_ptr<Format> Create(const FormatOptions& options);
+
     virtual uint32_t GetLiteralCost(uint16_t length) const = 0;
     virtual uint32_t GetMatchCost(uint16_t length, uint16_t offset) const = 0;
     virtual uint32_t GetRepMatchCost(uint16_t length) const = 0;
@@ -57,14 +52,22 @@ public:
 
 protected:
 
+    Format(FormatOptions options):
+        mFormatId(static_cast<FormatId>(options.id)),
+        mReverse(options.reverse),
+        mAddEndMarker(options.addEndMarker),
+        mExtendOffset(options.extendOffset),
+        mExtendLength(options.extendLength)
+    {}
+
     FormatId mFormatId;
 
     // Format limits.
 
-    uint16_t mMaxLiteralLength = 0xFFFF;
-    uint16_t mMinMatchLength = 2;
-    uint16_t mMaxMatchLength = 0xFFFF;
-    uint16_t mMaxMatchOffset = 0xFFFF;
+    uint16_t mMaxLiteralLength;
+    uint16_t mMinMatchLength;
+    uint16_t mMaxMatchLength;
+    uint16_t mMaxMatchOffset;
 
     // Encoding options.
 
@@ -76,152 +79,79 @@ protected:
 
 class FormatLZ: public Format
 {
-public:
+    friend class Format;
 
     FormatLZ() = delete;
+    FormatLZ(FormatOptions options);
 
-    FormatLZ(FormatOptions options): Format{options}
-    {
-        mMaxLiteralLength = options.extendLength ? 128 : 127;
-        mMinMatchLength = 2;
-        mMaxMatchLength = options.extendLength ? 128 : 127;
-        mMaxMatchOffset = options.extendOffset ? 256 : 255;
-    }
-
-    uint32_t GetLiteralCost(uint16_t length) const override
-    {
-        return 8 + (length << 3);
-    }
-
-    uint32_t GetMatchCost(uint16_t length, uint16_t offset) const override
-    {
-        return 8 + 8;
-    }
-
-    uint32_t GetRepMatchCost(uint16_t length) const override
-    {
-        return 0xFFFFFFFF;
-    }
+    uint32_t GetLiteralCost(uint16_t length) const override;
+    uint32_t GetMatchCost(uint16_t length, uint16_t offset) const override;
+    uint32_t GetRepMatchCost(uint16_t length) const override;
 };
 
 class FormatE1: public Format
 {
-public:
+    friend class Format;
 
     FormatE1() = delete;
+    FormatE1(FormatOptions options);
 
-    FormatE1(FormatOptions options): Format{options}
-    {
-        mMaxLiteralLength = 255;
-        mMinMatchLength = 2;
-        mMaxMatchLength = 256;
-        mMaxMatchOffset = options.extendOffset ? 256 : 255;
-    }
-
-    uint32_t GetLiteralCost(uint16_t length) const override
-    {
-        return GetElias1Cost(length) + 1 + (length << 3);
-    }
-
-    uint32_t GetMatchCost(uint16_t length, uint16_t offset) const override
-    {
-        return GetElias1Cost(length - 1) + 1 + 8;
-    }
-
-    uint32_t GetRepMatchCost(uint16_t length) const override
-    {
-        return 0xFFFFFFFF;
-    }
+    uint32_t GetLiteralCost(uint16_t length) const override;
+    uint32_t GetMatchCost(uint16_t length, uint16_t offset) const override;
+    uint32_t GetRepMatchCost(uint16_t length) const override;
 };
 
 class FormatE1ZX: public Format
 {
-public:
+    friend class Format;
 
     FormatE1ZX() = delete;
+    FormatE1ZX(FormatOptions options);
 
-    FormatE1ZX(FormatOptions options): Format{options}
-    {
-        mMaxLiteralLength = 255;
-        mMinMatchLength = 2;
-        mMaxMatchLength = 256;
-        mMaxMatchOffset = options.extendOffset ? 256 : 255;
-    }
+    uint32_t GetLiteralCost(uint16_t length) const override;
+    uint32_t GetMatchCost(uint16_t length, uint16_t offset) const override;
+    uint32_t GetRepMatchCost(uint16_t length) const override;
+};
 
-    uint32_t GetLiteralCost(uint16_t length) const override
-    {
-        return GetElias1Cost(length) + 1 + (length << 3);
-    }
+class FormatBX0: public Format
+{
+    friend class Format;
 
-    uint32_t GetMatchCost(uint16_t length, uint16_t offset) const override
-    {
-        return GetElias1Cost(length - 1) + 1 + 8;
-    }
+    FormatBX0() = delete;
+    FormatBX0(FormatOptions options);
 
-    uint32_t GetRepMatchCost(uint16_t length) const override
-    {
-        return 0xFFFFFFFF;
-    }
+    uint32_t GetLiteralCost(uint16_t length) const override;
+    uint32_t GetMatchCost(uint16_t length, uint16_t offset) const override;
+    uint32_t GetRepMatchCost(uint16_t length) const override;
+
+public:
+
+    static uint8_t GetRawPart(uint16_t offset) { return offset & 127; }
+    static uint16_t GetEliasPart(uint16_t offset) { return (offset >> 7) + 1; }
 };
 
 class FormatBX2: public Format
 {
-public:
+    friend class Format;
 
     FormatBX2() = delete;
+    FormatBX2(FormatOptions options);
 
-    FormatBX2(FormatOptions options): Format{options}
-    {
-        mMaxLiteralLength = 0xFFFF;
-        mMinMatchLength = 2;
-        mMaxMatchLength = 0xFFFF;
-        mMaxMatchOffset = 255;
-    }
-
-    uint32_t GetLiteralCost(uint16_t length) const override
-    {
-        return GetElias1Cost(length) + 1 + (length << 3);
-    }
-
-    uint32_t GetMatchCost(uint16_t length, uint16_t offset) const override
-    {
-        return GetElias1Cost(length - 1) + 1 + 8;
-    }
-
-    uint32_t GetRepMatchCost(uint16_t length) const override
-    {
-        return GetElias1Cost(length) + 1;
-    }
+    uint32_t GetLiteralCost(uint16_t length) const override;
+    uint32_t GetMatchCost(uint16_t length, uint16_t offset) const override;
+    uint32_t GetRepMatchCost(uint16_t length) const override;
 };
 
 class FormatUE2: public Format
 {
-public:
+    friend class Format;
 
     FormatUE2() = delete;
+    FormatUE2(FormatOptions options);
 
-    FormatUE2(FormatOptions options): Format{options}
-    {
-        mMaxLiteralLength = 0xFFFF;
-        mMinMatchLength = 2;
-        mMaxMatchLength = 255;
-        mMaxMatchOffset = options.extendOffset ? 256 : 255;
-    }
-
-    uint32_t GetLiteralCost(uint16_t length) const override
-    {
-        return (1 + 8) * length;
-    }
-
-    uint32_t GetMatchCost(uint16_t length, uint16_t offset) const override
-    {
-        return 1 + GetElias2Cost(length) + 8;
-    }
-
-    uint32_t GetRepMatchCost(uint16_t length) const override
-    {
-        return 0xFFFFFFFF;
-    }
+    uint32_t GetLiteralCost(uint16_t length) const override;
+    uint32_t GetMatchCost(uint16_t length, uint16_t offset) const override;
+    uint32_t GetRepMatchCost(uint16_t length) const override;
 };
 
 #endif // FORMATS_H

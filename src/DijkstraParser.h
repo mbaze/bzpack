@@ -10,6 +10,26 @@
 
 class DijkstraParser
 {
+    struct PathNode
+    {
+        PathNode() = delete;
+
+        PathNode(uint32_t parent, uint16_t inputPos, uint16_t length, uint16_t offset, uint16_t repOffset):
+            parent{parent}, inputPos{inputPos}, length{length}, offset{offset}, repOffset{repOffset}
+        {}
+
+        uint32_t parent;
+        uint16_t inputPos;
+        uint16_t length;
+        uint16_t offset;
+        uint16_t repOffset;
+    };
+
+    struct Hash
+    {
+        size_t operator () (uint32_t key) const { return (key >> 8) ^ key; }
+    };
+
 public:
 
     DijkstraParser() = delete;
@@ -42,19 +62,7 @@ private:
     const Format& mFormat;
 
     PrefixMatcher mMatcher;
-    std::unordered_map<uint32_t, uint32_t> mPosRepCosts;
-
-    struct PathNode
-    {
-        PathNode(uint32_t parent, uint16_t inputPos, uint16_t length, uint16_t offset, uint16_t repOffset):
-            parent{parent}, inputPos{inputPos}, length{length}, offset{offset}, repOffset{repOffset} {}
-
-        uint32_t parent;
-        uint16_t inputPos;
-        uint16_t length;
-        uint16_t offset;
-        uint16_t repOffset;
-    };
+    std::unordered_map<uint32_t, uint32_t, Hash> mPosRepCosts;
 };
 
 #endif // DIJKSTRA_PARSER_H

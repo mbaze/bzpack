@@ -32,10 +32,10 @@ void EncodeElias1(BitStream& stream, uint32_t value)
 {
     assert(value > 0);
 
-    uint32_t copy = value;
     uint32_t mask = 1;
+    uint32_t temp = value;
 
-    while (copy >>= 1)
+    while (temp >>= 1)
     {
         mask <<= 1;
     }
@@ -49,10 +49,8 @@ void EncodeElias1(BitStream& stream, uint32_t value)
     stream.WriteBit(0);
 }
 
-uint32_t DecodeElias1(BitStream& stream)
+uint32_t DecodeElias1(BitStream& stream, uint32_t value)
 {
-    uint32_t value = 1;
-
     while (stream.ReadBit())
     {
         value = (value << 1) | stream.ReadBit();
@@ -92,10 +90,10 @@ void EncodeElias2(BitStream& stream, uint32_t value)
 {
     assert(value > 1);
 
-    uint32_t copy = value >> 1;
     uint32_t mask = 1;
+    uint32_t temp = value >> 1;
 
-    while (copy >>= 1)
+    while (temp >>= 1)
     {
         mask <<= 1;
     }
@@ -255,11 +253,11 @@ uint32_t DecodeVbin(BitStream& stream)
 
 // Plain binary encoding (the number of bits is explicit).
 
-void EncodeRaw(BitStream& stream, uint32_t value, uint32_t numBits)
+void EncodeRaw(BitStream& stream, uint32_t value, uint32_t bitCount)
 {
-    assert(numBits > 0);
+    assert(bitCount > 0);
 
-    uint32_t mask = 1 << (numBits - 1);
+    uint32_t mask = 1 << (bitCount - 1);
 
     while (mask)
     {
@@ -268,13 +266,13 @@ void EncodeRaw(BitStream& stream, uint32_t value, uint32_t numBits)
     }
 }
 
-uint32_t DecodeRaw(BitStream& stream, uint32_t numBits)
+uint32_t DecodeRaw(BitStream& stream, uint32_t bitCount)
 {
-    assert(numBits > 0);
+    assert(bitCount > 0);
 
     uint32_t value = 0;
 
-    while (numBits--)
+    while (bitCount--)
     {
         value = (value << 1) | stream.ReadBit();
     }
@@ -282,7 +280,7 @@ uint32_t DecodeRaw(BitStream& stream, uint32_t numBits)
     return value;
 }
 
-// These methods are only required by the E1ZX format.
+// Only used by the E1ZX format.
 
 void EncodeElias1Neg(BitStream& stream, uint32_t value)
 {
@@ -315,6 +313,48 @@ uint32_t DecodeElias1Neg(BitStream& stream)
     while (stream.ReadBitNeg())
     {
         value = (value << 1) | stream.ReadBitNeg();
+    }
+
+    return value;
+}
+
+// Only used by the BX0 format.
+
+bool EncodeElias1WithoutFlag(BitStream& stream, uint32_t value)
+{
+    assert(value > 0);
+
+    if (value == 1)
+    {
+        return false;
+    }
+
+    uint32_t mask = 1;
+    uint32_t temp = value >> 1;
+
+    while (temp >>= 1)
+    {
+        mask <<= 1;
+    }
+
+    while (mask)
+    {
+        stream.WriteBit(value & mask);
+        mask >>= 1;
+        stream.WriteBit(mask);
+    }
+
+    return true;
+}
+
+uint32_t DecodeElias1WithFlag(BitStream& stream, bool flag)
+{
+    uint32_t value = 1;
+
+    while (flag)
+    {
+        value = (value << 1) | stream.ReadBit();
+        flag = stream.ReadBit();
     }
 
     return value;

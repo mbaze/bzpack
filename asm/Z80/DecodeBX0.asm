@@ -1,7 +1,7 @@
 ; Copyright (c) 2025, Milos "baze" Bazelides
 ; This code is licensed under the BSD 2-Clause License.
 
-; Reverse BX0 decoder (70 bytes with setup, 64 bytes excluding setup).
+; Reverse BX0 decoder (69 bytes with setup, 63 bytes excluding setup).
 ; This work is inspired by Einar Saukas' ZX0 (https://github.com/einar-saukas/ZX0).
 
 		ld	hl,SrcAddr

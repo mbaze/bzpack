@@ -1,10 +1,10 @@
 # bzpack
 
-Bzpack is a data compression tool for sizecoding and retrocomputing enthusiasts. For tiny programs like 256-byte, 512-byte, or
-1024-byte intros, a compact decoder is as important as compression efficiency. While Bzpack isn't intended as a general-purpose
-packer like [ZX0](https://github.com/einar-saukas/ZX0), it aims to balance simplicity and efficiency, since complex encoding
-schemes may not produce a short enough stream to justify a larger decoder size. Special consideration has been given to the
-Sinclair ZX Spectrum.
+Bzpack is a data compression tool for sizecoding and retrocomputing enthusiasts. For tiny demoscene programs like 256-byte,
+512-byte, or 1024-byte intros, a compact decoder is as important as compression efficiency. Bzpack isn't intended as a
+general-purpose packer like [ZX0](https://github.com/einar-saukas/ZX0). Rather, it aims to strike a balance between size and
+efficiency that's ideal for sizecoding, since complex encoding schemes may not produce a stream short enough to justify a larger
+decoder. Special consideration has been given to the Sinclair ZX Spectrum.
 
 ## Usage
 
@@ -34,17 +34,17 @@ All supported formats are based on the Lempel–Ziv–Storer–Szymanski algorit
 relative to the current output position.
 
 The encoding methods for literals and matches vary between formats, and their efficiency depends on the structure of the input
-data. Therefore, trying multiple formats is recommended to determine the best fit. Generally, numbers are represented either as
-raw bytes or as Elias-Gamma values, read from a bit stream that works independently of natural byte boundaries.
+data. Therefore, trying multiple formats is recommended to determine the best fit. In general, numbers are represented either as
+raw bytes or as Elias-Gamma values, read from a bit stream that operates independently of natural byte boundaries.
 
 ### Elias-Gamma Encoding
 
 Most supported compression formats use Elias-Gamma encoding for offset and length values. The canonical Elias-Gamma code has *N*
-leading zeroes followed by an *(N + 1)*-bit binary number. For example, 12 is encoded as 000**1100**. In his paper, "Universal
-codeword sets and representations of the integers", Peter Elias also proposed an alternative representation in which the bits
-are interleaved. In this format, the most significant bit is assumed, and each subsequent significant bit is preceded by a flag
-bit indicating its presence. This representation is well-suited for efficient decoder implementation in assembly language, and
-Bzpack adopts this approach. As a result, the actual code for the number 12 becomes 1**1**1**0**1**0**0, where:
+leading zeroes followed by an *(N + 1)*-bit binary number. For example, 12 is encoded as 000**1100**. In his paper "Universal
+codeword sets and representations of the integers," Peter Elias also proposed an alternative representation in which the bits
+are interleaved. In this format, the most significant bit is implicitly assumed, and each subsequent significant bit is preceded
+by a flag bit indicating its presence. This representation is well-suited for efficient decoder implementation in assembly
+language, and Bzpack adopts this approach. As a result, the actual code for the number 12 becomes 1**1**1**0**1**0**0, where:
 
 * The most significant bit is not stored.
 * Each subsequent significant bit is preceded by a 1.

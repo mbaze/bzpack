@@ -26,7 +26,7 @@ RepOffset	ex	(sp),hl
 		jr	c,DecodeLoop
 
 NewOffset	pop	bc
-		call	EliasGamma1
+		call	EliasGamma2
 		dec	c
 		ret	m
 		ld	b,c

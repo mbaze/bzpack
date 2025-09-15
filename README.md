@@ -12,11 +12,12 @@ Bzpack is a command-line utility with the following usage format:
 
 `bzpack.exe [-lz|-e1|-e1zx|-bx0|-bx2] [-r] [-e] [-o] [-l] <inputFile> [outputFile]`
 
-For example, to compress a file called "demo.bin" using the BX2 format with the end-of-stream marker, the command would be:
+For example, to compress a file named *"demo.bin"* in reverse direction using the BX2 format with the end-of-stream marker, the
+command would be:
 
-`bzpack.exe -bx2 -e demo.bin demo.bx2`
+`bzpack.exe -bx2 -r -e demo.bin demo.bx2`
 
-Here’s a list of supported command-line options (excluding compression format names):
+Here’s a list of supported command-line options (not including compression format identifiers):
 
 * `-r` - Compress (and decompress) in reverse direction. In practice, this option helps reduce the decoder size.
 * `-e` - Add an end-of-stream marker. Useful for general-purpose decompression, but often unnecessary for minimalist programs.
@@ -40,8 +41,8 @@ raw bytes or as Elias-Gamma values, read from a bit stream that operates indepen
 ### Elias-Gamma Encoding
 
 Most supported compression formats use Elias-Gamma encoding for offset and length values. The canonical Elias-Gamma code has *N*
-leading zeroes followed by an *(N + 1)*-bit binary number. For example, 12 is encoded as 000**1100**. In his paper "Universal
-codeword sets and representations of the integers," Peter Elias also proposed an alternative representation in which the bits
+leading zeroes followed by an *(N + 1)*-bit binary number. For example, 12 is encoded as 000**1100**. In his paper *"Universal
+codeword sets and representations of the integers,"* Peter Elias also proposed an alternative representation in which the bits
 are interleaved. In this format, the most significant bit is implicitly assumed, and each subsequent significant bit is preceded
 by a flag bit indicating its presence. This representation is well-suited for efficient decoder implementation in assembly
 language, and Bzpack adopts this approach. As a result, the actual code for the number 12 becomes 1**1**1**0**1**0**0, where:

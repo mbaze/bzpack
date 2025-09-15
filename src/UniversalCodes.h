@@ -6,13 +6,9 @@
 
 #include "BitStream.h"
 
-uint32_t GetElias1Cost(uint32_t value);
-void EncodeElias1(BitStream& stream, uint32_t value);
-uint32_t DecodeElias1(BitStream& stream, uint32_t value = 1);
-
-uint32_t GetElias2Cost(uint32_t value);
-void EncodeElias2(BitStream& stream, uint32_t value);
-uint32_t DecodeElias2(BitStream& stream);
+uint32_t GetEliasCost(uint32_t value);
+void EncodeElias(BitStream& stream, uint32_t value);
+uint32_t DecodeElias(BitStream& stream, uint32_t value = 1);
 
 uint32_t GetUnaryCost(uint32_t value);
 void EncodeUnary(BitStream& stream, uint32_t value);
@@ -31,12 +27,12 @@ uint32_t DecodeRaw(BitStream& stream, uint32_t bitCount);
 
 // Only used by the E1ZX format.
 
-void EncodeElias1Neg(BitStream& stream, uint32_t value);
-uint32_t DecodeElias1Neg(BitStream& stream);
+void EncodeEliasNeg(BitStream& stream, uint32_t value);
+uint32_t DecodeEliasNeg(BitStream& stream);
 
 // Only used by the BX0 format.
 
-bool EncodeElias1WithoutFlag(BitStream& stream, uint32_t value);
-uint32_t DecodeElias1WithFlag(BitStream& stream, bool flag);
+bool EncodeEliasWithoutFlag(BitStream& stream, uint32_t value);
+uint32_t DecodeEliasWithFlag(BitStream& stream, bool flag);
 
 #endif // UNIVERSAL_CODES_H

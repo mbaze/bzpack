@@ -27,7 +27,7 @@ class DijkstraParser
 
     struct Hash
     {
-        size_t operator () (uint32_t key) const { return (key >> 8) ^ key; }
+        size_t operator () (uint32_t key) const { return (key >> 7) ^ key; }
     };
 
 public:

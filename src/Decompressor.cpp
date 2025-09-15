@@ -62,7 +62,7 @@ std::vector<uint8_t> DecodeE1(BitStream& stream, const Format& format, uint16_t 
 
     while (true)
     {
-        uint16_t length = DecodeElias1(stream);
+        uint16_t length = DecodeElias(stream);
 
         if (format.AddEndMarker() && length > 255)
             break;
@@ -102,7 +102,7 @@ std::vector<uint8_t> DecodeE1ZX(BitStream& stream, const Format& format, uint16_
 
     while (true)
     {
-        uint16_t length = DecodeElias1Neg(stream);
+        uint16_t length = DecodeEliasNeg(stream);
 
         if (stream.ReadBitNeg())
         {
@@ -144,7 +144,7 @@ std::vector<uint8_t> DecodeBX0(BitStream& stream, const Format& format, uint16_t
     {
         if (data.size() ? stream.ReadBit() : true)
         {
-            uint16_t length = DecodeElias1(stream);
+            uint16_t length = DecodeElias(stream);
 
             if (wasLiteral)
             {
@@ -165,13 +165,13 @@ std::vector<uint8_t> DecodeBX0(BitStream& stream, const Format& format, uint16_t
         }
         else
         {
-            uint16_t offset = DecodeElias1(stream) - 1;
+            uint16_t offset = DecodeElias(stream) - 1;
 
             if (format.AddEndMarker() && (offset & 0x80))
                 break;
 
             offset = (offset << 8) | stream.ReadByte();
-            uint16_t length = DecodeElias1WithFlag(stream, offset & 1) + 1;
+            uint16_t length = DecodeEliasWithFlag(stream, offset & 1) + 1;
             offset = (offset >> 1) + format.ExtendOffset();
 
             while (length--)
@@ -203,7 +203,7 @@ std::vector<uint8_t> DecodeBX2(BitStream& stream, const Format& format, uint16_t
 
     while (true)
     {
-        uint16_t length = DecodeElias1(stream);
+        uint16_t length = DecodeElias(stream);
 
         if (stream.ReadBit())
         {

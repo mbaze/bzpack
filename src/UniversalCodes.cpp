@@ -15,7 +15,7 @@
 // 7: 11110
 // 8: 1010100
 
-uint32_t GetElias1Cost(uint32_t value)
+uint32_t GetEliasCost(uint32_t value)
 {
     assert(value > 0);
 
@@ -28,7 +28,7 @@ uint32_t GetElias1Cost(uint32_t value)
     return cost;
 }
 
-void EncodeElias1(BitStream& stream, uint32_t value)
+void EncodeElias(BitStream& stream, uint32_t value)
 {
     assert(value > 0);
 
@@ -49,77 +49,12 @@ void EncodeElias1(BitStream& stream, uint32_t value)
     stream.WriteBit(0);
 }
 
-uint32_t DecodeElias1(BitStream& stream, uint32_t value)
+uint32_t DecodeElias(BitStream& stream, uint32_t value)
 {
     while (stream.ReadBit())
     {
         value = (value << 1) | stream.ReadBit();
     }
-
-    return value;
-}
-
-// Elias-Gamma 2..N encoding (interleaved format).
-
-// 2: 00
-// 3: 10
-// 4: 0100
-// 5: 0110
-// 6: 1100
-// 7: 1110
-// 8: 010100
-// 9: 010110
-
-uint32_t GetElias2Cost(uint32_t value)
-{
-    assert(value > 1);
-
-    uint32_t mask = ~3;
-    uint32_t count = 1;
-
-    while (value & mask)
-    {
-        mask <<= 1;
-        count++;
-    }
-
-    return count << 1;
-}
-
-void EncodeElias2(BitStream& stream, uint32_t value)
-{
-    assert(value > 1);
-
-    uint32_t mask = 1;
-    uint32_t temp = value >> 1;
-
-    while (temp >>= 1)
-    {
-        mask <<= 1;
-    }
-
-    while (mask)
-    {
-        stream.WriteBit(value & mask);
-        mask >>= 1;
-        if (mask)
-        {
-            stream.WriteBit(1);
-        }
-    }
-
-    stream.WriteBit(0);
-}
-
-uint32_t DecodeElias2(BitStream& stream)
-{
-    uint32_t value = 1;
-
-    do
-    {
-        value = (value << 1) | stream.ReadBit();
-    }
-    while (stream.ReadBit());
 
     return value;
 }
@@ -282,7 +217,7 @@ uint32_t DecodeRaw(BitStream& stream, uint32_t bitCount)
 
 // Only used by the E1ZX format.
 
-void EncodeElias1Neg(BitStream& stream, uint32_t value)
+void EncodeEliasNeg(BitStream& stream, uint32_t value)
 {
     assert(value > 0);
 
@@ -306,7 +241,7 @@ void EncodeElias1Neg(BitStream& stream, uint32_t value)
     stream.WriteBitNeg(0);
 }
 
-uint32_t DecodeElias1Neg(BitStream& stream)
+uint32_t DecodeEliasNeg(BitStream& stream)
 {
     uint32_t value = 1;
 
@@ -320,7 +255,7 @@ uint32_t DecodeElias1Neg(BitStream& stream)
 
 // Only used by the BX0 format.
 
-bool EncodeElias1WithoutFlag(BitStream& stream, uint32_t value)
+bool EncodeEliasWithoutFlag(BitStream& stream, uint32_t value)
 {
     assert(value > 0);
 
@@ -347,7 +282,7 @@ bool EncodeElias1WithoutFlag(BitStream& stream, uint32_t value)
     return true;
 }
 
-uint32_t DecodeElias1WithFlag(BitStream& stream, bool flag)
+uint32_t DecodeEliasWithFlag(BitStream& stream, bool flag)
 {
     uint32_t value = 1;
 

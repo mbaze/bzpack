@@ -60,12 +60,12 @@ FormatE1::FormatE1(FormatOptions options): Format{options}
 
 uint32_t FormatE1::GetLiteralCost(uint16_t length) const
 {
-    return GetElias1Cost(length) + 1 + (length << 3);
+    return GetEliasCost(length) + 1 + (length << 3);
 }
 
 uint32_t FormatE1::GetMatchCost(uint16_t length, uint16_t offset) const
 {
-    return GetElias1Cost(length - 1) + 1 + 8;
+    return GetEliasCost(length - 1) + 1 + 8;
 }
 
 uint32_t FormatE1::GetRepMatchCost(uint16_t length) const
@@ -85,12 +85,12 @@ FormatE1ZX::FormatE1ZX(FormatOptions options): Format{options}
 
 uint32_t FormatE1ZX::GetLiteralCost(uint16_t length) const
 {
-    return GetElias1Cost(length) + 1 + (length << 3);
+    return GetEliasCost(length) + 1 + (length << 3);
 }
 
 uint32_t FormatE1ZX::GetMatchCost(uint16_t length, uint16_t offset) const
 {
-    return GetElias1Cost(length - 1) + 1 + 8;
+    return GetEliasCost(length - 1) + 1 + 8;
 }
 
 uint32_t FormatE1ZX::GetRepMatchCost(uint16_t length) const
@@ -110,18 +110,18 @@ FormatBX0::FormatBX0(FormatOptions options): Format{options}
 
 uint32_t FormatBX0::GetLiteralCost(uint16_t length) const
 {
-    return 1 + GetElias1Cost(length) + (length << 3);
+    return 1 + GetEliasCost(length) + (length << 3);
 }
 
 uint32_t FormatBX0::GetMatchCost(uint16_t length, uint16_t offset) const
 {
     uint16_t eliasPart = GetEliasPart(offset);
-    return 1 + GetElias1Cost(eliasPart) + 7 + GetElias1Cost(length - 1);
+    return 1 + GetEliasCost(eliasPart) + 7 + GetEliasCost(length - 1);
 }
 
 uint32_t FormatBX0::GetRepMatchCost(uint16_t length) const
 {
-    return 1 + GetElias1Cost(length);
+    return 1 + GetEliasCost(length);
 }
 
 // BX2 format.
@@ -136,15 +136,15 @@ FormatBX2::FormatBX2(FormatOptions options): Format{options}
 
 uint32_t FormatBX2::GetLiteralCost(uint16_t length) const
 {
-    return GetElias1Cost(length) + 1 + (length << 3);
+    return GetEliasCost(length) + 1 + (length << 3);
 }
 
 uint32_t FormatBX2::GetMatchCost(uint16_t length, uint16_t offset) const
 {
-    return GetElias1Cost(length - 1) + 1 + 8;
+    return GetEliasCost(length - 1) + 1 + 8;
 }
 
 uint32_t FormatBX2::GetRepMatchCost(uint16_t length) const
 {
-    return GetElias1Cost(length) + 1;
+    return GetEliasCost(length) + 1;
 }

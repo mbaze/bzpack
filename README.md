@@ -88,7 +88,7 @@ Supported options:
 
 ### E1
 
-The E1 format encodes block lengths as Elias-Gamma values, followed a 1-bit flag indicating the block type:
+The E1 format encodes block lengths as Elias-Gamma values, followed by a 1-bit flag indicating the block type:
 
 * `Elias(N)`, `1` – Copy the next `N` bytes to the output.
 * `Elias(N)`, `0`, `oooooooo` – Copy `N + 1` bytes from an offset of `oooooooo`, relative to the current output position.

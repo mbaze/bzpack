@@ -34,9 +34,9 @@ NewOffset	pop	bc
 		dec	hl
 		rr	b
 		rr	c
+		rra
 ;		inc	bc		; Option to extend the offset range.
 		push	bc
-		rra
 		call	EliasGamma2
 		inc	bc
 		jr	RepOffset

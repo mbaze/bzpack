@@ -248,42 +248,6 @@ std::vector<uint8_t> DecodeBX2(BitStream& stream, const Format& format, uint16_t
     return data;
 }
 
-std::vector<uint8_t> DecodeUE2(BitStream& stream, const Format& format, size_t inputSize)
-{
-    if (format.Id() != FormatId::UE2)
-        return {};
-
-    stream.ResetForRead();
-    std::vector<uint8_t> data;
-
-    while (true)
-    {
-        if (stream.ReadBit())
-        {
-            data.emplace_back(stream.ReadByte());
-        }
-        else
-        {
-            uint16_t length = DecodeElias2(stream);
-
-            if (format.AddEndMarker() && length > 255)
-                break;
-
-            uint16_t offset = stream.ReadByte() + format.ExtendOffset();
-
-            while (length--)
-            {
-                data.emplace_back(data[data.size() - offset]);
-            }
-        }
-
-        if (!format.AddEndMarker() && data.size() >= inputSize)
-            break;
-    }
-
-    return data;
-}
-
 std::vector<uint8_t> Decompress(BitStream& stream, const Format& format, uint16_t inputSize)
 {
     std::vector<uint8_t> data;
@@ -308,10 +272,6 @@ std::vector<uint8_t> Decompress(BitStream& stream, const Format& format, uint16_
 
         case FormatId::BX2:
             data = DecodeBX2(stream, format, inputSize);
-            break;
-
-        case FormatId::UE2:
-            data = DecodeUE2(stream, format, inputSize);
             break;
     }
 

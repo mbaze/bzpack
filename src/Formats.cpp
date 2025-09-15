@@ -18,8 +18,6 @@ std::unique_ptr<Format> Format::Create(const FormatOptions& options)
         return std::unique_ptr<Format>(new FormatBX0(options));
     case FormatId::BX2:
         return std::unique_ptr<Format>(new FormatBX2(options));
-    case FormatId::UE2:
-        return std::unique_ptr<Format>(new FormatUE2(options));
     }
 
     return nullptr;
@@ -149,29 +147,4 @@ uint32_t FormatBX2::GetMatchCost(uint16_t length, uint16_t offset) const
 uint32_t FormatBX2::GetRepMatchCost(uint16_t length) const
 {
     return GetElias1Cost(length) + 1;
-}
-
-// UE2 format.
-
-FormatUE2::FormatUE2(FormatOptions options): Format{options}
-{
-    mMaxLiteralLength = 0xFFFF;
-    mMinMatchLength = 2;
-    mMaxMatchLength = 255;
-    mMaxMatchOffset = options.extendOffset ? 256 : 255;
-}
-
-uint32_t FormatUE2::GetLiteralCost(uint16_t length) const
-{
-    return (1 + 8) * length;
-}
-
-uint32_t FormatUE2::GetMatchCost(uint16_t length, uint16_t offset) const
-{
-    return 1 + GetElias2Cost(length) + 8;
-}
-
-uint32_t FormatUE2::GetRepMatchCost(uint16_t length) const
-{
-    return 0xFFFFFFFF;
 }

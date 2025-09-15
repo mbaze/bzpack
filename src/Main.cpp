@@ -92,7 +92,7 @@ void CheckOptions(FormatOptions options)
 {
     bool noExtLength = (options.id == FormatId::E1);
     noExtLength |= (options.id == FormatId::E1ZX);
-    noExtLength |= (options.id == FormatId::UE2);
+    noExtLength |= (options.id == FormatId::BX2);
 
     if (options.extendLength && noExtLength)
     {
@@ -183,14 +183,13 @@ int main(int argCount, char** args)
 
     if (argCount < 2)
     {
-        printf("\nUsage: bzpack.exe [-lz|-e1|-e1zx|-bx0|-bx2|-ue2] [-r] [-e] [-o] [-l] <inputFile> [outputFile]\n");
+        printf("\nUsage: bzpack.exe [-lz|-e1|-e1zx|-bx0|-bx2] [-r] [-e] [-o] [-l] <inputFile> [outputFile]\n");
         printf("\nOptions:\n\n");
         printf("-lz: Byte-aligned LZSS. Raw 7-bit length, raw 8-bit offset (default).\n");
-        printf("-e1: Elias 1..N length, raw 8-bit offset.\n");
+        printf("-e1: Elias length, raw 8-bit offset.\n");
         printf("-e1zx: A version of -e1 optimized for the Sinclair ZX Spectrum.\n");
-        printf("-bx0: Elias 1..N length, combined raw/Elias offset or repeat offset.\n");
-        printf("-bx2: Elias 1..N length, raw 8-bit offset or repeat offset.\n");
-        printf("-ue2: Unary literal length, Elias 2..N match length, raw 8-bit offset.\n");
+        printf("-bx0: Elias length, combined raw/Elias offset or repeat offset.\n");
+        printf("-bx2: Elias length, raw 8-bit offset or repeat offset.\n");
         printf("-r: Compress in reverse order.\n");
         printf("-e: Add end-of-stream marker.\n");
         printf("-o: Extend the offset range by 1.\n");
@@ -208,7 +207,6 @@ int main(int argCount, char** args)
         {"-e1zx", [&]() { options.id = FormatId::E1ZX; suffix = ".e1zx"; }},
         {"-bx0",  [&]() { options.id = FormatId::BX0; suffix = ".bx0"; }},
         {"-bx2",  [&]() { options.id = FormatId::BX2; suffix = ".bx2"; }},
-        {"-ue2",  [&]() { options.id = FormatId::UE2; suffix = ".ue2"; }},
         {"-r",    [&]() { options.reverse = 1; }},
         {"-e",    [&]() { options.addEndMarker = 1; }},
         {"-o",    [&]() { options.extendOffset = 1; }},

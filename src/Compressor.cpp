@@ -242,50 +242,6 @@ BitStream EncodeBX2(const uint8_t* pInput, const std::vector<ParseStep>& parse, 
     return stream;
 }
 
-BitStream EncodeUE2(const uint8_t* pInput, const std::vector<ParseStep>& parse, const Format& format)
-{
-    if (format.Id() != FormatId::UE2 || !parse.size())
-        return {};
-
-    BitStream stream;
-
-    for (const ParseStep& parseStep: parse)
-    {
-        if (parseStep.offset)
-        {
-            uint16_t offset = parseStep.offset - format.ExtendOffset();
-
-            stream.WriteBit(0);
-            EncodeElias2(stream, parseStep.length);
-            stream.WriteByte(static_cast<uint8_t>(offset));
-
-            pInput += parseStep.length;
-        }
-        else
-        {
-            for (size_t i = 0; i < parseStep.length; i++)
-            {
-                stream.WriteBit(1);
-                stream.WriteByte(*pInput++);
-            }
-        }
-    }
-
-    if (format.AddEndMarker())
-    {
-        stream.WriteBit(0);
-
-        for (size_t i = 0; i < 15; i++)
-        {
-            stream.WriteBit(1);
-        }
-
-        stream.WriteBit(0);
-    }
-
-    return stream;
-}
-
 BitStream Compress(uint8_t* pInput, uint16_t inputSize, const Format& format)
 {
     if (pInput == nullptr || inputSize == 0)
@@ -331,11 +287,6 @@ BitStream Compress(uint8_t* pInput, uint16_t inputSize, const Format& format)
             stream = EncodeBX2(pInput, parse, format);
             break;
         }
-
-        case FormatId::UE2:
-            parse = Parse(pInput, inputSize, format);
-            stream = EncodeUE2(pInput, parse, format);
-            break;
     }
 
     if (stream.Size() == 0)

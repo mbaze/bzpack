@@ -12,8 +12,7 @@ enum FormatId
     E1,
     E1ZX,
     BX0,
-    BX2,
-    UE2,
+    BX2
 };
 
 struct FormatOptions
@@ -136,18 +135,6 @@ class FormatBX2: public Format
 
     FormatBX2() = delete;
     FormatBX2(FormatOptions options);
-
-    uint32_t GetLiteralCost(uint16_t length) const override;
-    uint32_t GetMatchCost(uint16_t length, uint16_t offset) const override;
-    uint32_t GetRepMatchCost(uint16_t length) const override;
-};
-
-class FormatUE2: public Format
-{
-    friend class Format;
-
-    FormatUE2() = delete;
-    FormatUE2(FormatOptions options);
 
     uint32_t GetLiteralCost(uint16_t length) const override;
     uint32_t GetMatchCost(uint16_t length, uint16_t offset) const override;

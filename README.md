@@ -1,10 +1,10 @@
 # bzpack
 
-Bzpack is a data compression tool for sizecoding and retrocomputing enthusiasts. For tiny demoscene programs like 256-byte,
-512-byte, or 1024-byte intros, a compact decoder is as important as compression efficiency. Bzpack isn't intended as a
-general-purpose packer like [ZX0](https://github.com/einar-saukas/ZX0). Rather, it aims to strike a balance between size and
-efficiency that's ideal for sizecoding, since complex encoding schemes may not produce a stream short enough to justify a larger
-decoder. Special consideration has been given to the Sinclair ZX Spectrum.
+Bzpack is a data compression tool for sizecoding and retrocomputing enthusiasts. In tiny demoscene programs like 256-byte,
+512-byte, or 1024-byte intros, a minimal decoder can be just as important as compression efficiency, since any gains in
+compression can easily be offset by the extra bytes bytes a more complex decoder requires. Therefore, Bzpack prioritizes
+extremely compact decoding over maximum compression ratios, aiming for a balance tailored to sizecoding. Special
+consideration has been given to the Sinclair ZX Spectrum.
 
 ## Usage
 
@@ -35,10 +35,11 @@ of blocks:
 * **Matches** - repeated byte sequences represented as offset-length pairs, where the offset points back to already decompressed
 data relative to the current output position.
 
-The encoding methods for literals and matches vary between supported formats, and their efficiency depends on the structure and
-statistical properties of the input, such as the frequency and distribution of match lengths and offsets. Therefore, it's a good
-idea to try multiple formats to determine the best fit. In general, numbers are represented either as raw bytes or as
-Elias-Gamma values, read from a bit stream that operates independently of natural byte boundaries.
+Compression efficiency varies between the supported formats, due to differences in how they encode literals and matches. Their
+performance depends on the structure and statistical properties of the input, such as the frequency and distribution of match
+lengths and offsets. Therefore, it's a good idea to try multiple formats to determine the best fit. In general, numbers are
+represented either as raw bytes or as Elias-Gamma values, read from a bit stream that operates independently of natural byte
+boundaries.
 
 ### Elias-Gamma Encoding
 

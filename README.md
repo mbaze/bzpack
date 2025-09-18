@@ -17,7 +17,8 @@ command would be:
 
 `bzpack.exe -bx2 -r -e demo.bin demo.bx2`
 
-Here’s a list of supported command-line options (not including compression format identifiers):
+Here’s a list of supported command-line options (not including compression format identifiers `-lz`, `-e1`, `-e1zx`, `-bx0`, and
+`-bx2`):
 
 * `-r` - Compress in reverse direction. In practice, this option helps reduce the decoder size.
 * `-e` - Add an end-of-stream marker. Useful for general-purpose decompression, but often unnecessary for minimalist programs.

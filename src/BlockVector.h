@@ -7,7 +7,7 @@
 #include <array>
 #include <vector>
 
-template<typename T, size_t BLOCK_BITS = 21>
+template<typename T, size_t BLOCK_BITS = 19>
 class BlockVector
 {
     static constexpr size_t BLOCK_SIZE = 1 << BLOCK_BITS;

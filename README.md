@@ -19,29 +19,30 @@ command would be:
 
 Here’s a list of supported command-line options (not including compression format identifiers):
 
-* `-r` - Compress (and decompress) in reverse direction. In practice, this option helps reduce the decoder size.
+* `-r` - Compress in reverse direction. In practice, this option helps reduce the decoder size.
 * `-e` - Add an end-of-stream marker. Useful for general-purpose decompression, but often unnecessary for minimalist programs.
 * `-o` - Extend the offset range by 1. Supported by some formats; can produce a slightly shorter stream at the cost of a larger
 decoder.
 * `-l` - Extend the block length by 1. Supported by some formats; similarly, can result in a shorter stream, but requires a
 larger decoder.
 
-## Format Overview
+## Compression Format Structure
 
 All supported formats are based on the Lempel–Ziv–Storer–Szymanski (LZSS) algorithm. The compressed stream consists of two types
 of blocks:
 
 * **Literals** - strings of uncompressed bytes stored directly in the stream.
-* **Matches** - repeated byte sequences represented as offset-length pairs, where the offset points back to data that's already
-been decompressed relative to the current output position.
+* **Matches** - repeated byte sequences represented as offset-length pairs, where the offset points back to already decompressed
+data relative to the current output position.
 
-The encoding methods for literals and matches vary between formats, and their efficiency depends on the structure of the input
-data. Therefore, it is recommended to try multiple formats to determine the best fit. In general, numbers are represented either
-as raw bytes or as Elias-Gamma values, read from a bit stream that operates independently of natural byte boundaries.
+The encoding methods for literals and matches vary between supported formats, and their efficiency depends on the structure and
+statistical properties of the input, such as the frequency and distribution of match lengths and offsets. Therefore, it's a good
+idea to try multiple formats to determine the best fit. In general, numbers are represented either as raw bytes or as
+Elias-Gamma values, read from a bit stream that operates independently of natural byte boundaries.
 
 ### Elias-Gamma Encoding
 
-Most supported compression formats use Elias-Gamma encoding for offset and length values. The canonical Elias-Gamma code has *N*
+Most supported compression formats use Elias-Gamma encoding for offsets and lengths. The canonical Elias-Gamma code has *N*
 leading zeroes followed by an *(N + 1)*-bit binary number. For example, 12 is encoded as 000**1100**. In his paper *"Universal
 codeword sets and representations of the integers,"* Peter Elias also proposed an alternative representation in which the bits
 are interleaved. In this format, the most significant bit is implicitly assumed, and each subsequent significant bit is preceded

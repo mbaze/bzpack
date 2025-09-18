@@ -1,10 +1,10 @@
 # bzpack
 
 Bzpack is a data compression tool for sizecoding and retrocomputing enthusiasts. In tiny demoscene programs like 256-byte,
-512-byte, or 1024-byte intros, a minimal decoder can be just as important as compression efficiency, since any gains in
-compression can easily be offset by the extra bytes bytes a more complex decoder requires. Therefore, Bzpack prioritizes
-extremely compact decoding over maximum compression ratios, aiming for a balance tailored to sizecoding. Special
-consideration has been given to the Sinclair ZX Spectrum.
+512-byte, or 1024-byte intros, a minimal decoder is just as crucial as compression efficiency, since any compression gains can
+easily be offset by the extra bytes a more complex decoder requires. Bzpack therefore prioritizes extremely compact decoding
+over maximum compression ratios, aiming for a tradeoff suited for sizecoding. Special consideration has been given to the
+Sinclair ZX Spectrum.
 
 ## Usage
 

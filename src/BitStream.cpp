@@ -1,8 +1,8 @@
 // Copyright (c) 2021, Milos "baze" Bazelides
 // This code is licensed under the BSD 2-Clause License.
 
-#include <algorithm>
 #include "BitStream.h"
+#include <algorithm>
 
 size_t BitStream::Size() const
 {

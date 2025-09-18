@@ -1,8 +1,8 @@
 // Copyright (c) 2021, Milos "baze" Bazelides
 // This code is licensed under the BSD 2-Clause License.
 
-#include <cassert>
 #include "UniversalCodes.h"
+#include <cassert>
 
 // Elias-Gamma 1..N encoding (interleaved format).
 

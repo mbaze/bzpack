@@ -31,7 +31,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\BitStream.h" />
+    <ClInclude Include="..\src\BlockVector.h" />
     <ClInclude Include="..\src\Compression.h" />
+    <ClInclude Include="..\src\CostTable.h" />
     <ClInclude Include="..\src\DijkstraParser.h" />
     <ClInclude Include="..\src\Formats.h" />
     <ClInclude Include="..\src\PrefixMatcher.h" />

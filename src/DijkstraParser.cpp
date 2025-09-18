@@ -10,15 +10,10 @@
 std::vector<ParseStep> DijkstraParser::Parse()
 {
     uint32_t bestPathIndex = 0;
-
-#ifdef BASELINE_COST_PRUNING
-    uint32_t baselineCost = ComputeGreedyParseCost();
-#endif // BASELINE_COST_PRUNING
-
     std::vector<uint32_t> posCosts(mInputSize, 0xFFFFFFFF);
 
-    std::vector<PathNode> nodes;
-    nodes.emplace_back(0, 0, 0, 0xFFFFFFFF, 0);
+    BlockVector<PathNode> nodes;
+    nodes.emplace_back(0, 0, 0, true);
 
     MultiHeap<uint64_t> heap;
     heap.Push(0);
@@ -28,75 +23,72 @@ std::vector<ParseStep> DijkstraParser::Parse()
         uint64_t heapTop = heap.Pop();
         uint32_t cost = static_cast<uint32_t>(heapTop >> 32);
         uint32_t nodeIndex = static_cast<uint32_t>(heapTop);
-        PathNode node = nodes[nodeIndex];
 
-        if (node.inputPos >= mInputSize)
+        PathNode node = nodes[nodeIndex];
+        uint16_t inputPos = node.GetInputPos();
+        uint16_t offsetOrRep = node.GetOffsetOrRep();
+
+        if (inputPos >= mInputSize)
         {
             // End of input data reached, exit loop.
             bestPathIndex = nodeIndex;
             break;
         }
 
-#ifdef BASELINE_COST_PRUNING
-        // Prune this path if it can't improve upon the greedy parse.
-        if (cost >= baselineCost)
-            continue;
-#endif // BASELINE_COST_PRUNING
+        // Consider all repeat matches (only after a literal).
+
+        if (node.IsLiteral())
+        {
+            for (const Match& match: mMatcher.FindMatches(inputPos, true))
+            {
+                if (match.offset != offsetOrRep)
+                    continue;
+
+                uint32_t newPos = inputPos + match.length;
+                uint32_t newCost = cost + mFormat.GetRepMatchCost(match.length);
+
+                if (ShouldEnqueue(newPos, offsetOrRep, newCost))
+                {
+                    heap.Push(COST_INDEX_64(newCost, nodes.size()));
+                    nodes.emplace_back(nodeIndex, newPos, match.offset, true);
+                }
+            }
+        }
 
         // Consider all available matches (if not already explored by a previous path).
 
-        if (cost < posCosts[node.inputPos])
+        if (cost < posCosts[inputPos])
         {
-            posCosts[node.inputPos] = cost;
+            posCosts[inputPos] = cost;
 
-            for (const Match& match: mMatcher.FindMatches(node.inputPos))
+            for (const Match& match: mMatcher.FindMatches(inputPos))
             {
-                uint32_t newPos = node.inputPos + match.length;
+                uint32_t newPos = inputPos + match.length;
                 uint32_t newCost = cost + mFormat.GetMatchCost(match.length, match.offset);
 
                 if (ShouldEnqueue(newPos, match.offset, newCost))
                 {
                     heap.Push(COST_INDEX_64(newCost, nodes.size()));
-                    nodes.emplace_back(nodeIndex, newPos, match.length, match.offset, match.offset);
-                }
-            }
-        }
-
-        // Consider all repeat matches (only after a literal).
-
-        if (node.offset == 0)
-        {
-            for (const Match& match: mMatcher.FindMatches(node.inputPos, true))
-            {
-                if (match.offset != node.repOffset)
-                    continue;
-
-                uint32_t newPos = node.inputPos + match.length;
-                uint32_t newCost = cost + mFormat.GetRepMatchCost(match.length);
-
-                if (ShouldEnqueue(newPos, node.repOffset, newCost))
-                {
-                    heap.Push(COST_INDEX_64(newCost, nodes.size()));
-                    nodes.emplace_back(nodeIndex, newPos, match.length, match.offset, match.offset);
+                    nodes.emplace_back(nodeIndex, newPos, match.offset, true);
                 }
             }
         }
 
         // Consider all available literals (only after a match).
 
-        if (node.offset)
+        if (node.IsMatch())
         {
-            uint16_t maxLength = std::min<uint16_t>(mInputSize - node.inputPos, mFormat.MaxLiteralLength());
+            uint16_t maxLength = std::min<uint16_t>(mInputSize - inputPos, mFormat.MaxLiteralLength());
 
             for (uint16_t length = 1; length <= maxLength; length++)
             {
-                uint32_t newPos = node.inputPos + length;
+                uint32_t newPos = inputPos + length;
                 uint32_t newCost = cost + mFormat.GetLiteralCost(length);
 
-                if (ShouldEnqueue(newPos, node.repOffset, newCost))
+                if (ShouldEnqueue(newPos, offsetOrRep, newCost))
                 {
                     heap.Push(COST_INDEX_64(newCost, nodes.size()));
-                    nodes.emplace_back(nodeIndex, newPos, length, 0, node.repOffset);
+                    nodes.emplace_back(nodeIndex, newPos, offsetOrRep, false);
                 }
             }
         }
@@ -108,8 +100,14 @@ std::vector<ParseStep> DijkstraParser::Parse()
 
     while (bestPathIndex)
     {
-        parse.emplace_back(nodes[bestPathIndex].length, nodes[bestPathIndex].offset);
-        bestPathIndex = nodes[bestPathIndex].parent;
+        const PathNode& node = nodes[bestPathIndex];
+        const PathNode& parentNode = nodes[node.parent];
+
+        uint16_t length = node.GetInputPos() - parentNode.GetInputPos();
+        uint16_t offset = node.IsMatch() ? node.GetOffsetOrRep() : 0;
+        parse.emplace_back(length, offset);
+
+        bestPathIndex = node.parent;
     }
 
     std::reverse(parse.begin(), parse.end());
@@ -117,8 +115,20 @@ std::vector<ParseStep> DijkstraParser::Parse()
     return parse;
 }
 
-bool DijkstraParser::ShouldEnqueue(uint16_t inputPos, uint16_t repOffset, uint32_t cost)
+inline bool DijkstraParser::ShouldEnqueue(uint16_t inputPos, uint16_t repOffset, uint32_t cost)
 {
+#ifdef USE_COST_TABLE
+
+    if (cost < mPosRepCosts.Get(inputPos, repOffset))
+    {
+        mPosRepCosts.Set(inputPos, repOffset, cost);
+        return true;
+    }
+
+    return false;
+
+#else
+
     uint32_t key = (repOffset << 16) | inputPos;
     auto iHash = mPosRepCosts.find(key);
 
@@ -134,43 +144,6 @@ bool DijkstraParser::ShouldEnqueue(uint16_t inputPos, uint16_t repOffset, uint32
     }
 
     return false;
+
+#endif
 }
-
-#ifdef BASELINE_COST_PRUNING
-
-uint32_t DijkstraParser::ComputeGreedyParseCost()
-{
-    uint32_t cost = 0;
-    uint16_t inputPos = 0;
-    uint16_t literalLength = 0;
-
-    while (inputPos < mInputSize)
-    {
-        Match match = mMatcher.FindLongestMatch(inputPos);
-        if (match.offset)
-        {
-            if (literalLength)
-            {
-                cost += mFormat.GetLiteralCost(literalLength);
-                literalLength = 0;
-            }
-
-            cost += mFormat.GetMatchCost(match.length, match.offset);
-            inputPos += match.length;
-        }
-        else
-        {
-            literalLength++;
-            inputPos++;        
-        }
-    }
-
-    if (literalLength)
-    {
-        cost += mFormat.GetLiteralCost(literalLength);
-    }
-
-    return cost;
-}
-
-#endif // BASELINE_COST_PRUNING

@@ -28,15 +28,16 @@ larger decoder.
 
 ## Format Overview
 
-All supported formats are based on the Lempel–Ziv–Storer–Szymanski algorithm. The compressed stream consists of two block types:
+All supported formats are based on the Lempel–Ziv–Storer–Szymanski (LZSS) algorithm. The compressed stream consists of two types
+of blocks:
 
-* **Literals** - Strings of uncompressed bytes stored directly in the stream.
-* **Matches** - Repeated byte sequences represented as offset-length pairs, where the offset refers to already decompressed data
-relative to the current output position.
+* **Literals** - strings of uncompressed bytes stored directly in the stream.
+* **Matches** - repeated byte sequences represented as offset-length pairs, where the offset points back to data that's already
+been decompressed relative to the current output position.
 
 The encoding methods for literals and matches vary between formats, and their efficiency depends on the structure of the input
-data. Therefore, trying multiple formats is recommended to determine the best fit. In general, numbers are represented either as
-raw bytes or as Elias-Gamma values, read from a bit stream that operates independently of natural byte boundaries.
+data. Therefore, it is recommended to try multiple formats to determine the best fit. In general, numbers are represented either
+as raw bytes or as Elias-Gamma values, read from a bit stream that operates independently of natural byte boundaries.
 
 ### Elias-Gamma Encoding
 

@@ -4,7 +4,8 @@
 #ifndef MULTI_HEAP_H
 #define MULTI_HEAP_H
 
-#include <vector>
+#include <utility>
+#include "BlockVector.h"
 
 template <typename T, size_t BITS = 3>
 class MultiHeap
@@ -24,9 +25,8 @@ public:
 
     inline T Pop()
     {
-        T value = mHeap[0];
-
-        mHeap[0] = mHeap.back();
+        T value = mHeap.front();
+        mHeap.front() = mHeap.back();
         mHeap.pop_back();
 
         if (mHeap.size())
@@ -76,7 +76,7 @@ private:
         }
     }
 
-    std::vector<T> mHeap;
+    BlockVector<T> mHeap;
 };
 
 #endif // MULTI_HEAP_H

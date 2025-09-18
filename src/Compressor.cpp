@@ -1,9 +1,8 @@
 // Copyright (c) 2021, Milos "baze" Bazelides
 // This code is licensed under the BSD 2-Clause License.
 
-#include <cassert>
-#include <algorithm>
 #include "Compression.h"
+#include <algorithm>
 #include "OptimalParser.h"
 #include "DijkstraParser.h"
 #include "UniversalCodes.h"
@@ -307,7 +306,6 @@ BitStream Compress(uint8_t* pInput, uint16_t inputSize, const Format& format)
     {
         if (pInput[i] != data.data()[i])
         {
-            assert(0);
             return {};
         }
     }

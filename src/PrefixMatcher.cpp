@@ -1,9 +1,8 @@
 // Copyright (c) 2025, Milos "baze" Bazelides
 // This code is licensed under the BSD 2-Clause License.
 
-#include <cassert>
-#include <algorithm>
 #include "PrefixMatcher.h"
+#include <algorithm>
 
 PrefixMatcher::PrefixMatcher(const uint8_t* pInput, uint16_t inputSize, uint16_t minMatchLength, uint16_t maxMatchLength, uint16_t maxMatchOffset):
     mInputPtr{pInput},
@@ -20,7 +19,7 @@ PrefixMatcher::PrefixMatcher(const uint8_t* pInput, uint16_t inputSize, uint16_t
     for (uint16_t inputPos = 0; inputPos < inputSize; inputPos++)
     {
         uint8_t byte = pInput[inputPos];
-        uint16_t windowPos = inputPos - std::min<uint16_t>(inputPos, maxMatchOffset);
+        uint16_t windowPos = inputPos - std::min(inputPos, maxMatchOffset);
 
         for (auto i = byteOccurrences[byte].rbegin(); i != byteOccurrences[byte].rend(); i++)
         {
@@ -39,7 +38,7 @@ PrefixMatcher::PrefixMatcher(const uint8_t* pInput, uint16_t inputSize, uint16_t
     for (uint16_t inputPos = 0; inputPos < inputSize - 1; inputPos++)
     {
         uint16_t match = (pInput[inputPos + 1] << 8) | pInput[inputPos];
-        uint16_t windowPos = inputPos - std::min<uint16_t>(inputPos, maxMatchOffset);
+        uint16_t windowPos = inputPos - std::min(inputPos, maxMatchOffset);
 
         for (auto i = matchOccurrences[match].rbegin(); i != matchOccurrences[match].rend(); i++)
         {

@@ -2,6 +2,7 @@
 // This code is licensed under the BSD 2-Clause License.
 
 #include <cstdio>
+#include <cstdlib>
 #include <fstream>
 #include <functional>
 #include <unordered_map>
@@ -12,12 +13,12 @@
 enum ErrorId
 {
     InvalidParam,
-    InputFileMissing,
     InputFileError,
     OutputFileError,
     FileEmpty,
     FileTooBig,
-    CompressionFailed
+    CompressionFailed,
+    OutOfMemory
 };
 
 enum WarningId
@@ -38,10 +39,6 @@ void PrintError(ErrorId error, const char* pString = nullptr)
             printf("Invalid parameter %s.\n", pString);
             break;
 
-        case ErrorId::InputFileMissing:
-            printf("Input file is missing.\n");
-            break;
-
         case ErrorId::InputFileError:
             printf("Unable to open the input file.\n");
             break;
@@ -60,6 +57,10 @@ void PrintError(ErrorId error, const char* pString = nullptr)
 
         case ErrorId::CompressionFailed:
             printf("Compression failed.\n");
+            break;
+
+        case ErrorId::OutOfMemory:
+            printf("Out of memory.\n");
             break;
     }
 }
@@ -179,7 +180,12 @@ bool WriteFile(const char* pFileName, const uint8_t* pData, size_t size)
 
 int main(int argCount, char** args)
 {
-    std::unique_ptr<Format> formatBX0 = Format::Create({FormatId::BX0, 1, 0, 0, 0});
+    std::set_new_handler(
+        [] {
+            PrintError(ErrorId::OutOfMemory);
+            std::abort();
+        }
+    );
 
     if (argCount < 2)
     {
@@ -197,8 +203,8 @@ int main(int argCount, char** args)
         return 0;
     }
 
-    std::string suffix = ".lz";
-    FormatOptions options = {FormatId::LZ, 0, 0, 0, 0};
+    static std::string suffix = ".lz";
+    static FormatOptions options{FormatId::LZ, 0, 0, 0, 0};
 
     static const std::unordered_map<std::string, std::function<void()>> actions =
     {
@@ -252,7 +258,7 @@ int main(int argCount, char** args)
 
     if (inputName.empty())
     {
-        PrintError(ErrorId::InputFileMissing);
+        PrintError(ErrorId::InputFileError);
         return 1;
     }
 

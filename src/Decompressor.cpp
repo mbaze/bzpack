@@ -1,7 +1,6 @@
 // Copyright (c) 2021, Milos "baze" Bazelides
 // This code is licensed under the BSD 2-Clause License.
 
-#include "CommonTypes.h"
 #include "Compression.h"
 #include "UniversalCodes.h"
 

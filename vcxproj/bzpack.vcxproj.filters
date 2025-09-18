@@ -21,5 +21,7 @@
     <ClInclude Include="..\src\CommonTypes.h" />
     <ClInclude Include="..\src\DijkstraParser.h" />
     <ClInclude Include="..\src\MultiHeap.h" />
+    <ClInclude Include="..\src\CostTable.h" />
+    <ClInclude Include="..\src\BlockVector.h" />
   </ItemGroup>
 </Project>

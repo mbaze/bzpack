@@ -42,6 +42,11 @@ class DijkstraParser
         uint16_t param2;
     };
 
+    static constexpr uint64_t SortableCostIndex(uint32_t cost, size_t index)
+    {
+        return (static_cast<uint64_t>(cost) << 32) | index;
+    }
+
 public:
 
     DijkstraParser() = delete;

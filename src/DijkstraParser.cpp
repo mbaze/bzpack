@@ -4,9 +4,6 @@
 #include "DijkstraParser.h"
 #include "MultiHeap.h"
 
-#define COST_INDEX_64(cost, index) \
-    ((static_cast<uint64_t>(cost) << 32) | static_cast<uint64_t>(index))
-
 std::vector<ParseStep> DijkstraParser::Parse()
 {
     std::vector<Match> matches;
@@ -37,7 +34,7 @@ std::vector<ParseStep> DijkstraParser::Parse()
             break;
         }
 
-        // Find matches after a literal or if this path can improve future costs.
+        // Find matches after a literal or if this path improves position cost.
 
         matches.clear();
         size_t byteMatchCount = 0;
@@ -63,7 +60,7 @@ std::vector<ParseStep> DijkstraParser::Parse()
 
                 if (ShouldEnqueue(newPos, match.offset, newCost))
                 {
-                    heap.Push(COST_INDEX_64(newCost, nodes.size()));
+                    heap.Push(SortableCostIndex(newCost, nodes.size()));
                     nodes.emplace_back(nodeIndex, newPos, match.offset, true);
                 }
             }
@@ -87,7 +84,7 @@ std::vector<ParseStep> DijkstraParser::Parse()
 
             if (ShouldEnqueue(newPos, match.offset, newCost))
             {
-                heap.Push(COST_INDEX_64(newCost, nodes.size()));
+                heap.Push(SortableCostIndex(newCost, nodes.size()));
                 nodes.emplace_back(nodeIndex, newPos, match.offset, true);
             }
         }
@@ -105,7 +102,7 @@ std::vector<ParseStep> DijkstraParser::Parse()
 
                 if (ShouldEnqueue(newPos, offsetOrRep, newCost))
                 {
-                    heap.Push(COST_INDEX_64(newCost, nodes.size()));
+                    heap.Push(SortableCostIndex(newCost, nodes.size()));
                     nodes.emplace_back(nodeIndex, newPos, offsetOrRep, false);
                 }
             }

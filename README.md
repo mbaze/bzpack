@@ -128,8 +128,8 @@ the most recent offset. The flag bit for the very first literal is not stored in
 `Elias(N)` is stored as the least significant bit of the byte containing `ooooooo`. An offset of 16384 or greater indicates the
 end of the stream.
 
-The format employs an experimental exhaustive parser that achieves a globally optimal encoding, but compression may take even
-several minutes for blocks of 4 KiB or higher.
+The format employs an experimental exhaustive parser to achieve globally optimal encoding but compression may take several
+minutes for blocks of 4 KiB or larger. This is excessive for general use but acceptable in sizecoding, where every byte matters.
 
 Supported options:
 

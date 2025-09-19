@@ -9,6 +9,8 @@
 
 std::vector<ParseStep> DijkstraParser::Parse()
 {
+    std::vector<Match> matches;
+
     uint32_t bestPathIndex = 0;
     std::vector<uint32_t> posCosts(mInputSize, 0xFFFFFFFF);
 
@@ -35,11 +37,23 @@ std::vector<ParseStep> DijkstraParser::Parse()
             break;
         }
 
+        // Find matches after a literal or if this path can improve future costs.
+
+        matches.clear();
+        size_t byteMatchCount = 0;
+
+        if (node.IsLiteral() || cost < posCosts[inputPos])
+        {
+            byteMatchCount = mMatcher.FindMatches(inputPos, node.IsLiteral(), matches);
+        }
+
+        posCosts[inputPos] = std::min(posCosts[inputPos], cost);
+
         // Consider all repeat matches (only after a literal).
 
         if (node.IsLiteral())
         {
-            for (const Match& match: mMatcher.FindMatches(inputPos, true))
+            for (const Match& match: matches)
             {
                 if (match.offset != offsetOrRep)
                     continue;
@@ -47,7 +61,7 @@ std::vector<ParseStep> DijkstraParser::Parse()
                 uint32_t newPos = inputPos + match.length;
                 uint32_t newCost = cost + mFormat.GetRepMatchCost(match.length);
 
-                if (ShouldEnqueue(newPos, offsetOrRep, newCost))
+                if (ShouldEnqueue(newPos, match.offset, newCost))
                 {
                     heap.Push(COST_INDEX_64(newCost, nodes.size()));
                     nodes.emplace_back(nodeIndex, newPos, match.offset, true);
@@ -55,22 +69,26 @@ std::vector<ParseStep> DijkstraParser::Parse()
             }
         }
 
-        // Consider all available matches (if not already explored by a previous path).
+        // Consider all matches if not already explored by a previous path.
 
-        if (cost < posCosts[inputPos])
+        for (size_t i = byteMatchCount; i < matches.size(); i++)
         {
-            posCosts[inputPos] = cost;
+            const Match& match = matches[i];
 
-            for (const Match& match: mMatcher.FindMatches(inputPos))
+            uint32_t newPos = inputPos + match.length;
+            uint32_t newCost = cost + mFormat.GetMatchCost(match.length, match.offset);
+
+            if (node.IsMatch() && match.offset == offsetOrRep)
             {
-                uint32_t newPos = inputPos + match.length;
-                uint32_t newCost = cost + mFormat.GetMatchCost(match.length, match.offset);
+                // Only enqueue if not worse than literal propagation (very rare).
+                if (cost + mFormat.GetLiteralCost(match.length) < newCost)
+                    continue;
+            }
 
-                if (ShouldEnqueue(newPos, match.offset, newCost))
-                {
-                    heap.Push(COST_INDEX_64(newCost, nodes.size()));
-                    nodes.emplace_back(nodeIndex, newPos, match.offset, true);
-                }
+            if (ShouldEnqueue(newPos, match.offset, newCost))
+            {
+                heap.Push(COST_INDEX_64(newCost, nodes.size()));
+                nodes.emplace_back(nodeIndex, newPos, match.offset, true);
             }
         }
 

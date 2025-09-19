@@ -13,6 +13,8 @@ struct PathNode
 
 std::vector<ParseStep> Parse(const uint8_t* pInput, uint16_t inputSize, const Format& format)
 {
+    std::vector<Match> matches;
+
     PrefixMatcher matcher(
         pInput,
         inputSize,
@@ -42,14 +44,17 @@ std::vector<ParseStep> Parse(const uint8_t* pInput, uint16_t inputSize, const Fo
             }
         }
 
-        // Consider all available literals.
+        // Consider all available matches.
 
         if (inputPos + format.MinMatchLength() > inputSize)
         {
             continue;
         }
 
-        for (const Match& match: matcher.FindMatches(inputPos))
+        matches.clear();
+        matcher.FindMatches(inputPos, false, matches);
+
+        for (const Match& match: matches)
         {
             uint32_t cost = nodes[inputPos].cost + format.GetMatchCost(match.length, match.offset);
 

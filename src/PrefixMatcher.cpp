@@ -62,10 +62,8 @@ PrefixMatcher::PrefixMatcher(const uint8_t* pInput, uint16_t inputSize, uint16_t
     }
 }
 
-std::vector<Match> PrefixMatcher::FindMatches(uint16_t inputPos, bool allowBytes) const
+size_t PrefixMatcher::FindMatches(uint16_t inputPos, bool allowBytes, std::vector<Match>& matches) const
 {
-    std::vector<Match> matches;
-
     // Single-byte matches help set up useful repeat offsets.
 
     if (allowBytes)
@@ -75,6 +73,8 @@ std::vector<Match> PrefixMatcher::FindMatches(uint16_t inputPos, bool allowBytes
             matches.emplace_back(1, inputPos - bytePos);
         }
     }
+
+    size_t byteMatchCount = matches.size();
 
     // In this case, the precomputed match.offset is the absolute input position.
 
@@ -88,7 +88,7 @@ std::vector<Match> PrefixMatcher::FindMatches(uint16_t inputPos, bool allowBytes
         }
     }
 
-    return matches;
+    return byteMatchCount;
 }
 
 Match PrefixMatcher::FindLongestMatch(uint16_t inputPos) const

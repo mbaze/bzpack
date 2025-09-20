@@ -51,7 +51,7 @@ public:
 
     void pop_back()
     {
-        if (!mSize || (mSize-- & BLOCK_MASK))
+        if (!mSize || (--mSize & BLOCK_MASK))
             return;
 
         mBlocks.pop_back();

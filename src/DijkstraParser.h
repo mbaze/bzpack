@@ -72,7 +72,8 @@ public:
 
 private:
 
-    bool ShouldEnqueue(uint16_t inputPos, uint16_t repOffset, uint32_t cost);
+    bool ShouldEnqueue(uint16_t inputPos, uint16_t repOffset, uint32_t cost, uint32_t greedyParseCost = 0xFFFFFFFF);
+    uint32_t ComputeGreedyParseCost();
 
     const uint8_t* mInputPtr;
     const uint16_t mInputSize;

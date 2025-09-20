@@ -7,7 +7,10 @@
 #include <utility>
 #include "BlockVector.h"
 
-template <typename T, size_t BITS = 3>
+#include <new>
+#include <cstdio>
+
+template <typename T, size_t ARITY_BITS = 4>
 class MultiHeap
 {
 public:
@@ -43,7 +46,7 @@ private:
     {
         while (child)
         {
-            size_t parent = (child - 1) >> BITS;
+            size_t parent = (child - 1) >> ARITY_BITS;
 
             if (mHeap[child] >= mHeap[parent])
                 break;
@@ -57,10 +60,10 @@ private:
     {
         while (true)
         {
-            size_t lastChild = std::min((parent + 1) << BITS, mHeap.size() - 1);
+            size_t lastChild = std::min((parent + 1) << ARITY_BITS, mHeap.size() - 1);
             size_t minChild = parent;
 
-            for (size_t child = (parent << BITS) + 1; child <= lastChild; child++)
+            for (size_t child = (parent << ARITY_BITS) + 1; child <= lastChild; child++)
             {
                 if (mHeap[child] < mHeap[minChild])
                 {

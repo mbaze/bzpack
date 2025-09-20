@@ -69,7 +69,7 @@ Elias-Gamma codes represent positive nonzero integers as follows:
 ...
 ```
 
-In the following text, we denote the Elias-Gamma code of integer *N* as `Elias(N)`.
+In the following text, we denote the Elias-Gamma code of integer *N* as `Elias(N)`, and bit patterns are written as `%nnnnnnnn`.
 
 ## Description of Supported Formats
 
@@ -77,9 +77,9 @@ In the following text, we denote the Elias-Gamma code of integer *N* as `Elias(N
 
 LZ is a straightforward, byte-aligned format interpreted as follows:
 
-* `nnnnnnn1` – Copy the next `nnnnnnn` bytes to the output.
-* `nnnnnnn0`, `oooooooo` – Copy `nnnnnnn` bytes from an offset of `oooooooo`, relative to the current output position.
-* `00000000` or `00000001` – End of stream.
+* `%nnnnnnn1` – Copy the next `%nnnnnnn` bytes to the output.
+* `%nnnnnnn0`, `%oooooooo` – Copy `%nnnnnnn` bytes from an offset of `%oooooooo`.
+* `%00000000` or `%00000001` – End of stream.
 
 The compression ratio is decent but not exceptional. However, the decoder is extremely compact, making it usable in highly
 constrained scenarios, such as 256-byte intros. While other methods may produce a shorter compressed stream, the combined size
@@ -96,7 +96,7 @@ Supported options:
 The E1 format encodes block lengths as Elias-Gamma values, followed by a 1-bit flag indicating the block type:
 
 * `Elias(N)`, `1` – Copy the next `N` bytes to the output.
-* `Elias(N)`, `0`, `oooooooo` – Copy `N + 1` bytes from an offset of `oooooooo`, relative to the current output position.
+* `Elias(N)`, `0`, `%oooooooo` – Copy `N + 1` bytes from an offset of `%oooooooo`.
 * `Elias(N)` where `N > 255` - End of stream.
 
 The compression ratio is significantly better than in the LZ format, and the decoder remains relatively compact.
@@ -124,12 +124,12 @@ between a regular match and a "repeat match" that uses the most recent offset. B
 
 * `1`, `Elias(N)` – If following a match, copy the next `N` bytes to the output. If following a literal, copy `N` bytes from
 the most recent offset. The flag bit for the very first literal is not stored in the stream.
-* `0`, `Elias(O)`, `ooooooo`, `Elias(N)` – Copy `N + 1` bytes from an offset of `(O << 7) | ooooooo`. The leading flag bit of
-`Elias(N)` is stored as the least significant bit of the byte containing `ooooooo`. An offset of 16384 or greater indicates the
+* `0`, `Elias(O)`, `%ooooooo`, `Elias(N)` – Copy `N + 1` bytes from an offset of `(O << 7) | %ooooooo`. The leading flag bit of
+`Elias(N)` is stored as the least significant bit of the byte containing `%ooooooo`. An offset of 16384 or greater indicates the
 end of the stream.
 
-The format employs an experimental exhaustive parser to achieve globally optimal encoding but compression may take several
-minutes for blocks of 4 KiB or larger. This is excessive for general use but acceptable in sizecoding, where every byte matters.
+The format employs an exhaustive parser for globally optimal encoding, which can take even several minutes for blocks of 4 KiB
+or larger. This is excessive for general use but acceptable in sizecoding, where every byte matters.
 
 Supported options:
 
@@ -139,11 +139,11 @@ Supported options:
 ### BX2
 
 BX2 is a modification of [ZX2](https://github.com/einar-saukas/ZX2) that allows for a more compact decoder. It is essentially a
-lightweight BX0 variant with raw offset encoding. Blocks are encoded as follows:
+lightweight BX0 variant with raw 8-bit offset encoding. Blocks are encoded as follows:
 
 * `Elias(N)`, `1` – If following a match, copy the next `N` bytes to the output. If following a literal, copy `N` bytes from the
 most recent offset.
-* `Elias(N)`, `0`, `oooooooo` – Copy `N + 1` bytes from an offset of `oooooooo`, relative to the current output position.
+* `Elias(N)`, `0`, `%oooooooo` – Copy `N + 1` bytes from an offset of `%oooooooo`.
 An offset of 0 indicates the end of the stream.
 
 Like BX0, the format uses a slower, globally optimal exhaustive parser.

@@ -4,11 +4,7 @@
 #ifndef MULTI_HEAP_H
 #define MULTI_HEAP_H
 
-#include <utility>
 #include "BlockVector.h"
-
-#include <new>
-#include <cstdio>
 
 template <typename T, size_t ARITY_BITS = 4>
 class MultiHeap
@@ -51,7 +47,7 @@ private:
             if (mHeap[child] >= mHeap[parent])
                 break;
 
-            std::swap(mHeap[child], mHeap[parent]);
+            Swap(parent, child);
             child = parent;
         }
     }
@@ -74,9 +70,16 @@ private:
             if (minChild == parent)
                 break;
 
-            std::swap(mHeap[parent], mHeap[minChild]);
+            Swap(parent, minChild);
             parent = minChild;
         }
+    }
+
+    void Swap(size_t index1, size_t index2)
+    {
+        T temp = mHeap[index1];
+        mHeap[index1] = mHeap[index2];
+        mHeap[index2] = temp;
     }
 
     BlockVector<T> mHeap;

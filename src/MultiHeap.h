@@ -18,7 +18,7 @@ public:
 
     inline void Push(const T& value)
     {
-        mHeap.emplace_back(value);
+        mHeap.push_back(value);
         SiftUp(mHeap.size() - 1);
     }
 

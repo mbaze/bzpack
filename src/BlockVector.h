@@ -33,8 +33,7 @@ public:
         return mBlocks[i >> BLOCK_BITS][i & BLOCK_MASK];
     }
 
-    template <typename... Args>
-    void emplace_back(Args&&... args)
+    void push_back(const T& value)
     {
         size_t blockIndex = mSize >> BLOCK_BITS;
         size_t blockOffset = mSize & BLOCK_MASK;
@@ -44,7 +43,7 @@ public:
             mBlocks.emplace_back();
         }
 
-        mBlocks[blockIndex][blockOffset] = T(std::forward<Args>(args)...);
+        mBlocks[blockIndex][blockOffset] = value;
         mSize++;
     }
 

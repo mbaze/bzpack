@@ -13,7 +13,7 @@ std::vector<ParseStep> DijkstraParser::Parse()
     std::vector<uint32_t> posCosts(mInputSize, 0xFFFFFFFF);
 
     BlockVector<PathNode> nodes;
-    nodes.emplace_back(0, 0, 0, true);
+    nodes.push_back(PathNode(0, 0, 0, true));
 
     MultiHeap<uint64_t> heap;
     heap.Push(0);
@@ -62,7 +62,7 @@ std::vector<ParseStep> DijkstraParser::Parse()
                 if (ShouldEnqueue(newPos, match.offset, newCost, greedyParseCost))
                 {
                     heap.Push(SortableCostIndex(newCost, nodes.size()));
-                    nodes.emplace_back(nodeIndex, newPos, match.offset, true);
+                    nodes.push_back(PathNode(nodeIndex, newPos, match.offset, true));
                 }
             }
         }
@@ -86,7 +86,7 @@ std::vector<ParseStep> DijkstraParser::Parse()
             if (ShouldEnqueue(newPos, match.offset, newCost, greedyParseCost))
             {
                 heap.Push(SortableCostIndex(newCost, nodes.size()));
-                nodes.emplace_back(nodeIndex, newPos, match.offset, true);
+                nodes.push_back(PathNode(nodeIndex, newPos, match.offset, true));
             }
         }
 
@@ -104,7 +104,7 @@ std::vector<ParseStep> DijkstraParser::Parse()
                 if (ShouldEnqueue(newPos, offsetOrRep, newCost, greedyParseCost))
                 {
                     heap.Push(SortableCostIndex(newCost, nodes.size()));
-                    nodes.emplace_back(nodeIndex, newPos, offsetOrRep, false);
+                    nodes.push_back(PathNode(nodeIndex, newPos, offsetOrRep, false));
                 }
             }
         }

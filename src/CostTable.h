@@ -21,55 +21,30 @@ public:
         for (uint16_t i = 0; i < mRowOffsets.size(); i++)
         {
             mRowOffsets[i] = elementCount;
-            elementCount += RowWidth(i, maxOffset);
+            elementCount += GetRowSize(i, maxOffset);
         }
 
-        size_t byteCount = (elementCount * 5 + 1) >> 1;
+        size_t byteCount = (elementCount * 5 + 3) & ~3;
         mCosts.resize(byteCount, 255);
-    }
-
-    void Set(uint16_t inputPos, uint16_t repOffset, uint32_t cost)
-    {
-        size_t nibblePos = NibbleIndex(inputPos, repOffset);
-        size_t i = nibblePos >> 1;
-
-        if (nibblePos & 1)
-        {
-            mCosts[i + 2] = cost;
-            cost >>= 8;
-            mCosts[i + 1] = cost;
-            cost >>= 8;
-            mCosts[i] = (mCosts[i] & 0x0F) | (cost << 4);
-        }
-        else
-        {
-            mCosts[i] = cost;
-            cost >>= 8;
-            mCosts[i + 1] = cost;
-            cost >>= 8;
-            mCosts[i + 2] = (mCosts[i + 2] & 0xF0) | cost;
-        }
     }
 
     uint32_t Get(uint16_t inputPos, uint16_t repOffset)
     {
-        size_t nibblePos = NibbleIndex(inputPos, repOffset);
-        size_t i = nibblePos >> 1;
+        size_t nibble = GetNibbleIndex(inputPos, repOffset);
+        uint32_t shift = (nibble & 1) << 2;
 
-        if (nibblePos & 1)
-        {
-            uint32_t cost = mCosts[i] >> 4;
-            cost = (cost << 8) | mCosts[i + 1];
-            cost = (cost << 8) | mCosts[i + 2];
-            return cost;
-        }
-        else
-        {
-            uint32_t cost = mCosts[i + 2] & 0x0F;
-            cost = (cost << 8) | mCosts[i + 1];
-            cost = (cost << 8) | mCosts[i];
-            return cost;
-        }
+        uint32_t value = *reinterpret_cast<uint32_t*>(&mCosts[nibble >> 1]);
+        return (value >> shift) & 0xFFFFF;
+    }
+
+    void Set(uint16_t inputPos, uint16_t repOffset, uint32_t cost)
+    {
+        size_t nibble = GetNibbleIndex(inputPos, repOffset);
+        uint32_t shift = (nibble & 1) << 2;
+        uint32_t mask = ~(0xFFFFF << shift);
+
+        uint32_t& value = reinterpret_cast<uint32_t&>(mCosts[nibble >> 1]);
+        value = (value & mask) | (cost << shift);
     }
 
 private:
@@ -78,7 +53,7 @@ private:
     // by the format's maximum allowed length. One entry is reserved
     // for a repeat offset that has not yet been set (zero).
 
-    static uint16_t RowWidth(uint16_t inputPos, uint16_t maxOffset)
+    static uint16_t GetRowSize(uint16_t inputPos, uint16_t maxOffset)
     {
         uint16_t rowWidth = 1;
 
@@ -90,7 +65,7 @@ private:
         return rowWidth;
     }
 
-    size_t NibbleIndex(uint16_t inputPos, uint16_t repOffset) const
+    size_t GetNibbleIndex(uint16_t inputPos, uint16_t repOffset) const
     {
         size_t elementIndex = mRowOffsets[inputPos] + repOffset;
         return (elementIndex << 2) + elementIndex;

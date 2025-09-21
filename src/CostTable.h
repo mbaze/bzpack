@@ -33,7 +33,7 @@ public:
         size_t nibble = GetNibbleIndex(inputPos, repOffset);
         uint32_t shift = (nibble & 1) << 2;
 
-        uint32_t value = *reinterpret_cast<uint32_t*>(&mCosts[nibble >> 1]);
+        const uint32_t& value = reinterpret_cast<const uint32_t&>(mCosts[nibble >> 1]);
         return (value >> shift) & 0xFFFFF;
     }
 

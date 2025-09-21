@@ -78,7 +78,7 @@ std::vector<ParseStep> DijkstraParser::Parse()
 
             if (node.IsMatch() && match.offset == offsetOrRep)
             {
-                // Only enqueue if not worse than literal propagation (very rare).
+                // Don't enqueue if propagating a literal would be cheaper (very rare).
                 if (cost + mFormat.GetLiteralCost(match.length) < newCost)
                     continue;
             }
@@ -133,33 +133,11 @@ std::vector<ParseStep> DijkstraParser::Parse()
 
 inline bool DijkstraParser::ShouldEnqueue(uint16_t inputPos, uint16_t repOffset, uint32_t cost, uint32_t greedyParseCost)
 {
-#ifdef USE_COST_TABLE
-
     if (cost >= mPosRepCosts.Get(inputPos, repOffset) || cost > greedyParseCost)
         return false;
 
     mPosRepCosts.Set(inputPos, repOffset, cost);
     return true;
-
-#else
-
-    uint32_t key = (repOffset << 16) | inputPos;
-    auto iHash = mPosRepCosts.find(key);
-
-    if (iHash == mPosRepCosts.end())
-    {
-        mPosRepCosts[key] = cost;
-        return true;
-    }
-    else if (cost < iHash->second && cost <= greedyParseCost)
-    {
-        iHash->second = cost;
-        return true;
-    }
-
-    return false;
-
-#endif
 }
 
 uint32_t DijkstraParser::ComputeGreedyParseCost()

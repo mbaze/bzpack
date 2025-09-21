@@ -4,15 +4,9 @@
 #ifndef DIJKSTRA_PARSER_H
 #define DIJKSTRA_PARSER_H
 
-#define USE_COST_TABLE
-
 #include "CostTable.h"
 #include "Formats.h"
 #include "PrefixMatcher.h"
-
-#ifndef USE_COST_TABLE
-#include <unordered_map>
-#endif
 
 class DijkstraParser
 {
@@ -52,9 +46,6 @@ public:
     DijkstraParser() = delete;
 
     DijkstraParser(const uint8_t* pInput, uint16_t inputSize, const Format& format):
-#ifdef USE_COST_TABLE
-        mPosRepCosts{inputSize, mFormat.MaxMatchOffset()},
-#endif // USE_COST_TABLE
         mInputPtr{pInput},
         mInputSize{inputSize},
         mFormat{format},
@@ -64,7 +55,8 @@ public:
             format.MinMatchLength(),
             format.MaxMatchLength(),
             format.MaxMatchOffset()
-        }
+        },
+        mPosRepCosts{inputSize, mFormat.MaxMatchOffset()}
     {
     }
 
@@ -78,22 +70,9 @@ private:
     const uint8_t* mInputPtr;
     const uint16_t mInputSize;
     const Format& mFormat;
+
     PrefixMatcher mMatcher;
-
-#ifdef USE_COST_TABLE
-
     CostTable mPosRepCosts;
-
-#else
-
-    struct Hash
-    {
-        size_t operator () (uint32_t key) const { return (key >> 8) ^ key; }
-    };
-
-    std::unordered_map<uint32_t, uint32_t, Hash> mPosRepCosts;
-
-#endif 
 };
 
 #endif // DIJKSTRA_PARSER_H

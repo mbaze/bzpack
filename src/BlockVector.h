@@ -12,7 +12,6 @@ class BlockVector
 {
     static constexpr size_t BLOCK_SIZE = 1 << BLOCK_BITS;
     static constexpr size_t BLOCK_MASK = BLOCK_SIZE - 1;
-    using Block = std::array<T, BLOCK_SIZE>;
 
 public:
 
@@ -60,7 +59,7 @@ public:
 private:
 
     size_t mSize = 0;
-    std::vector<Block> mBlocks;
+    std::vector<std::array<T, BLOCK_SIZE>> mBlocks;
 };
 
 #endif // BLOCK_VECTOR_H

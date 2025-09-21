@@ -8,7 +8,6 @@
 
 class BitStream
 {
-
 public:
 
     BitStream()

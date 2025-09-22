@@ -25,10 +25,10 @@ std::vector<ParseStep> DijkstraParser::Parse()
         uint32_t nodeIndex = static_cast<uint32_t>(heapTop);
 
         PathNode node = nodes[nodeIndex];
-        bool isMatch = node.IsMatch();
-        bool isLiteral = !isMatch;
         uint16_t inputPos = node.GetInputPos();
         uint16_t offsetOrRep = node.GetOffsetOrRep();
+        bool isMatch = node.IsMatch();
+        bool isLiteral = !isMatch;
 
         if (inputPos >= mInputSize)
         {

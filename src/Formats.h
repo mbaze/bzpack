@@ -19,7 +19,7 @@ struct FormatOptions
 {
     uint8_t id: 4;
     uint8_t reverse: 1;
-    uint8_t addEndMarker: 1;
+    uint8_t endMarker: 1;
     uint8_t extendOffset: 1;
     uint8_t extendLength: 1;
 };
@@ -45,7 +45,7 @@ public:
     uint16_t MaxMatchOffset() const { return mMaxMatchOffset; }
 
     bool Reverse() const { return mReverse; }
-    bool AddEndMarker() const { return mAddEndMarker; }
+    bool EndMarker() const { return mEndMarker; }
     bool ExtendOffset() const { return mExtendOffset; }
     bool ExtendLength() const { return mExtendLength; }
 
@@ -54,7 +54,7 @@ protected:
     Format(FormatOptions options):
         mFormatId(static_cast<FormatId>(options.id)),
         mReverse(options.reverse),
-        mAddEndMarker(options.addEndMarker),
+        mEndMarker(options.endMarker),
         mExtendOffset(options.extendOffset),
         mExtendLength(options.extendLength)
     {}
@@ -71,7 +71,7 @@ protected:
     // Encoding options.
 
     bool mReverse;
-    bool mAddEndMarker;
+    bool mEndMarker;
     bool mExtendOffset;
     bool mExtendLength;
 };

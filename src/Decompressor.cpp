@@ -16,7 +16,7 @@ std::vector<uint8_t> DecodeLZ(BitStream& stream, const Format& format, uint16_t 
     {
         uint16_t length = stream.ReadByte();
 
-        if (format.AddEndMarker() && length == 0)
+        if (format.EndMarker() && length == 0)
             break;
 
         bool isLiteral = (length & 1);
@@ -44,7 +44,7 @@ std::vector<uint8_t> DecodeLZ(BitStream& stream, const Format& format, uint16_t 
             }
         }
 
-        if (!format.AddEndMarker() && data.size() >= inputSize)
+        if (!format.EndMarker() && data.size() >= inputSize)
             break;
     }
 
@@ -63,7 +63,7 @@ std::vector<uint8_t> DecodeE1(BitStream& stream, const Format& format, uint16_t 
     {
         uint16_t length = DecodeElias(stream);
 
-        if (format.AddEndMarker() && length > 255)
+        if (format.EndMarker() && length > 255)
             break;
 
         if (stream.ReadBit())
@@ -84,7 +84,7 @@ std::vector<uint8_t> DecodeE1(BitStream& stream, const Format& format, uint16_t 
             }
         }
 
-        if (!format.AddEndMarker() && data.size() >= inputSize)
+        if (!format.EndMarker() && data.size() >= inputSize)
             break;
     }
 
@@ -166,7 +166,7 @@ std::vector<uint8_t> DecodeBX0(BitStream& stream, const Format& format, uint16_t
         {
             uint16_t offset = DecodeElias(stream) - 1;
 
-            if (format.AddEndMarker() && (offset & 0x80))
+            if (format.EndMarker() && (offset & 0x80))
                 break;
 
             offset = (offset << 8) | stream.ReadByte();
@@ -182,7 +182,7 @@ std::vector<uint8_t> DecodeBX0(BitStream& stream, const Format& format, uint16_t
             wasLiteral = false;
         }
 
-        if (!format.AddEndMarker() && data.size() >= inputSize)
+        if (!format.EndMarker() && data.size() >= inputSize)
             break;
     }
 
@@ -228,7 +228,7 @@ std::vector<uint8_t> DecodeBX2(BitStream& stream, const Format& format, uint16_t
             length++;
             uint16_t offset = stream.ReadByte();
 
-            if (format.AddEndMarker() && offset == 0)
+            if (format.EndMarker() && offset == 0)
                 break;
 
             while (length--)
@@ -240,7 +240,7 @@ std::vector<uint8_t> DecodeBX2(BitStream& stream, const Format& format, uint16_t
             wasLiteral = false;
         }
 
-        if (!format.AddEndMarker() && data.size() >= inputSize)
+        if (!format.EndMarker() && data.size() >= inputSize)
             break;
     }
 

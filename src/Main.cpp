@@ -98,7 +98,7 @@ void CheckOptions(FormatOptions options)
         PrintWarning(WarningId::ExtendLength);
     }
 
-    if (options.id == FormatId::E1ZX && options.addEndMarker)
+    if (options.id == FormatId::E1ZX && options.endMarker)
     {
         PrintWarning(WarningId::AddEndMarker);
     }
@@ -212,7 +212,7 @@ int main(int argCount, char** args)
         {"-bx0",  [&]() { options.id = FormatId::BX0; suffix = ".bx0"; }},
         {"-bx2",  [&]() { options.id = FormatId::BX2; suffix = ".bx2"; }},
         {"-r",    [&]() { options.reverse = 1; }},
-        {"-e",    [&]() { options.addEndMarker = 1; }},
+        {"-e",    [&]() { options.endMarker = 1; }},
         {"-o",    [&]() { options.extendOffset = 1; }},
         {"-l",    [&]() { options.extendLength = 1; }}
     };

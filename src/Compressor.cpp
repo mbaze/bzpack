@@ -42,7 +42,7 @@ BitStream EncodeLZ(const uint8_t* pInput, const std::vector<ParseStep>& parse, c
         }
     }
 
-    if (format.AddEndMarker())
+    if (format.EndMarker())
     {
         stream.WriteByte(0);
     }
@@ -81,7 +81,7 @@ BitStream EncodeE1(const uint8_t* pInput, const std::vector<ParseStep>& parse, c
         }
     }
 
-    if (format.AddEndMarker())
+    if (format.EndMarker())
     {
         for (uint16_t i = 0; i < 16; i++)
         {
@@ -134,7 +134,7 @@ BitStream EncodeBX0(const uint8_t* pInput, const std::vector<ParseStep>& parse, 
     if (format.Id() != FormatId::BX0 || !parse.size())
         return {};
 
-    BitStream stream(true);
+    BitStream stream(false);
     uint16_t repOffset = 0;
     bool wasLiteral = false;
 
@@ -179,7 +179,7 @@ BitStream EncodeBX0(const uint8_t* pInput, const std::vector<ParseStep>& parse, 
         wasLiteral = !parseStep.offset;
     }
 
-    if (format.AddEndMarker())
+    if (format.EndMarker())
     {
         stream.WriteBit(0);
         EncodeElias(stream, 255);
@@ -231,7 +231,7 @@ BitStream EncodeBX2(const uint8_t* pInput, const std::vector<ParseStep>& parse, 
         wasLiteral = !parseStep.offset;
     }
 
-    if (format.AddEndMarker())
+    if (format.EndMarker())
     {
         EncodeElias(stream, 1);
         stream.WriteBit(0);

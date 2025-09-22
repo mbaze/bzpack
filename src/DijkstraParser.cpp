@@ -13,7 +13,7 @@ std::vector<ParseStep> DijkstraParser::Parse()
     std::vector<uint32_t> posCosts(mInputSize, 0xFFFFFFFF);
 
     BlockVector<PathNode> nodes;
-    nodes.push_back(PathNode{0, 0, 0});
+    nodes.push_back({0, 0, 0});
 
     MultiHeap<uint64_t> heap;
     heap.Push(0);
@@ -24,7 +24,9 @@ std::vector<ParseStep> DijkstraParser::Parse()
         uint32_t cost = static_cast<uint32_t>(heapTop >> 32);
         uint32_t nodeIndex = static_cast<uint32_t>(heapTop);
 
-        PathNode node = nodes[nodeIndex];
+        // Extract fields upfront to avoid dangling reference if container type ever changes.
+
+        const PathNode& node = nodes[nodeIndex];
         uint16_t inputPos = node.GetInputPos();
         uint16_t offsetOrRep = node.GetOffsetOrRep();
         bool isMatch = node.IsMatch();
@@ -64,7 +66,7 @@ std::vector<ParseStep> DijkstraParser::Parse()
                 if (ShouldEnqueue(newPos, match.offset, newCost, greedyParseCost))
                 {
                     heap.Push(SortableCostIndex(newCost, nodes.size()));
-                    nodes.push_back(PathNode{newPos, match.offset, nodeIndex});
+                    nodes.push_back({newPos, match.offset, nodeIndex});
                 }
             }
         }
@@ -88,7 +90,7 @@ std::vector<ParseStep> DijkstraParser::Parse()
             if (ShouldEnqueue(newPos, match.offset, newCost, greedyParseCost))
             {
                 heap.Push(SortableCostIndex(newCost, nodes.size()));
-                nodes.push_back(PathNode{newPos, match.offset, nodeIndex});
+                nodes.push_back({newPos, match.offset, nodeIndex});
             }
         }
 
@@ -106,7 +108,7 @@ std::vector<ParseStep> DijkstraParser::Parse()
                 if (ShouldEnqueue(newPos, offsetOrRep, newCost, greedyParseCost))
                 {
                     heap.Push(SortableCostIndex(newCost, nodes.size()));
-                    nodes.push_back(PathNode{offsetOrRep, newPos, nodeIndex});
+                    nodes.push_back({offsetOrRep, newPos, nodeIndex});
                 }
             }
         }

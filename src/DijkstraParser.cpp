@@ -13,7 +13,7 @@ std::vector<ParseStep> DijkstraParser::Parse()
     std::vector<uint32_t> posCosts(mInputSize, 0xFFFFFFFF);
 
     BlockVector<PathNode> nodes;
-    nodes.push_back(PathNode(0, 0, 0, true));
+    nodes.push_back(PathNode{0, 0, 0});
 
     MultiHeap<uint64_t> heap;
     heap.Push(0);
@@ -25,6 +25,8 @@ std::vector<ParseStep> DijkstraParser::Parse()
         uint32_t nodeIndex = static_cast<uint32_t>(heapTop);
 
         PathNode node = nodes[nodeIndex];
+        bool isMatch = node.IsMatch();
+        bool isLiteral = !isMatch;
         uint16_t inputPos = node.GetInputPos();
         uint16_t offsetOrRep = node.GetOffsetOrRep();
 
@@ -40,29 +42,29 @@ std::vector<ParseStep> DijkstraParser::Parse()
         matches.clear();
         size_t byteMatchCount = 0;
 
-        if (node.IsLiteral() || cost < posCosts[inputPos])
+        if (isLiteral || cost < posCosts[inputPos])
         {
-            byteMatchCount = mMatcher.FindMatches(inputPos, node.IsLiteral(), matches);
+            byteMatchCount = mMatcher.FindMatches(inputPos, isLiteral, matches);
         }
 
         posCosts[inputPos] = std::min(posCosts[inputPos], cost);
 
         // Consider all repeat matches (only after a literal).
 
-        if (node.IsLiteral())
+        if (isLiteral)
         {
             for (const Match& match: matches)
             {
                 if (match.offset != offsetOrRep)
                     continue;
 
-                uint32_t newPos = inputPos + match.length;
+                uint16_t newPos = inputPos + match.length;
                 uint32_t newCost = cost + mFormat.GetRepMatchCost(match.length);
 
                 if (ShouldEnqueue(newPos, match.offset, newCost, greedyParseCost))
                 {
                     heap.Push(SortableCostIndex(newCost, nodes.size()));
-                    nodes.push_back(PathNode(nodeIndex, newPos, match.offset, true));
+                    nodes.push_back(PathNode{newPos, match.offset, nodeIndex});
                 }
             }
         }
@@ -73,10 +75,10 @@ std::vector<ParseStep> DijkstraParser::Parse()
         {
             const Match& match = matches[i];
 
-            uint32_t newPos = inputPos + match.length;
+            uint16_t newPos = inputPos + match.length;
             uint32_t newCost = cost + mFormat.GetMatchCost(match.length, match.offset);
 
-            if (node.IsMatch() && match.offset == offsetOrRep)
+            if (isMatch && match.offset == offsetOrRep)
             {
                 // Don't enqueue if propagating a literal would be cheaper (very rare).
                 if (cost + mFormat.GetLiteralCost(match.length) < newCost)
@@ -86,25 +88,25 @@ std::vector<ParseStep> DijkstraParser::Parse()
             if (ShouldEnqueue(newPos, match.offset, newCost, greedyParseCost))
             {
                 heap.Push(SortableCostIndex(newCost, nodes.size()));
-                nodes.push_back(PathNode(nodeIndex, newPos, match.offset, true));
+                nodes.push_back(PathNode{newPos, match.offset, nodeIndex});
             }
         }
 
         // Consider all available literals (only after a match).
 
-        if (node.IsMatch())
+        if (isMatch)
         {
             uint16_t maxLength = std::min<uint16_t>(mInputSize - inputPos, mFormat.MaxLiteralLength());
 
             for (uint16_t length = 1; length <= maxLength; length++)
             {
-                uint32_t newPos = inputPos + length;
+                uint16_t newPos = inputPos + length;
                 uint32_t newCost = cost + mFormat.GetLiteralCost(length);
 
                 if (ShouldEnqueue(newPos, offsetOrRep, newCost, greedyParseCost))
                 {
                     heap.Push(SortableCostIndex(newCost, nodes.size()));
-                    nodes.push_back(PathNode(nodeIndex, newPos, offsetOrRep, false));
+                    nodes.push_back(PathNode{offsetOrRep, newPos, nodeIndex});
                 }
             }
         }

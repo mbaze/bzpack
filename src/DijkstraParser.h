@@ -18,22 +18,18 @@ class DijkstraParser
     {
         PathNode() = default;
 
-        PathNode(uint32_t parent, uint16_t inputPos, uint16_t offsetOrRep, bool isMatch):
-            parent{parent},
-            param1{isMatch ? inputPos : offsetOrRep},
-            param2{isMatch ? offsetOrRep : inputPos}
+        PathNode(uint16_t param1, uint16_t param2, uint32_t parent):
+            param1{param1}, param2{param2}, parent{parent}
         {
         }
 
         bool IsMatch() const { return param1 >= param2; }
-        bool IsLiteral() const { return param1 < param2; }
-
         uint16_t GetInputPos() const { return IsMatch() ? param1 : param2; }
         uint16_t GetOffsetOrRep() const { return IsMatch() ? param2 : param1; }
 
-        uint32_t parent;
         uint16_t param1;
         uint16_t param2;
+        uint32_t parent;
     };
 
     static constexpr uint64_t SortableCostIndex(uint32_t cost, size_t index)

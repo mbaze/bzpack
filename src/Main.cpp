@@ -8,8 +8,6 @@
 #include <unordered_map>
 #include "Compression.h"
 
-#include <windows.h>
-
 enum ErrorId
 {
     InvalidParam,
@@ -130,7 +128,7 @@ std::vector<uint8_t> ReadFile(const char* pFileName)
         return {};
     }
 
-    if (fileSize > 0xFFFF)
+    if (fileSize > 0xFFFE)
     {
         PrintError(ErrorId::FileTooBig);
         return {};

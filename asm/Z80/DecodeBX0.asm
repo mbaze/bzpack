@@ -1,14 +1,15 @@
 ; Copyright (c) 2025, Milos "baze" Bazelides
 ; This code is licensed under the BSD 2-Clause License.
 
-; Reverse BX0 decoder (69 bytes with setup, 63 bytes excluding setup).
+; Reverse BX0 decoder (68 bytes with setup, 62 bytes excluding setup).
 ; This work is inspired by Einar Saukas' ZX0 (https://github.com/einar-saukas/ZX0).
+
+		xor	a
+		push	af		; Push dummy value onto the stack.
 
 		ld	hl,SrcAddr
 		ld	de,DstAddr
-		push	af		; Push dummy value onto the stack.
 
-		ld	a,128
 DecodeLoop	call	EliasGamma1
 		lddr
 		rla
@@ -45,7 +46,7 @@ EliasGamma1	or	a
 EliasGamma2	ld	bc,1
 EliasLoop	adc	a,a
 		jr	nz,NoFetch
-		ld	a,(hl)
+		sbc	a,(hl)		; Complement and set carry.
 		dec	hl
 		rla
 NoFetch		ret	nc

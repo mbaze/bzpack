@@ -10,10 +10,14 @@ class BitStream
 {
 public:
 
-    BitStream()
+    BitStream(bool complement = false)
     {
+        mComplement = complement ? 0xFF : 0;
         ResetForWrite();
     }
+
+    BitStream(BitStream&&) noexcept = default;
+    BitStream& operator = (BitStream&&) noexcept = default;
 
     size_t Size() const;
     const uint8_t* Data() const;
@@ -22,25 +26,23 @@ public:
     void ResetForRead();
     void ResetForWrite();
 
-    void WriteBit(bool value);
-    void WriteByte(uint8_t value);
+    void WriteBit(bool bit);
+    void WriteByte(uint8_t byte);
 
     uint32_t ReadBit();
     uint8_t ReadByte();
 
-    // Only used by the E1ZX format.
-
-    void WriteBitNeg(bool value);
-    uint32_t ReadBitNeg();
-    void FlushBitsNeg();
+    void FlushBits();
     bool IssueCarryWarning() const;
 
 private:
 
     std::vector<uint8_t> mBytes;
+    uint8_t mComplement;
 
     uint8_t mWriteBitPos;
     size_t mWriteBitCursor;
+    size_t mFirstWriteBitCursor;
 
     uint8_t mReadBitMask;
     size_t mReadBitCursor;

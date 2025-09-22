@@ -101,9 +101,9 @@ std::vector<uint8_t> DecodeE1ZX(BitStream& stream, const Format& format, uint16_
 
     while (true)
     {
-        uint16_t length = DecodeEliasNeg(stream);
+        uint16_t length = DecodeElias(stream);
 
-        if (stream.ReadBitNeg())
+        if (stream.ReadBit())
         {
             while (length--)
             {

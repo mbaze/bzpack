@@ -25,11 +25,6 @@ uint32_t DecodeVbin(BitStream& stream);
 void EncodeRaw(BitStream& stream, uint32_t value, uint32_t bitCount);
 uint32_t DecodeRaw(BitStream& stream, uint32_t bitCount);
 
-// Only used by the E1ZX format.
-
-void EncodeEliasNeg(BitStream& stream, uint32_t value);
-uint32_t DecodeEliasNeg(BitStream& stream);
-
 // Only used by the BX0 format.
 
 bool EncodeEliasWithoutFlag(BitStream& stream, uint32_t value);

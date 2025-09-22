@@ -128,6 +128,9 @@ the most recent offset. The flag bit for the very first literal is not stored in
 `Elias(N)` is stored as the least significant bit of the byte containing `%ooooooo`. An offset of 16384 or greater indicates the
 end of the stream.
 
+**Note:** This describes the logical bit values. In the actual stream, unaligned bits are stored as complements to reduce the
+size of the Z80 decoder.
+
 The format employs an exhaustive parser for globally optimal encoding, which can take even several minutes for blocks of 4 KiB
 or larger. This is excessive for general use but acceptable in sizecoding, where every byte matters.
 

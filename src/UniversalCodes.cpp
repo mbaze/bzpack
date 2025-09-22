@@ -215,44 +215,6 @@ uint32_t DecodeRaw(BitStream& stream, uint32_t bitCount)
     return value;
 }
 
-// Only used by the E1ZX format.
-
-void EncodeEliasNeg(BitStream& stream, uint32_t value)
-{
-    assert(value > 0);
-
-    uint32_t mask = ~1;
-    uint32_t count = 0;
-
-    while (value & mask)
-    {
-        mask <<= 1;
-        count++;
-    }
-
-    mask = 1 << count;
-
-    while (mask >>= 1)
-    {
-        stream.WriteBitNeg(1);
-        stream.WriteBitNeg(value & mask);
-    }
-
-    stream.WriteBitNeg(0);
-}
-
-uint32_t DecodeEliasNeg(BitStream& stream)
-{
-    uint32_t value = 1;
-
-    while (stream.ReadBitNeg())
-    {
-        value = (value << 1) | stream.ReadBitNeg();
-    }
-
-    return value;
-}
-
 // Only used by the BX0 format.
 
 bool EncodeEliasWithoutFlag(BitStream& stream, uint32_t value)

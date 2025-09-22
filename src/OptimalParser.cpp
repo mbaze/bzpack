@@ -32,7 +32,7 @@ std::vector<ParseStep> Parse(const uint8_t* pInput, uint16_t inputSize, const Fo
 
         uint16_t maxLength = std::min<uint16_t>(inputSize - inputPos, format.MaxLiteralLength());
 
-        for (uint16_t length = 1; length <= maxLength; length++)
+        for (uint16_t length = maxLength; length > 0; length--)
         {
             uint32_t cost = nodes[inputPos].cost + format.GetLiteralCost(length);
 

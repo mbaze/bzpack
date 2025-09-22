@@ -100,7 +100,7 @@ std::vector<ParseStep> DijkstraParser::Parse()
         {
             uint16_t maxLength = std::min<uint16_t>(mInputSize - inputPos, mFormat.MaxLiteralLength());
 
-            for (uint16_t length = 1; length <= maxLength; length++)
+            for (uint16_t length = maxLength; length > 0; length--)
             {
                 uint16_t newPos = inputPos + length;
                 uint32_t newCost = cost + mFormat.GetLiteralCost(length);

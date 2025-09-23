@@ -8,8 +8,8 @@ std::unique_ptr<Format> Format::Create(const FormatOptions& options)
 {
     switch (options.id)
     {
-    case FormatId::LZ:
-        return std::unique_ptr<Format>(new FormatLZ(options));
+    case FormatId::LZM:
+        return std::unique_ptr<Format>(new FormatLZM(options));
     case FormatId::E1:
         return std::unique_ptr<Format>(new FormatE1(options));
     case FormatId::E1ZX:
@@ -25,25 +25,25 @@ std::unique_ptr<Format> Format::Create(const FormatOptions& options)
 
 // LZ format.
 
-FormatLZ::FormatLZ(FormatOptions options): Format{options}
+FormatLZM::FormatLZM(FormatOptions options): Format{options}
 {
-    mMaxLiteralLength = options.extendLength ? 128 : 127;
+    mMaxLiteralLength = 127 + options.extendLength;
     mMinMatchLength = 2;
-    mMaxMatchLength = options.extendLength ? 128 : 127;
-    mMaxMatchOffset = options.extendOffset ? 256 : 255;
+    mMaxMatchLength = 127 + options.extendLength;
+    mMaxMatchOffset = 255 + options.extendOffset;
 }
 
-uint32_t FormatLZ::GetLiteralCost(uint16_t length) const
+uint32_t FormatLZM::GetLiteralCost(uint16_t length) const
 {
     return 8 + (length << 3);
 }
 
-uint32_t FormatLZ::GetMatchCost(uint16_t length, uint16_t offset) const
+uint32_t FormatLZM::GetMatchCost(uint16_t length, uint16_t offset) const
 {
     return 8 + 8;
 }
 
-uint32_t FormatLZ::GetRepMatchCost(uint16_t length) const
+uint32_t FormatLZM::GetRepMatchCost(uint16_t length) const
 {
     return 0xFFFFFFFF;
 }
@@ -80,7 +80,7 @@ FormatE1ZX::FormatE1ZX(FormatOptions options): Format{options}
     mMaxLiteralLength = 255;
     mMinMatchLength = 2;
     mMaxMatchLength = 256;
-    mMaxMatchOffset = options.extendOffset ? 256 : 255;
+    mMaxMatchOffset = 255 + options.extendOffset;
 }
 
 uint32_t FormatE1ZX::GetLiteralCost(uint16_t length) const
@@ -105,7 +105,7 @@ FormatBX0::FormatBX0(FormatOptions options): Format{options}
     mMaxLiteralLength = 0xFFFF;
     mMinMatchLength = 2;
     mMaxMatchLength = 0xFFFF;
-    mMaxMatchOffset = 0x3FFF;
+    mMaxMatchOffset = 0x3FFF + options.extendOffset;
 }
 
 uint32_t FormatBX0::GetLiteralCost(uint16_t length) const

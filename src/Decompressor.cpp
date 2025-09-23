@@ -4,9 +4,9 @@
 #include "Compression.h"
 #include "UniversalCodes.h"
 
-std::vector<uint8_t> DecodeLZ(BitStream& stream, const Format& format, uint16_t inputSize)
+std::vector<uint8_t> DecodeLZM(BitStream& stream, const Format& format, uint16_t inputSize)
 {
-    if (format.Id() != FormatId::LZ)
+    if (format.Id() != FormatId::LZM)
         return {};
 
     stream.ResetForRead();
@@ -253,8 +253,8 @@ std::vector<uint8_t> Decompress(BitStream& stream, const Format& format, uint16_
 
     switch (format.Id())
     {
-        case FormatId::LZ:
-            data = DecodeLZ(stream, format, inputSize);
+        case FormatId::LZM:
+            data = DecodeLZM(stream, format, inputSize);
             break;
 
         case FormatId::E1:

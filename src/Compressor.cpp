@@ -11,9 +11,9 @@
 #define VERIFY
 #endif // _DEBUG
 
-BitStream EncodeLZ(const uint8_t* pInput, const std::vector<ParseStep>& parse, const Format& format)
+BitStream EncodeLZM(const uint8_t* pInput, const std::vector<ParseStep>& parse, const Format& format)
 {
-    if (format.Id() != FormatId::LZ || !parse.size())
+    if (format.Id() != FormatId::LZM || parse.size() == 0)
         return {};
 
     BitStream stream;
@@ -52,7 +52,7 @@ BitStream EncodeLZ(const uint8_t* pInput, const std::vector<ParseStep>& parse, c
 
 BitStream EncodeE1(const uint8_t* pInput, const std::vector<ParseStep>& parse, const Format& format)
 {
-    if (format.Id() != FormatId::E1 || !parse.size())
+    if (format.Id() != FormatId::E1 || parse.size() == 0)
         return {};
 
     BitStream stream;
@@ -96,7 +96,7 @@ BitStream EncodeE1(const uint8_t* pInput, const std::vector<ParseStep>& parse, c
 
 BitStream EncodeE1ZX(const uint8_t* pInput, const std::vector<ParseStep>& parse, const Format& format)
 {
-    if (format.Id() != FormatId::E1ZX || !parse.size())
+    if (format.Id() != FormatId::E1ZX || parse.size() == 0)
         return {};
 
     BitStream stream;
@@ -131,7 +131,7 @@ BitStream EncodeE1ZX(const uint8_t* pInput, const std::vector<ParseStep>& parse,
 
 BitStream EncodeBX0(const uint8_t* pInput, const std::vector<ParseStep>& parse, const Format& format)
 {
-    if (format.Id() != FormatId::BX0 || !parse.size())
+    if (format.Id() != FormatId::BX0 || parse.size() == 0)
         return {};
 
     BitStream stream(false);
@@ -191,7 +191,7 @@ BitStream EncodeBX0(const uint8_t* pInput, const std::vector<ParseStep>& parse, 
 
 BitStream EncodeBX2(const uint8_t* pInput, const std::vector<ParseStep>& parse, const Format& format)
 {
-    if (format.Id() != FormatId::BX2 || !parse.size())
+    if (format.Id() != FormatId::BX2 || parse.size() == 0)
         return {};
 
     BitStream stream;
@@ -256,9 +256,9 @@ BitStream Compress(uint8_t* pInput, uint16_t inputSize, const Format& format)
 
     switch (format.Id())
     {
-        case FormatId::LZ:
+        case FormatId::LZM:
             parse = Parse(pInput, inputSize, format);
-            stream = EncodeLZ(pInput, parse, format);
+            stream = EncodeLZM(pInput, parse, format);
             break;
 
         case FormatId::E1:

@@ -8,7 +8,7 @@
 
 enum FormatId
 {
-    LZ,
+    LZM,
     E1,
     E1ZX,
     BX0,
@@ -76,12 +76,12 @@ protected:
     bool mExtendLength;
 };
 
-class FormatLZ: public Format
+class FormatLZM: public Format
 {
     friend class Format;
 
-    FormatLZ() = delete;
-    FormatLZ(FormatOptions options);
+    FormatLZM() = delete;
+    FormatLZM(FormatOptions options);
 
     uint32_t GetLiteralCost(uint16_t length) const override;
     uint32_t GetMatchCost(uint16_t length, uint16_t offset) const override;

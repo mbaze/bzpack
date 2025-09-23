@@ -187,9 +187,9 @@ int main(int argCount, char** args)
 
     if (argCount < 2)
     {
-        printf("\nUsage: bzpack.exe [-lz|-e1|-e1zx|-bx0|-bx2] [-r] [-e] [-o] [-l] <inputFile> [outputFile]\n");
+        printf("\nUsage: bzpack.exe [-lzm|-e1|-e1zx|-bx0|-bx2] [-r] [-e] [-o] [-l] <inputFile> [outputFile]\n");
         printf("\nOptions:\n\n");
-        printf("-lz: Byte-aligned LZSS. Raw 7-bit length, raw 8-bit offset (default).\n");
+        printf("-lzm: Byte-aligned LZSS. Raw 7-bit length, raw 8-bit offset (default).\n");
         printf("-e1: Elias length, raw 8-bit offset.\n");
         printf("-e1zx: A version of -e1 optimized for the Sinclair ZX Spectrum.\n");
         printf("-bx0: Elias length, combined raw/Elias offset or repeat offset.\n");
@@ -201,12 +201,12 @@ int main(int argCount, char** args)
         return 0;
     }
 
-    static std::string suffix = ".lz";
-    static FormatOptions options{FormatId::LZ, 0, 0, 0, 0};
+    static std::string suffix = ".lzm";
+    static FormatOptions options{FormatId::LZM, 0, 0, 0, 0};
 
     static const std::unordered_map<std::string, std::function<void()>> actions =
     {
-        {"-lz",   [&]() { options.id = FormatId::LZ; suffix = ".lz"; }},
+        {"-lzm",  [&]() { options.id = FormatId::LZM; suffix = ".lzm"; }},
         {"-e1",   [&]() { options.id = FormatId::E1; suffix = ".e1"; }},
         {"-e1zx", [&]() { options.id = FormatId::E1ZX; suffix = ".e1zx"; }},
         {"-bx0",  [&]() { options.id = FormatId::BX0; suffix = ".bx0"; }},

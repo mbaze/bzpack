@@ -10,15 +10,15 @@ Sinclair ZX Spectrum.
 
 Bzpack is a command-line utility with the following usage format:
 
-`bzpack.exe [-lz|-e1|-e1zx|-bx0|-bx2] [-r] [-e] [-o] [-l] <inputFile> [outputFile]`
+`bzpack.exe [-lzm|-e1|-e1zx|-bx0|-bx2] [-r] [-e] [-o] [-l] <inputFile> [outputFile]`
 
 For example, to compress a file named *"demo.bin"* in reverse direction using the BX2 format with the end-of-stream marker, the
 command would be:
 
 `bzpack.exe -bx2 -r -e demo.bin demo.bx2`
 
-Here’s a list of supported command-line options (not including compression format identifiers `-lz`, `-e1`, `-e1zx`, `-bx0`, and
-`-bx2`):
+Here’s a list of supported command-line options (not including compression format identifiers `-lzm`, `-e1`, `-e1zx`, `-bx0`,
+and `-bx2`):
 
 * `-r` - Compress in reverse direction. In practice, this option helps reduce the decoder size.
 * `-e` - Add an end-of-stream marker. Useful for general-purpose decompression, but often unnecessary for minimalist programs.
@@ -73,17 +73,17 @@ In the following text, we denote the Elias-Gamma code of integer *N* as `Elias(N
 
 ## Description of Supported Formats
 
-### LZ
+### LZM
 
-LZ is a straightforward, byte-aligned format interpreted as follows:
+LZM is a straightforward, byte-aligned format interpreted as follows:
 
 * `%nnnnnnn1` – Copy the next `%nnnnnnn` bytes to the output.
 * `%nnnnnnn0`, `%oooooooo` – Copy `%nnnnnnn` bytes from an offset of `%oooooooo`.
 * `%00000000` or `%00000001` – End of stream.
 
-The compression ratio is decent but not exceptional. However, the decoder is extremely compact, making it usable in highly
-constrained scenarios, such as 256-byte intros. While other methods may produce a shorter compressed stream, the combined size
-of the stream and decoder can make LZ the better choice.
+The real strength of this format is its extremely compact decoder, making it ideal for highly constrained scenarios such as
+256-byte intros. While other methods may yield a smaller compressed stream, the combined size of stream and decoder can make LZM
+the better choice.
 
 Supported options:
 
@@ -125,14 +125,11 @@ between a regular match and a "repeat match" that uses the most recent offset. B
 * `1`, `Elias(N)` – If following a match, copy the next `N` bytes to the output. If following a literal, copy `N` bytes from
 the most recent offset. The flag bit for the very first literal is not stored in the stream.
 * `0`, `Elias(O)`, `%ooooooo`, `Elias(N)` – Copy `N + 1` bytes from an offset of `(O << 7) | %ooooooo`. The leading flag bit of
-`Elias(N)` is stored as the least significant bit of the byte containing `%ooooooo`. An offset of 16384 or greater indicates the
+`Elias(N)` is stored as the least significant bit of the byte containing `%ooooooo`. An offset of 16512 or greater indicates the
 end of the stream.
 
-**Note:** This describes the logical bit values. In the actual stream, unaligned bits are stored as complements to reduce the
-size of the Z80 decoder.
-
-The format employs an exhaustive parser for globally optimal encoding, which can take even several minutes for blocks of 4 KiB
-or larger. This is excessive for general use but acceptable in sizecoding, where every byte matters.
+**Note:** The description above refers to bit interpretation at the logical level. In the actual stream, unaligned bits are
+inverted to optimize byte fetching in the Z80 decoder.
 
 Supported options:
 

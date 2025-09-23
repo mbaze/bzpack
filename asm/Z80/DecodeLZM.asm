@@ -1,7 +1,7 @@
 ; Copyright (c) 2017, Milos "baze" Bazelides
 ; This code is licensed under the BSD 2-Clause License.
 
-; Reverse LZS decoder (26 bytes with setup, 18 bytes excluding setup).
+; Reverse LZM decoder (26 bytes with setup, 18 bytes excluding setup).
 
 ; The end-of-stream marker can be omitted if the output stream overwrites opcodes  
 ; immediately after LDDR.

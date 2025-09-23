@@ -2,6 +2,7 @@
 // This code is licensed under the BSD 2-Clause License.
 
 #include "OptimalParser.h"
+#include <algorithm>
 #include "PrefixMatcher.h"
 
 struct PathNode

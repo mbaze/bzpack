@@ -2,6 +2,7 @@
 // This code is licensed under the BSD 2-Clause License.
 
 #include "Compression.h"
+#include <algorithm>
 #include "UniversalCodes.h"
 
 std::vector<uint8_t> DecodeLZM(BitStream& stream, const Format& format, uint16_t inputSize)

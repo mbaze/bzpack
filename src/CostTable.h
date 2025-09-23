@@ -5,6 +5,7 @@
 #define COST_TABLE_H
 
 #include <algorithm>
+#include <cstdint>
 #include <vector>
 
 class CostTable

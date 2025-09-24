@@ -10,15 +10,15 @@ Sinclair ZX Spectrum.
 
 Bzpack is a command-line utility with the following usage format:
 
-`bzpack.exe [-lzm|-e1|-e1zx|-bx0|-bx2] [-r] [-e] [-o] [-l] <inputFile> [outputFile]`
+`bzpack.exe [-lzm|-ef8|-bx0|-bx2] [-r] [-e] [-o] [-l] <inputFile> [outputFile]`
 
 For example, to compress a file named *"demo.bin"* in reverse direction using the BX2 format with the end-of-stream marker, the
 command would be:
 
 `bzpack.exe -bx2 -r -e demo.bin demo.bx2`
 
-Here’s a list of supported command-line options (not including compression format identifiers `-lzm`, `-e1`, `-e1zx`, `-bx0`,
-and `-bx2`):
+Here’s a list of supported command-line options (not including compression format identifiers `-lzm`, `-ef8`, `-bx0`, and
+`-bx2`):
 
 * `-r` - Compress in reverse direction. In practice, this option helps reduce the decoder size.
 * `-e` - Add an end-of-stream marker. Useful for general-purpose decompression, but often unnecessary for minimalist programs.

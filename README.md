@@ -73,6 +73,10 @@ In the following text, we denote the Elias-Gamma code of integer *N* as `Elias(N
 
 ## Description of Supported Formats
 
+The descriptions below refer to stream interpretation at the logical level, that is how values appear in CPU registers at
+runtime. However, in all formats except LZM, the physical representation in the stream differs because unaligned bits are
+inverted to optimize byte fetching in the Z80 decoder.
+
 ### LZM
 
 LZM is a straightforward, byte-aligned format interpreted as follows:
@@ -117,9 +121,6 @@ the most recent offset. The flag bit for the very first literal is not stored in
 * `0`, `Elias(O)`, `%ooooooo`, `Elias(N)` – Copy `N + 1` bytes from an offset of `(O << 7) | %ooooooo`. The leading flag bit of
 `Elias(N)` is stored as the least significant bit of the byte containing `%ooooooo`. An offset of 16512 or greater indicates the
 end of the stream.
-
-**Note:** The description above refers to bit interpretation at the logical level. In the actual stream, unaligned bits are
-inverted to optimize byte fetching in the Z80 decoder.
 
 Supported options:
 

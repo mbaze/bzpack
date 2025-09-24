@@ -48,8 +48,6 @@ private:
     uint8_t mReadBitMask;
     size_t mReadBitCursor;
     size_t mReadByteCursor;
-
-    bool mIssueCarryWarning;
 };
 
 #endif // BIT_STREAM_H

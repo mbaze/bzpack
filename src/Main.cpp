@@ -1,6 +1,9 @@
 // Copyright (c) 2021, Milos "baze" Bazelides
 // This code is licensed under the BSD 2-Clause License.
 
+//#define VERIFY
+
+#include <algorithm>
 #include <cstdio>
 #include <cstdlib>
 #include <fstream>
@@ -21,10 +24,9 @@ enum ErrorId
 
 enum WarningId
 {
+    ExtendOffset,
     ExtendLength,
-    AddEndMarker,
-    NoSizeGain,
-    ZxExplicitCarry
+    NoSizeGain
 };
 
 void PrintError(ErrorId error, const char* pString = nullptr)
@@ -69,38 +71,30 @@ void PrintWarning(WarningId warning)
 
     switch (warning)
     {
-        case WarningId::ExtendLength:
-            printf("Option -l is not supported by this format.\n");
+        case WarningId::ExtendOffset:
+            printf("Option -o is not supported by this format and will be ignored.\n");
             break;
 
-        case WarningId::AddEndMarker:
-            printf("Option -e is not supported by this format.\n");
+        case WarningId::ExtendLength:
+            printf("Option -l is not supported by this format and will be ignored.\n");
             break;
 
         case WarningId::NoSizeGain:
             printf("No size gain after compression.\n");
             break;
-
-        case WarningId::ZxExplicitCarry:
-            printf("Make sure the decompressor sets Carry during fetch.\n");
-            break;
     }
 }
 
-void CheckOptions(FormatOptions options)
+void ValidateOptions(FormatOptions options, const Format& format)
 {
-    bool noExtLength = (options.id == FormatId::E1);
-    noExtLength |= (options.id == FormatId::E1ZX);
-    noExtLength |= (options.id == FormatId::BX2);
-
-    if (options.extendLength && noExtLength)
+    if (options.extendOffset && !format.SupportsExtendOffset())
     {
-        PrintWarning(WarningId::ExtendLength);
+        PrintWarning(WarningId::ExtendOffset);
     }
 
-    if (options.id == FormatId::E1ZX && options.endMarker)
+    if (options.extendLength && !format.SupportsExtendLength())
     {
-        PrintWarning(WarningId::AddEndMarker);
+        PrintWarning(WarningId::ExtendLength);
     }
 }
 
@@ -187,11 +181,10 @@ int main(int argCount, char** args)
 
     if (argCount < 2)
     {
-        printf("\nUsage: bzpack.exe [-lzm|-e1|-e1zx|-bx0|-bx2] [-r] [-e] [-o] [-l] <inputFile> [outputFile]\n");
+        printf("\nUsage: bzpack.exe [-lzm|-ef8|-bx0|-bx2] [-r] [-e] [-o] [-l] <inputFile> [outputFile]\n");
         printf("\nOptions:\n\n");
         printf("-lzm: Byte-aligned LZSS. Raw 7-bit length, raw 8-bit offset (default).\n");
-        printf("-e1: Elias length, raw 8-bit offset.\n");
-        printf("-e1zx: A version of -e1 optimized for the Sinclair ZX Spectrum.\n");
+        printf("-ef8: Elias length, raw 8-bit offset.\n");
         printf("-bx0: Elias length, combined raw/Elias offset or repeat offset.\n");
         printf("-bx2: Elias length, raw 8-bit offset or repeat offset.\n");
         printf("-r: Compress in reverse order.\n");
@@ -202,19 +195,18 @@ int main(int argCount, char** args)
     }
 
     static std::string suffix = ".lzm";
-    static FormatOptions options{FormatId::LZM, 0, 0, 0, 0};
+    static FormatOptions options = {0};
 
     static const std::unordered_map<std::string, std::function<void()>> actions =
     {
-        {"-lzm",  [&]() { options.id = FormatId::LZM; suffix = ".lzm"; }},
-        {"-e1",   [&]() { options.id = FormatId::E1; suffix = ".e1"; }},
-        {"-e1zx", [&]() { options.id = FormatId::E1ZX; suffix = ".e1zx"; }},
-        {"-bx0",  [&]() { options.id = FormatId::BX0; suffix = ".bx0"; }},
-        {"-bx2",  [&]() { options.id = FormatId::BX2; suffix = ".bx2"; }},
-        {"-r",    [&]() { options.reverse = 1; }},
-        {"-e",    [&]() { options.endMarker = 1; }},
-        {"-o",    [&]() { options.extendOffset = 1; }},
-        {"-l",    [&]() { options.extendLength = 1; }}
+        {"-lzm", [&]() { options.id = FormatId::LZM; suffix = ".lzm"; }},
+        {"-ef8", [&]() { options.id = FormatId::EF8; suffix = ".ef8"; }},
+        {"-bx0", [&]() { options.id = FormatId::BX0; suffix = ".bx0"; }},
+        {"-bx2", [&]() { options.id = FormatId::BX2; suffix = ".bx2"; }},
+        {"-r",   [&]() { options.reverse = 1; }},
+        {"-e",   [&]() { options.endMarker = 1; }},
+        {"-o",   [&]() { options.extendOffset = 1; }},
+        {"-l",   [&]() { options.extendLength = 1; }}
     };
 
     // Process command line arguments.
@@ -265,43 +257,64 @@ int main(int argCount, char** args)
         outputName = inputName + suffix;
     }
 
-    CheckOptions(options);
-
     std::unique_ptr<Format> spFormat = Format::Create(options);
     if (spFormat == nullptr)
     {
-        PrintError(ErrorId::CompressionFailed);
+        PrintError(ErrorId::OutOfMemory);
         return 1;
     }
 
+    ValidateOptions(options, *spFormat);
+
     // Read input file.
 
-    std::vector<uint8_t> inputStream = ReadFile(inputName.c_str());
-    if (inputStream.size() == 0)
+    std::vector<uint8_t> inputData = ReadFile(inputName.c_str());
+    if (inputData.empty())
     {
         return 1;
+    }
+
+    if (spFormat->Reverse())
+    {
+        std::reverse(inputData.begin(), inputData.end());
     }
 
     // Compress the input stream.
 
-    BitStream packedStream = Compress(inputStream.data(), static_cast<uint16_t>(inputStream.size()), *spFormat.get());
+    BitStream packedStream = Compress(inputData.data(), static_cast<uint16_t>(inputData.size()), *spFormat);
     if (packedStream.Size() == 0)
     {
         PrintError(ErrorId::CompressionFailed);
         return 1;
     }
 
-    if (packedStream.Size() >= inputStream.size())
+    if (packedStream.Size() >= inputData.size())
     {
         PrintWarning(WarningId::NoSizeGain);
     }
 
-    if (options.id == FormatId::E1ZX && packedStream.IssueCarryWarning())
+#ifdef VERIFY
+
+    if (spFormat->Reverse())
     {
-        PrintWarning(WarningId::ZxExplicitCarry);
+        std::reverse(inputData.begin(), inputData.end());
     }
 
+    std::vector<uint8_t> unpackedData = Decompress(packedStream, *spFormat, static_cast<uint16_t>(inputData.size()));
+
+    if (unpackedData.size() != inputData.size() || !std::equal(inputData.begin(), inputData.end(), unpackedData.data()))
+    {
+        printf("Stream verification failed.\n");
+    }
+
+#endif // VERIFY
+
     // Write output file.
+
+    if (spFormat->Reverse())
+    {
+        packedStream.Reverse();
+    }
 
     if (!WriteFile(outputName.c_str(), packedStream.Data(), packedStream.Size()))
     {

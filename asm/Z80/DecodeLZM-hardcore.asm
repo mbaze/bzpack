@@ -3,17 +3,16 @@
 
 ; Reverse LZM "hardcore" decoder (23 bytes with setup, 18 bytes excluding setup).
 
-; This decoder is optimized for the Sinclair ZX Spectrum and operates under the following
-; assumptions:
+; This decoder is optimized for the ZX Spectrum and operates under the following assumptions:
 
-; 1) The program is launched from BASIC using USR, with a start address of #XX00,  
-;    ensuring that register C is set to 0.  
-; 2) The compressed stream is located immediately above the entry point.  
-; 3) There's no end-of-stream marker. The last block overwrites opcodes after LDDR.  
+; 1) The compressed stream is placed immediately above the entry point.
+; 2) The end-of-stream marker is omitted, and the final block overwrites opcodes after LDDR.
+; 3) The program is launched from BASIC with a start address of #XX80, ensuring C = 0.
 
 		ld	de,DstAddr
 		push	bc
 		ld	b,c
+
 DecodeLoop1	pop	hl
 		dec	hl
 DecodeLoop2	ld	c,(hl)

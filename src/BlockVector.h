@@ -49,7 +49,7 @@ public:
 
     void pop_back()
     {
-        if (!mSize || (--mSize & BLOCK_MASK))
+        if (mSize == 0 || (--mSize & BLOCK_MASK))
             return;
 
         mBlocks.pop_back();

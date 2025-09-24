@@ -6,7 +6,6 @@
 
 		xor	a
 		push	af		; Push dummy value onto the stack.
-
 		ld	hl,SrcAddr
 		ld	de,DstAddr
 
@@ -29,7 +28,7 @@ RepOffset	ex	(sp),hl
 NewOffset	pop	bc
 		call	EliasGamma2
 		dec	c
-		ret	m
+		ret	m		; Option to include the end-of-stream marker.
 		ld	b,c
 		ld	c,(hl)
 		dec	hl
@@ -46,7 +45,7 @@ EliasGamma1	or	a
 EliasGamma2	ld	bc,1
 EliasLoop	adc	a,a
 		jr	nz,NoFetch
-		sbc	a,(hl)		; Complement and set carry.
+		sbc	a,(hl)
 		dec	hl
 		rla
 NoFetch		ret	nc

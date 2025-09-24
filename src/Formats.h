@@ -9,8 +9,7 @@
 enum FormatId
 {
     LZM,
-    E1,
-    E1ZX,
+    EF8,
     BX0,
     BX2
 };
@@ -33,26 +32,27 @@ public:
 
     static std::unique_ptr<Format> Create(const FormatOptions& options);
 
-    virtual uint32_t GetLiteralCost(uint16_t length) const = 0;
-    virtual uint32_t GetMatchCost(uint16_t length, uint16_t offset) const = 0;
-    virtual uint32_t GetRepMatchCost(uint16_t length) const = 0;
-
     FormatId Id() const { return mFormatId; }
-
-    uint16_t MaxLiteralLength() const { return mMaxLiteralLength; }
-    uint16_t MinMatchLength() const { return mMinMatchLength; }
-    uint16_t MaxMatchLength() const { return mMaxMatchLength; }
-    uint16_t MaxMatchOffset() const { return mMaxMatchOffset; }
+    bool SupportsExtendOffset() const { return mSupportsExtendOffset; }
+    bool SupportsExtendLength() const { return mSupportsExtendLength; }
 
     bool Reverse() const { return mReverse; }
     bool EndMarker() const { return mEndMarker; }
     bool ExtendOffset() const { return mExtendOffset; }
     bool ExtendLength() const { return mExtendLength; }
 
+    uint16_t MaxLiteralLength() const { return mMaxLiteralLength; }
+    uint16_t MinMatchLength() const { return mMinMatchLength; }
+    uint16_t MaxMatchLength() const { return mMaxMatchLength; }
+    uint16_t MaxMatchOffset() const { return mMaxMatchOffset; }
+
+    virtual uint32_t GetLiteralCost(uint16_t length) const = 0;
+    virtual uint32_t GetMatchCost(uint16_t length, uint16_t offset) const = 0;
+    virtual uint32_t GetRepMatchCost(uint16_t length) const = 0;
+
 protected:
 
     Format(FormatOptions options):
-        mFormatId(static_cast<FormatId>(options.id)),
         mReverse(options.reverse),
         mEndMarker(options.endMarker),
         mExtendOffset(options.extendOffset),
@@ -61,12 +61,10 @@ protected:
 
     FormatId mFormatId;
 
-    // Format limits.
+    // Supported options.
 
-    uint16_t mMaxLiteralLength;
-    uint16_t mMinMatchLength;
-    uint16_t mMaxMatchLength;
-    uint16_t mMaxMatchOffset;
+    bool mSupportsExtendOffset;
+    bool mSupportsExtendLength;
 
     // Encoding options.
 
@@ -74,6 +72,13 @@ protected:
     bool mEndMarker;
     bool mExtendOffset;
     bool mExtendLength;
+
+    // Format limits.
+
+    uint16_t mMaxLiteralLength;
+    uint16_t mMinMatchLength;
+    uint16_t mMaxMatchLength;
+    uint16_t mMaxMatchOffset;
 };
 
 class FormatLZM: public Format
@@ -88,24 +93,12 @@ class FormatLZM: public Format
     uint32_t GetRepMatchCost(uint16_t length) const override;
 };
 
-class FormatE1: public Format
+class FormatEF8: public Format
 {
     friend class Format;
 
-    FormatE1() = delete;
-    FormatE1(FormatOptions options);
-
-    uint32_t GetLiteralCost(uint16_t length) const override;
-    uint32_t GetMatchCost(uint16_t length, uint16_t offset) const override;
-    uint32_t GetRepMatchCost(uint16_t length) const override;
-};
-
-class FormatE1ZX: public Format
-{
-    friend class Format;
-
-    FormatE1ZX() = delete;
-    FormatE1ZX(FormatOptions options);
+    FormatEF8() = delete;
+    FormatEF8(FormatOptions options);
 
     uint32_t GetLiteralCost(uint16_t length) const override;
     uint32_t GetMatchCost(uint16_t length, uint16_t offset) const override;

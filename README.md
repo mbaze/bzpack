@@ -81,40 +81,30 @@ LZM is a straightforward, byte-aligned format interpreted as follows:
 * `%nnnnnnn0`, `%oooooooo` – Copy `%nnnnnnn` bytes from an offset of `%oooooooo`.
 * `%00000000` or `%00000001` – End of stream.
 
-The real strength of this format is its extremely compact decoder, making it ideal for highly constrained scenarios such as
+The main strength of this format is its extremely compact decoder, making it ideal for highly constrained scenarios such as
 256-byte intros. While other methods may yield a smaller compressed stream, the combined size of stream and decoder can make LZM
 the better choice.
 
 Supported options:
 
-* Offset increment (1..256 instead of 1..255).
-* Size increment (1..128 instead of 1..127).
+* Offset range extension (1..256 instead of 1..255).
+* Block size extension (1..128 instead of 1..127).
 * End-of-stream marker.
 
-### E1
+### EF8
 
-The E1 format encodes block lengths as Elias-Gamma values, followed by a 1-bit flag indicating the block type:
+The EF8 format encodes block lengths as Elias-Gamma values, followed by a 1-bit flag indicating the block type:
 
 * `Elias(N)`, `1` – Copy the next `N` bytes to the output.
 * `Elias(N)`, `0`, `%oooooooo` – Copy `N + 1` bytes from an offset of `%oooooooo`.
 * `Elias(N)` where `N > 255` - End of stream.
 
-The compression ratio is significantly better than in the LZ format, and the decoder remains relatively compact.
+The compression ratio is significantly better than in the LZM format, and the decoder remains relatively compact.
 
 Supported options:
 
-* Offset increment (1..256 instead of 1..255).
+* Offset range extension (1..256 instead of 1..255).
 * End-of-stream marker.
-
-### E1ZX
-
-E1ZX is an optimized variant of E1, specifically designed for the Sinclair ZX Spectrum. While the stream length remains
-unchanged, certain values are stored as their complements, simplifying decoder initialization and further reducing code size.
-This format is primarily intended for 512-byte and 1024-byte intros.
-
-Supported options:
-
-* Offset increment (1..256 instead of 1..255).
 
 ### BX0
 
@@ -133,7 +123,7 @@ inverted to optimize byte fetching in the Z80 decoder.
 
 Supported options:
 
-* Offset increment (1..16384 instead of 1..16383).
+* Offset range extension (1..16384 instead of 1..16383).
 * End-of-stream marker.
 
 ### BX2
@@ -150,8 +140,14 @@ Like BX0, the format uses a slower, globally optimal exhaustive parser.
 
 Supported options:
 
-* Offset increment (1..256 instead of 1..255).
+* Offset range extension (1..256 instead of 1..255).
 * End-of-stream marker.
+
+#### Disclaimer
+
+This project was created for personal exploration and enjoyment. While I hope others may find it useful, I cannot guarantee its
+fitness for any particular use case, backwards compatibility, long-term maintenance, or multi-platform support. The code is
+released under a liberal license, so feel free to fork it and adapt it to your needs.
 
 #### Acknowledgments
 

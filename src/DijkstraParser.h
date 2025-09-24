@@ -20,8 +20,7 @@ class DijkstraParser
 
         PathNode(uint16_t param1, uint16_t param2, uint32_t parent):
             param1{param1}, param2{param2}, parent{parent}
-        {
-        }
+        {}
 
         bool IsMatch() const { return param1 >= param2; }
         uint16_t GetInputPos() const { return IsMatch() ? param1 : param2; }
@@ -53,8 +52,7 @@ public:
             format.MaxMatchOffset()
         },
         mPosRepCosts{inputSize, mFormat.MaxMatchOffset()}
-    {
-    }
+    {}
 
     std::vector<ParseStep> Parse();
 

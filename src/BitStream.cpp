@@ -33,7 +33,6 @@ void BitStream::ResetForWrite()
     mWriteBitPos = 0;
     mWriteBitCursor = 0;
     mFirstWriteBitCursor = SIZE_MAX;
-    mIssueCarryWarning = false;
 
     ResetForRead();
 }
@@ -82,18 +81,11 @@ uint8_t BitStream::ReadByte()
 
 void BitStream::FlushBits()
 {
-    if (mBytes.empty())
+    if (mComplement == 0 || mBytes.empty())
         return;
 
     if (mFirstWriteBitCursor != SIZE_MAX)
     {
         mBytes[mFirstWriteBitCursor]++;
     }
-
-    mIssueCarryWarning |= !mBytes[mWriteBitCursor];
-}
-
-bool BitStream::IssueCarryWarning() const
-{
-    return mIssueCarryWarning;
 }

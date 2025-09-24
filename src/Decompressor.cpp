@@ -15,18 +15,13 @@ std::vector<uint8_t> DecodeLZM(BitStream& stream, const Format& format, uint16_t
 
     while (true)
     {
-        uint16_t length = stream.ReadByte();
+        uint8_t length = stream.ReadByte();
 
         if (format.EndMarker() && length == 0)
             break;
 
         bool isLiteral = (length & 1);
-        length >>= 1;
-
-        if (format.ExtendLength())
-        {
-            length++;
-        }
+        length = (length >> 1) + format.ExtendLength();
 
         if (isLiteral)
         {
@@ -52,9 +47,9 @@ std::vector<uint8_t> DecodeLZM(BitStream& stream, const Format& format, uint16_t
     return data;
 }
 
-std::vector<uint8_t> DecodeE1(BitStream& stream, const Format& format, uint16_t inputSize)
+std::vector<uint8_t> DecodeEF8(BitStream& stream, const Format& format, uint16_t inputSize)
 {
-    if (format.Id() != FormatId::E1)
+    if (format.Id() != FormatId::EF8)
         return {};
 
     stream.ResetForRead();
@@ -64,45 +59,8 @@ std::vector<uint8_t> DecodeE1(BitStream& stream, const Format& format, uint16_t 
     {
         uint16_t length = DecodeElias(stream);
 
-        if (format.EndMarker() && length > 255)
+        if (format.EndMarker() && length >= 0x100)
             break;
-
-        if (stream.ReadBit())
-        {
-            while (length--)
-            {
-                data.emplace_back(stream.ReadByte());
-            }
-        }
-        else
-        {
-            length++;
-            size_t offset = stream.ReadByte() + format.ExtendOffset();
-
-            while (length--)
-            {
-                data.emplace_back(data[data.size() - offset]);
-            }
-        }
-
-        if (!format.EndMarker() && data.size() >= inputSize)
-            break;
-    }
-
-    return data;
-}
-
-std::vector<uint8_t> DecodeE1ZX(BitStream& stream, const Format& format, uint16_t inputSize)
-{
-    if (format.Id() != FormatId::E1ZX)
-        return {};
-
-    stream.ResetForRead();
-    std::vector<uint8_t> data;
-
-    while (true)
-    {
-        uint16_t length = DecodeElias(stream);
 
         if (stream.ReadBit())
         {
@@ -122,7 +80,7 @@ std::vector<uint8_t> DecodeE1ZX(BitStream& stream, const Format& format, uint16_
             }
         }
 
-        if (data.size() >= inputSize)
+        if (!format.EndMarker() && data.size() >= inputSize)
             break;
     }
 
@@ -142,7 +100,7 @@ std::vector<uint8_t> DecodeBX0(BitStream& stream, const Format& format, uint16_t
 
     while (true)
     {
-        if (data.size() ? stream.ReadBit() : true)
+        if (data.empty() ? true : stream.ReadBit())
         {
             uint16_t length = DecodeElias(stream);
 
@@ -258,12 +216,8 @@ std::vector<uint8_t> Decompress(BitStream& stream, const Format& format, uint16_
             data = DecodeLZM(stream, format, inputSize);
             break;
 
-        case FormatId::E1:
-            data = DecodeE1(stream, format, inputSize);
-            break;
-
-        case FormatId::E1ZX:
-            data = DecodeE1ZX(stream, format, inputSize);
+        case FormatId::EF8:
+            data = DecodeEF8(stream, format, inputSize);
             break;
 
         case FormatId::BX0:

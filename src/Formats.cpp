@@ -10,10 +10,8 @@ std::unique_ptr<Format> Format::Create(const FormatOptions& options)
     {
     case FormatId::LZM:
         return std::unique_ptr<Format>(new FormatLZM(options));
-    case FormatId::E1:
-        return std::unique_ptr<Format>(new FormatE1(options));
-    case FormatId::E1ZX:
-        return std::unique_ptr<Format>(new FormatE1ZX(options));
+    case FormatId::EF8:
+        return std::unique_ptr<Format>(new FormatEF8(options));
     case FormatId::BX0:
         return std::unique_ptr<Format>(new FormatBX0(options));
     case FormatId::BX2:
@@ -23,10 +21,14 @@ std::unique_ptr<Format> Format::Create(const FormatOptions& options)
     return nullptr;
 }
 
-// LZ format.
+// LZM format.
 
 FormatLZM::FormatLZM(FormatOptions options): Format{options}
 {
+    mFormatId = FormatId::LZM;
+    mSupportsExtendOffset = true;
+    mSupportsExtendLength = true;
+
     mMaxLiteralLength = 127 + options.extendLength;
     mMinMatchLength = 2;
     mMaxMatchLength = 127 + options.extendLength;
@@ -48,52 +50,31 @@ uint32_t FormatLZM::GetRepMatchCost(uint16_t length) const
     return 0xFFFFFFFF;
 }
 
-// E1 format.
+// EF8 format.
 
-FormatE1::FormatE1(FormatOptions options): Format{options}
+FormatEF8::FormatEF8(FormatOptions options): Format{options}
 {
-    mMaxLiteralLength = 255;
-    mMinMatchLength = 2;
-    mMaxMatchLength = 256;
-    mMaxMatchOffset = options.extendOffset ? 256 : 255;
-}
+    mFormatId = FormatId::EF8;
+    mSupportsExtendOffset = true;
+    mSupportsExtendLength = false;
 
-uint32_t FormatE1::GetLiteralCost(uint16_t length) const
-{
-    return GetEliasCost(length) + 1 + (length << 3);
-}
-
-uint32_t FormatE1::GetMatchCost(uint16_t length, uint16_t offset) const
-{
-    return GetEliasCost(length - 1) + 1 + 8;
-}
-
-uint32_t FormatE1::GetRepMatchCost(uint16_t length) const
-{
-    return 0xFFFFFFFF;
-}
-
-// E1ZX format.
-
-FormatE1ZX::FormatE1ZX(FormatOptions options): Format{options}
-{
     mMaxLiteralLength = 255;
     mMinMatchLength = 2;
     mMaxMatchLength = 256;
     mMaxMatchOffset = 255 + options.extendOffset;
 }
 
-uint32_t FormatE1ZX::GetLiteralCost(uint16_t length) const
+uint32_t FormatEF8::GetLiteralCost(uint16_t length) const
 {
     return GetEliasCost(length) + 1 + (length << 3);
 }
 
-uint32_t FormatE1ZX::GetMatchCost(uint16_t length, uint16_t offset) const
+uint32_t FormatEF8::GetMatchCost(uint16_t length, uint16_t offset) const
 {
     return GetEliasCost(length - 1) + 1 + 8;
 }
 
-uint32_t FormatE1ZX::GetRepMatchCost(uint16_t length) const
+uint32_t FormatEF8::GetRepMatchCost(uint16_t length) const
 {
     return 0xFFFFFFFF;
 }
@@ -102,6 +83,10 @@ uint32_t FormatE1ZX::GetRepMatchCost(uint16_t length) const
 
 FormatBX0::FormatBX0(FormatOptions options): Format{options}
 {
+    mFormatId = FormatId::BX0;
+    mSupportsExtendOffset = true;
+    mSupportsExtendLength = false;
+
     mMaxLiteralLength = 0xFFFF;
     mMinMatchLength = 2;
     mMaxMatchLength = 0xFFFF;
@@ -128,6 +113,10 @@ uint32_t FormatBX0::GetRepMatchCost(uint16_t length) const
 
 FormatBX2::FormatBX2(FormatOptions options): Format{options}
 {
+    mFormatId = FormatId::BX2;
+    mSupportsExtendOffset = false;
+    mSupportsExtendLength = false;
+
     mMaxLiteralLength = 0xFFFF;
     mMinMatchLength = 2;
     mMaxMatchLength = 0xFFFF;

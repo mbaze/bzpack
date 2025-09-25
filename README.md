@@ -38,7 +38,7 @@ data relative to the current output position.
 
 Compression efficiency varies between the supported formats, due to differences in how they encode literals and matches. Their
 performance depends on the structure and statistical properties of the input, such as the frequency and distribution of match
-lengths and offsets. Therefore, it's a good idea to try multiple formats to determine the best fit. In general, numbers are
+lengths and offsets. Therefore, it is a good idea to try multiple formats to determine the best fit. In general, numbers are
 represented either as raw bytes or as Elias-Gamma values, read from a bit stream that operates independently of natural byte
 boundaries.
 
@@ -73,9 +73,14 @@ In the following text, we denote the Elias-Gamma code of integer *N* as `Elias(N
 
 ## Description of Supported Formats
 
-The descriptions below refer to stream interpretation at the logical level, that is how values appear in CPU registers at
-runtime. However, in all formats except LZM, the physical representation in the stream differs because unaligned bits are
-inverted to optimize byte fetching in the Z80 decoder.
+The descriptions below refer to stream interpretation at the logical level, that is, how values appear in CPU registers at
+runtime. However, in all formats except LZM, the physical representation in the stream differs. Unaligned bits are inverted to
+optimize byte-level fetching in the Z80 decoder.
+
+The BX0 and BX2 formats employ an exhaustive parser to achieve globally optimal encoding. This parser explores all possible
+coding paths, giving it roughly quadratic computational complexity in the size of the input block. This approach is excessive
+for general use, but it is acceptable in sizecoding, where every byte counts. For blocks up to ~1 KiB, the process is
+essentially instantaneous, although for blocks beyond ~4 KiB, it can take minutes or even hours.
 
 ### LZM
 
@@ -136,8 +141,6 @@ lightweight BX0 variant with raw 8-bit offset encoding. Blocks are encoded as fo
 most recent offset.
 * `Elias(N)`, `0`, `%oooooooo` – Copy `N + 1` bytes from an offset of `%oooooooo`.
 An offset of 0 indicates the end of the stream.
-
-Like BX0, the format uses a slower, globally optimal exhaustive parser.
 
 Supported options:
 

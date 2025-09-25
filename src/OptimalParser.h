@@ -8,6 +8,6 @@
 #include "CommonTypes.h"
 #include "Formats.h"
 
-std::vector<ParseStep> Parse(const uint8_t* pInput, uint16_t inputSize, const Format& format);
+std::vector<ParseStep> Parse(const uint8_t* pInput, uint32_t inputSize, const Format& format);
 
 #endif // OPTIMAL_PARSER_H

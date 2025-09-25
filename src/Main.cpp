@@ -122,12 +122,6 @@ std::vector<uint8_t> ReadFile(const char* pFileName)
         return {};
     }
 
-    if (fileSize > 0xFFFE)
-    {
-        PrintError(ErrorId::FileTooBig);
-        return {};
-    }
-
     if (!file.seekg(0, std::ios_base::beg))
     {
         PrintError(ErrorId::InputFileError);
@@ -274,6 +268,12 @@ int main(int argCount, char** args)
         return 1;
     }
 
+    if (spFormat->RequiresDijkstra() && inputData.size() >= 0xFFFF)
+    {
+        PrintError(ErrorId::FileTooBig);
+        return 1;
+    }
+
     if (spFormat->Reverse())
     {
         std::reverse(inputData.begin(), inputData.end());
@@ -281,7 +281,7 @@ int main(int argCount, char** args)
 
     // Compress the input stream.
 
-    BitStream packedStream = Compress(inputData.data(), static_cast<uint16_t>(inputData.size()), *spFormat);
+    BitStream packedStream = Compress(inputData.data(), static_cast<uint32_t>(inputData.size()), *spFormat);
     if (packedStream.Size() == 0)
     {
         PrintError(ErrorId::CompressionFailed);
@@ -300,7 +300,7 @@ int main(int argCount, char** args)
         std::reverse(inputData.begin(), inputData.end());
     }
 
-    std::vector<uint8_t> unpackedData = Decompress(packedStream, *spFormat, static_cast<uint16_t>(inputData.size()));
+    std::vector<uint8_t> unpackedData = Decompress(packedStream, *spFormat, static_cast<uint32_t>(inputData.size()));
 
     if (unpackedData.size() != inputData.size() || !std::equal(inputData.begin(), inputData.end(), unpackedData.data()))
     {

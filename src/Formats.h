@@ -35,6 +35,7 @@ public:
     FormatId Id() const { return mFormatId; }
     bool SupportsExtendOffset() const { return mSupportsExtendOffset; }
     bool SupportsExtendLength() const { return mSupportsExtendLength; }
+    bool RequiresDijkstra() const { return mRequiresDijkstra; }
 
     bool Reverse() const { return mReverse; }
     bool EndMarker() const { return mEndMarker; }
@@ -65,6 +66,7 @@ protected:
 
     bool mSupportsExtendOffset;
     bool mSupportsExtendLength;
+    bool mRequiresDijkstra;
 
     // Encoding options.
 

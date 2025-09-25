@@ -12,7 +12,7 @@ struct PathNode
     uint16_t offset = 0;
 };
 
-std::vector<ParseStep> Parse(const uint8_t* pInput, uint16_t inputSize, const Format& format)
+std::vector<ParseStep> Parse(const uint8_t* pInput, uint32_t inputSize, const Format& format)
 {
     std::vector<Match> matches;
 
@@ -27,7 +27,7 @@ std::vector<ParseStep> Parse(const uint8_t* pInput, uint16_t inputSize, const Fo
     std::vector<PathNode> nodes(inputSize + 1);
     nodes[0].cost = 0;
 
-    for (uint16_t inputPos = 0; inputPos < inputSize; inputPos++)
+    for (uint32_t inputPos = 0; inputPos < inputSize; inputPos++)
     {
         // Consider all available literals.
 
@@ -39,9 +39,7 @@ std::vector<ParseStep> Parse(const uint8_t* pInput, uint16_t inputSize, const Fo
 
             if (cost < nodes[inputPos + length].cost)
             {
-                nodes[inputPos + length].cost = cost;
-                nodes[inputPos + length].length = length;
-                nodes[inputPos + length].offset = 0;
+                nodes[inputPos + length] = PathNode{cost, length, 0};
             }
         }
 
@@ -61,9 +59,7 @@ std::vector<ParseStep> Parse(const uint8_t* pInput, uint16_t inputSize, const Fo
 
             if (cost < nodes[inputPos + match.length].cost)
             {
-                nodes[inputPos + match.length].cost = cost;
-                nodes[inputPos + match.length].length = match.length;
-                nodes[inputPos + match.length].offset = match.offset;
+                nodes[inputPos + match.length] = PathNode{cost, match.length, match.offset};
             }
         }
     }

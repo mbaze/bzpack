@@ -28,6 +28,7 @@ FormatLZM::FormatLZM(FormatOptions options): Format{options}
     mFormatId = FormatId::LZM;
     mSupportsExtendOffset = true;
     mSupportsExtendLength = true;
+    mRequiresDijkstra = false;
 
     mMaxLiteralLength = 127 + options.extendLength;
     mMinMatchLength = 2;
@@ -57,6 +58,7 @@ FormatEF8::FormatEF8(FormatOptions options): Format{options}
     mFormatId = FormatId::EF8;
     mSupportsExtendOffset = true;
     mSupportsExtendLength = false;
+    mRequiresDijkstra = false;
 
     mMaxLiteralLength = 255;
     mMinMatchLength = 2;
@@ -86,6 +88,7 @@ FormatBX0::FormatBX0(FormatOptions options): Format{options}
     mFormatId = FormatId::BX0;
     mSupportsExtendOffset = true;
     mSupportsExtendLength = false;
+    mRequiresDijkstra = true;
 
     mMaxLiteralLength = 0xFFFF;
     mMinMatchLength = 2;
@@ -116,6 +119,7 @@ FormatBX2::FormatBX2(FormatOptions options): Format{options}
     mFormatId = FormatId::BX2;
     mSupportsExtendOffset = false;
     mSupportsExtendLength = false;
+    mRequiresDijkstra = true;
 
     mMaxLiteralLength = 0xFFFF;
     mMinMatchLength = 2;

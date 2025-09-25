@@ -7,7 +7,7 @@
 #include "BitStream.h"
 #include "Formats.h"
 
-BitStream Compress(const uint8_t* pInput, uint16_t inputSize, const Format& format);
-std::vector<uint8_t> Decompress(BitStream& stream, const Format& format, uint16_t inputSize = 0);
+BitStream Compress(const uint8_t* pInput, uint32_t inputSize, const Format& format);
+std::vector<uint8_t> Decompress(BitStream& stream, const Format& format, uint32_t inputSize = 0);
 
 #endif // COMPRESSION_H

@@ -199,7 +199,7 @@ BitStream EncodeBX2(const uint8_t* pInput, const std::vector<ParseStep>& parse, 
     return stream;
 }
 
-BitStream Compress(const uint8_t* pInput, uint16_t inputSize, const Format& format)
+BitStream Compress(const uint8_t* pInput, uint32_t inputSize, const Format& format)
 {
     if (pInput == nullptr || inputSize == 0)
         return {};

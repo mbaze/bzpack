@@ -5,7 +5,7 @@
 #include <algorithm>
 #include "UniversalCodes.h"
 
-std::vector<uint8_t> DecodeLZM(BitStream& stream, const Format& format, uint16_t inputSize)
+std::vector<uint8_t> DecodeLZM(BitStream& stream, const Format& format, uint32_t inputSize)
 {
     if (format.Id() != FormatId::LZM)
         return {};
@@ -47,7 +47,7 @@ std::vector<uint8_t> DecodeLZM(BitStream& stream, const Format& format, uint16_t
     return data;
 }
 
-std::vector<uint8_t> DecodeEF8(BitStream& stream, const Format& format, uint16_t inputSize)
+std::vector<uint8_t> DecodeEF8(BitStream& stream, const Format& format, uint32_t inputSize)
 {
     if (format.Id() != FormatId::EF8)
         return {};
@@ -87,7 +87,7 @@ std::vector<uint8_t> DecodeEF8(BitStream& stream, const Format& format, uint16_t
     return data;
 }
 
-std::vector<uint8_t> DecodeBX0(BitStream& stream, const Format& format, uint16_t inputSize)
+std::vector<uint8_t> DecodeBX0(BitStream& stream, const Format& format, uint32_t inputSize)
 {
     if (format.Id() != FormatId::BX0)
         return {};
@@ -148,7 +148,7 @@ std::vector<uint8_t> DecodeBX0(BitStream& stream, const Format& format, uint16_t
     return data;
 }
 
-std::vector<uint8_t> DecodeBX2(BitStream& stream, const Format& format, uint16_t inputSize)
+std::vector<uint8_t> DecodeBX2(BitStream& stream, const Format& format, uint32_t inputSize)
 {
     if (format.Id() != FormatId::BX2)
         return {};
@@ -206,7 +206,7 @@ std::vector<uint8_t> DecodeBX2(BitStream& stream, const Format& format, uint16_t
     return data;
 }
 
-std::vector<uint8_t> Decompress(BitStream& stream, const Format& format, uint16_t inputSize)
+std::vector<uint8_t> Decompress(BitStream& stream, const Format& format, uint32_t inputSize)
 {
     std::vector<uint8_t> data;
 

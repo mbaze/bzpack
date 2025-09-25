@@ -4,7 +4,7 @@
 #include "PrefixMatcher.h"
 #include <algorithm>
 
-PrefixMatcher::PrefixMatcher(const uint8_t* pInput, uint16_t inputSize, uint16_t minMatchLength, uint16_t maxMatchLength, uint16_t maxMatchOffset):
+PrefixMatcher::PrefixMatcher(const uint8_t* pInput, uint32_t inputSize, uint16_t minMatchLength, uint16_t maxMatchLength, uint16_t maxMatchOffset):
     mInputPtr{pInput},
     mInputSize{inputSize},
     mMinMatchLength{minMatchLength},
@@ -13,13 +13,13 @@ PrefixMatcher::PrefixMatcher(const uint8_t* pInput, uint16_t inputSize, uint16_t
 {
     // Initialize lists that track past positions of single bytes and 2-byte sequences in the input.
 
-    std::vector<std::vector<uint16_t>> byteOccurrences(256);
+    std::vector<std::vector<uint32_t>> byteOccurrences(256);
     mBytePositions.resize(inputSize);
 
-    for (uint16_t inputPos = 0; inputPos < inputSize; inputPos++)
+    for (uint32_t inputPos = 0; inputPos < inputSize; inputPos++)
     {
         uint8_t byte = pInput[inputPos];
-        uint16_t windowPos = inputPos - std::min(inputPos, maxMatchOffset);
+        uint32_t windowPos = inputPos - std::min<uint32_t>(inputPos, maxMatchOffset);
 
         for (auto i = byteOccurrences[byte].rbegin(); i != byteOccurrences[byte].rend(); i++)
         {
@@ -32,43 +32,43 @@ PrefixMatcher::PrefixMatcher(const uint8_t* pInput, uint16_t inputSize, uint16_t
         byteOccurrences[byte].emplace_back(inputPos);
     }
 
-    std::vector<std::vector<uint16_t>> matchOccurrences(65536);
-    mLongestMatches.resize(inputSize);
+    std::vector<std::vector<uint32_t>> wordOccurrences(65536);
+    mMaxMatches.resize(inputSize);
 
-    for (uint16_t inputPos = 0; inputPos < inputSize - 1; inputPos++)
+    for (uint32_t inputPos = 0; inputPos < inputSize - 1; inputPos++)
     {
-        uint16_t match = (pInput[inputPos + 1] << 8) | pInput[inputPos];
-        uint16_t windowPos = inputPos - std::min(inputPos, maxMatchOffset);
+        uint16_t word = (pInput[inputPos + 1] << 8) | pInput[inputPos];
+        uint32_t windowPos = inputPos - std::min<uint32_t>(inputPos, maxMatchOffset);
 
-        for (auto i = matchOccurrences[match].rbegin(); i != matchOccurrences[match].rend(); i++)
+        for (auto i = wordOccurrences[word].rbegin(); i != wordOccurrences[word].rend(); i++)
         {
             if (*i < windowPos)
                 break;
 
-            mLongestMatches[inputPos].emplace_back(0, *i);
+            mMaxMatches[inputPos].emplace_back(*i);
         }
 
-        matchOccurrences[match].emplace_back(inputPos);
+        wordOccurrences[word].emplace_back(inputPos);
     }
 
     // Calculate the longest available match length at each position.
 
-    for (uint16_t inputPos = 0; inputPos < inputSize; inputPos++)
+    for (uint32_t inputPos = 0; inputPos < inputSize; inputPos++)
     {
-        for (Match& match: mLongestMatches[inputPos])
+        for (MaxMatch& maxMatch: mMaxMatches[inputPos])
         {
-            match.length = GetMatchLength(inputPos, match.offset);
+            maxMatch.length = GetMatchLength(inputPos, maxMatch.inputPos);
         }
     }
 }
 
-size_t PrefixMatcher::FindMatches(uint16_t inputPos, bool allowBytes, std::vector<Match>& matches) const
+size_t PrefixMatcher::FindMatches(uint32_t inputPos, bool allowBytes, std::vector<Match>& matches) const
 {
     // Single-byte matches help set up useful repeat offsets.
 
     if (allowBytes)
     {
-        for (uint16_t bytePos: mBytePositions[inputPos])
+        for (uint32_t bytePos: mBytePositions[inputPos])
         {
             matches.emplace_back(1, inputPos - bytePos);
         }
@@ -76,13 +76,11 @@ size_t PrefixMatcher::FindMatches(uint16_t inputPos, bool allowBytes, std::vecto
 
     size_t byteMatchCount = matches.size();
 
-    // In this case, the precomputed match.offset is the absolute input position.
-
-    for (const Match& match: mLongestMatches[inputPos])
+    for (const MaxMatch& maxMatch: mMaxMatches[inputPos])
     {
-        uint16_t offset = inputPos - match.offset;
+        uint16_t offset = inputPos - maxMatch.inputPos;
 
-        for (uint16_t length = mMinMatchLength; length <= match.length; length++)
+        for (uint16_t length = mMinMatchLength; length <= maxMatch.length; length++)
         {
             matches.emplace_back(length, offset);
         }
@@ -91,28 +89,28 @@ size_t PrefixMatcher::FindMatches(uint16_t inputPos, bool allowBytes, std::vecto
     return byteMatchCount;
 }
 
-Match PrefixMatcher::FindLongestMatch(uint16_t inputPos) const
+Match PrefixMatcher::FindLongestMatch(uint32_t inputPos) const
 {
     uint16_t maxLength = mMinMatchLength - 1;
     uint16_t maxOffset = 0;
 
-    for (const Match& match: mLongestMatches[inputPos])
+    for (const MaxMatch& maxMatch: mMaxMatches[inputPos])
     {
-        if (match.length > maxLength)
+        if (maxMatch.length > maxLength)
         {
-            maxLength = match.length;
-            maxOffset = inputPos - match.offset;
+            maxLength = maxMatch.length;
+            maxOffset = inputPos - maxMatch.inputPos;
         }
     }
 
     return {maxLength, maxOffset};
 }
 
-uint16_t PrefixMatcher::GetMatchLength(uint16_t inputPos, uint16_t matchPos) const
+uint16_t PrefixMatcher::GetMatchLength(uint32_t inputPos, uint32_t matchPos) const
 {
     const uint8_t* pInput = mInputPtr + inputPos;
     const uint8_t* pMatch = mInputPtr + matchPos;
-    const uint8_t* pEnd = pInput + std::min<uint16_t>(mInputSize - inputPos, mMaxMatchLength);
+    const uint8_t* pEnd = pInput + std::min<uint32_t>(mInputSize - inputPos, mMaxMatchLength);
 
     return static_cast<uint16_t>(std::mismatch(pInput, pEnd, pMatch).first - pInput);
 }

@@ -4,6 +4,27 @@
 #include "Formats.h"
 #include "UniversalCodes.h"
 
+uint32_t Format::mEliasCosts[65536] = {0};
+
+Format::Format(const FormatOptions& options):
+    mReverse(options.reverse),
+    mEndMarker(options.endMarker),
+    mExtendOffset(options.extendOffset),
+    mExtendLength(options.extendLength)
+{
+    // Initialize the Elias-Gamma cost lookup table (index 0 used as sentinel).
+
+    if (mEliasCosts[0] == 0)
+    {
+        mEliasCosts[0] = 0xFFFFFFFF;
+
+        for (uint32_t i = 1; i < 65536; i++)
+        {
+            mEliasCosts[i] = GetEliasCost(i);
+        }
+    }
+}
+
 std::unique_ptr<Format> Format::Create(const FormatOptions& options)
 {
     switch (options.id)
@@ -68,12 +89,12 @@ FormatEF8::FormatEF8(FormatOptions options): Format{options}
 
 uint32_t FormatEF8::GetLiteralCost(uint16_t length) const
 {
-    return GetEliasCost(length) + 1 + (length << 3);
+    return mEliasCosts[length] + 1 + (length << 3);
 }
 
 uint32_t FormatEF8::GetMatchCost(uint16_t length, uint16_t offset) const
 {
-    return GetEliasCost(length - 1) + 1 + 8;
+    return mEliasCosts[length - 1] + 1 + 8;
 }
 
 uint32_t FormatEF8::GetRepMatchCost(uint16_t length) const
@@ -98,18 +119,18 @@ FormatBX0::FormatBX0(FormatOptions options): Format{options}
 
 uint32_t FormatBX0::GetLiteralCost(uint16_t length) const
 {
-    return 1 + GetEliasCost(length) + (length << 3);
+    return 1 + mEliasCosts[length] + (length << 3);
 }
 
 uint32_t FormatBX0::GetMatchCost(uint16_t length, uint16_t offset) const
 {
     uint16_t eliasPart = GetEliasPart(offset);
-    return 1 + GetEliasCost(eliasPart) + 7 + GetEliasCost(length - 1);
+    return 1 + mEliasCosts[eliasPart] + 7 + mEliasCosts[length - 1];
 }
 
 uint32_t FormatBX0::GetRepMatchCost(uint16_t length) const
 {
-    return 1 + GetEliasCost(length);
+    return 1 + mEliasCosts[length];
 }
 
 // BX2 format.
@@ -129,15 +150,15 @@ FormatBX2::FormatBX2(FormatOptions options): Format{options}
 
 uint32_t FormatBX2::GetLiteralCost(uint16_t length) const
 {
-    return GetEliasCost(length) + 1 + (length << 3);
+    return mEliasCosts[length] + 1 + (length << 3);
 }
 
 uint32_t FormatBX2::GetMatchCost(uint16_t length, uint16_t offset) const
 {
-    return GetEliasCost(length - 1) + 1 + 8;
+    return mEliasCosts[length - 1] + 1 + 8;
 }
 
 uint32_t FormatBX2::GetRepMatchCost(uint16_t length) const
 {
-    return GetEliasCost(length) + 1;
+    return mEliasCosts[length] + 1;
 }

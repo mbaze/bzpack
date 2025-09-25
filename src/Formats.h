@@ -54,12 +54,7 @@ public:
 
 protected:
 
-    Format(FormatOptions options):
-        mReverse(options.reverse),
-        mEndMarker(options.endMarker),
-        mExtendOffset(options.extendOffset),
-        mExtendLength(options.extendLength)
-    {}
+    explicit Format(const FormatOptions& options);
 
     FormatId mFormatId;
 
@@ -82,6 +77,10 @@ protected:
     uint16_t mMinMatchLength;
     uint16_t mMaxMatchLength;
     uint16_t mMaxMatchOffset;
+
+    // Precomputed Elias-Gamma cost table for values 1..65535.
+
+    static uint32_t mEliasCosts[65536];
 };
 
 class FormatLZM: public Format

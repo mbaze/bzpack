@@ -4,6 +4,7 @@
 #ifndef FORMATS_H
 #define FORMATS_H
 
+#include <cstdint>
 #include <memory>
 
 enum FormatId

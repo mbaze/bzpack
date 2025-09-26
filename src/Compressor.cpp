@@ -220,22 +220,14 @@ BitStream Compress(const uint8_t* pInput, uint32_t inputSize, const Format& form
             break;
 
         case FormatId::BX0:
-        {
-//            DijkstraParser parser(pInput, inputSize, format);
-            ExhaustiveParser parser;
-            parse = parser.Parse(pInput, inputSize, format);
+            parse = ExhaustiveParser::Parse(pInput, inputSize, format);
             stream = EncodeBX0(pInput, parse, format);
             break;
-        }
 
         case FormatId::BX2:
-        {
-//            DijkstraParser parser(pInput, inputSize, format);
-            ExhaustiveParser parser;
-            parse = parser.Parse(pInput, inputSize, format);
+            parse = ExhaustiveParser::Parse(pInput, inputSize, format);
             stream = EncodeBX2(pInput, parse, format);
             break;
-        }
     }
 
     return stream;

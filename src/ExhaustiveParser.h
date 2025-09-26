@@ -9,7 +9,8 @@ class ExhaustiveParser
 {
 public:
 
-    std::vector<ParseStep> Parse(const uint8_t* pInput, uint32_t inputSize, const Format& format);
+    static std::vector<ParseStep> Parse(const uint8_t* pInput, uint32_t inputSize, const Format& format);
+    ExhaustiveParser() = delete;
 
 private:
 
@@ -22,11 +23,6 @@ private:
         uint16_t value = 0;
     };
 
-    PathNode& NodeAt(uint32_t inputPos, uint32_t repOffset)
-    {
-        return mNodes[mRowOffsets[inputPos] + repOffset];
-    }
-
     static uint16_t GetRowWidth(uint32_t inputPos, uint32_t maxOffset)
     {
         uint32_t rowWidth = 1;
@@ -38,9 +34,6 @@ private:
 
         return rowWidth;
     }
-
-    std::vector<PathNode> mNodes;
-    std::vector<size_t> mRowOffsets;
 };
 
 #endif // EXHAUSTIVE_PARSER_H

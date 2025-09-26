@@ -12,8 +12,8 @@ std::vector<ParseStep> OptimalParser::Parse(const uint8_t* pInput, uint32_t inpu
 
     // Precompute matches.
 
-    PrefixMatcher matcher(pInput, inputSize, format.MinMatchLength(), format.MaxMatchLength(), format.MaxMatchOffset());
     std::vector<Match> matches;
+    PrefixMatcher matcher(pInput, inputSize, format.MinMatchLength(), format.MaxMatchLength(), format.MaxMatchOffset());
 
     std::vector<PathNode> nodes(inputSize + 1);
     nodes[0].cost = 0;

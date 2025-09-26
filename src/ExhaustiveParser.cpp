@@ -11,32 +11,43 @@ std::vector<ParseStep> ExhaustiveParser::Parse(const uint8_t* pInput, uint32_t i
 
     // Precompute matches.
 
-    PrefixMatcher matcher(pInput, inputSize, format.MinMatchLength(), format.MaxMatchLength(), format.MaxMatchOffset());
     std::vector<Match> matches;
+    PrefixMatcher matcher(pInput, inputSize, format.MinMatchLength(), format.MaxMatchLength(), format.MaxMatchOffset());
 
-    // Precompute row offsets for triangular DP table.
+    // Allocate triangular DP table and corresponding row pointers.
 
-    mRowOffsets.resize(inputSize + 1);
-    size_t elementCount = 0;
+    size_t nodeCount = 0;
 
-    for (uint32_t i = 0; i < mRowOffsets.size(); i++)
+    for (uint32_t i = 0; i <= inputSize; i++)
     {
-        mRowOffsets[i] = elementCount;
-        elementCount += GetRowWidth(i, format.MaxMatchOffset());
+        nodeCount += GetRowWidth(i, format.MaxMatchOffset());
     }
 
-    mNodes.resize(elementCount);
-    mNodes[0] = {0, 1, 0};
+    std::vector<PathNode> nodes(nodeCount);
+    std::vector<PathNode*> rowPointers(inputSize + 1);
+    PathNode* p = nodes.data();
+
+    for (uint32_t i = 0; i <= inputSize; i++)
+    {
+        rowPointers[i] = p;
+        p += GetRowWidth(i, format.MaxMatchOffset());
+    }
+
+    // Kickstart the main loop and sweep over all coding paths.
+
+    nodes[0] = {0, 1, 0};
 
     for (uint32_t inputPos = 0; inputPos < inputSize; inputPos++)
     {
         matches.clear();
-        size_t byteMatchCount = matcher.FindMatches(inputPos, true, matches);
+        size_t regularMatchOffset = matcher.FindMatches(inputPos, true, matches);
+
+        PathNode* rowPtr = rowPointers[inputPos];
         uint32_t rowWidth = GetRowWidth(inputPos, format.MaxMatchOffset());
 
         for (uint16_t repState = 0; repState < rowWidth; repState++)
         {
-            const PathNode& node = NodeAt(inputPos, repState);
+            const PathNode& node = rowPtr[repState];
 
             // Skip unreachable states.
             if (node.cost == 0xFFFFFFFF)
@@ -45,7 +56,7 @@ std::vector<ParseStep> ExhaustiveParser::Parse(const uint8_t* pInput, uint32_t i
             bool isMatch = node.matchLength;
             bool isLiteral = !isMatch;
 
-            // Propagate repeat matches.
+            // Propagate repeat matches (only after a literal).
 
             if (isLiteral)
             {
@@ -54,7 +65,7 @@ std::vector<ParseStep> ExhaustiveParser::Parse(const uint8_t* pInput, uint32_t i
                     if (match.offset != repState)
                         continue;
 
-                    PathNode& nextNode = NodeAt(inputPos + match.length, repState);
+                    PathNode& nextNode = rowPointers[inputPos + match.length][repState];
                     uint32_t nextCost = node.cost + format.GetRepMatchCost(match.length);
 
                     if (nextCost < nextNode.cost)
@@ -64,7 +75,7 @@ std::vector<ParseStep> ExhaustiveParser::Parse(const uint8_t* pInput, uint32_t i
                 }
             }
 
-            // Propagate literals.
+            // Propagate literals (only after a match).
 
             if (isMatch)
             {
@@ -72,7 +83,7 @@ std::vector<ParseStep> ExhaustiveParser::Parse(const uint8_t* pInput, uint32_t i
 
                 for (uint16_t length = 1; length <= maxLength; length++)
                 {
-                    PathNode& nextNode = NodeAt(inputPos + length, repState);
+                    PathNode& nextNode = rowPointers[inputPos + length][repState];
                     uint32_t nextCost = node.cost + format.GetLiteralCost(length);
 
                     if (nextCost < nextNode.cost)
@@ -84,11 +95,11 @@ std::vector<ParseStep> ExhaustiveParser::Parse(const uint8_t* pInput, uint32_t i
 
             // Propagate regular matches.
 
-            for (size_t i = byteMatchCount; i < matches.size(); i++)
+            for (size_t i = regularMatchOffset; i < matches.size(); i++)
             {
                 const Match& match = matches[i];
 
-                PathNode& nextNode = NodeAt(inputPos + match.length, match.offset);
+                PathNode& nextNode = rowPointers[inputPos + match.length][match.offset];
                 uint32_t nextCost = node.cost + format.GetMatchCost(match.length, match.offset);
 
                 if (nextCost < nextNode.cost)
@@ -107,7 +118,8 @@ std::vector<ParseStep> ExhaustiveParser::Parse(const uint8_t* pInput, uint32_t i
 
     for (uint32_t repState = 0; repState < lastRowWidth; repState++)
     {
-        const PathNode& node = NodeAt(inputSize, repState);
+        const PathNode& node = rowPointers[inputSize][repState];
+
         if (node.cost < bestCost)
         {
             bestCost = node.cost;
@@ -121,7 +133,7 @@ std::vector<ParseStep> ExhaustiveParser::Parse(const uint8_t* pInput, uint32_t i
 
     while (inputSize)
     {
-        const PathNode& node = NodeAt(inputSize, bestRepState);
+        const PathNode& node = rowPointers[inputSize][bestRepState];
 
         if (node.matchLength)
         {

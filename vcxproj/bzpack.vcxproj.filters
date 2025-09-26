@@ -8,8 +8,8 @@
     <ClCompile Include="..\src\UniversalCodes.cpp" />
     <ClCompile Include="..\src\Decompressor.cpp" />
     <ClCompile Include="..\src\PrefixMatcher.cpp" />
-    <ClCompile Include="..\src\DijkstraParser.cpp" />
     <ClCompile Include="..\src\Formats.cpp" />
+    <ClCompile Include="..\src\ExhaustiveParser.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\BitStream.h" />
@@ -19,9 +19,6 @@
     <ClInclude Include="..\src\Formats.h" />
     <ClInclude Include="..\src\PrefixMatcher.h" />
     <ClInclude Include="..\src\CommonTypes.h" />
-    <ClInclude Include="..\src\DijkstraParser.h" />
-    <ClInclude Include="..\src\MultiHeap.h" />
-    <ClInclude Include="..\src\CostTable.h" />
-    <ClInclude Include="..\src\BlockVector.h" />
+    <ClInclude Include="..\src\ExhaustiveParser.h" />
   </ItemGroup>
 </Project>

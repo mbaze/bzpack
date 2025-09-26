@@ -88,7 +88,7 @@ class FormatLZM: public Format
     friend class Format;
 
     FormatLZM() = delete;
-    FormatLZM(FormatOptions options);
+    FormatLZM(const FormatOptions& options);
 
     uint32_t GetLiteralCost(uint16_t length) const override;
     uint32_t GetMatchCost(uint16_t length, uint16_t offset) const override;
@@ -100,7 +100,7 @@ class FormatEF8: public Format
     friend class Format;
 
     FormatEF8() = delete;
-    FormatEF8(FormatOptions options);
+    FormatEF8(const FormatOptions& options);
 
     uint32_t GetLiteralCost(uint16_t length) const override;
     uint32_t GetMatchCost(uint16_t length, uint16_t offset) const override;
@@ -112,7 +112,7 @@ class FormatBX0: public Format
     friend class Format;
 
     FormatBX0() = delete;
-    FormatBX0(FormatOptions options);
+    FormatBX0(const FormatOptions& options);
 
     uint32_t GetLiteralCost(uint16_t length) const override;
     uint32_t GetMatchCost(uint16_t length, uint16_t offset) const override;
@@ -129,7 +129,7 @@ class FormatBX2: public Format
     friend class Format;
 
     FormatBX2() = delete;
-    FormatBX2(FormatOptions options);
+    FormatBX2(const FormatOptions& options);
 
     uint32_t GetLiteralCost(uint16_t length) const override;
     uint32_t GetMatchCost(uint16_t length, uint16_t offset) const override;

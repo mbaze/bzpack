@@ -44,7 +44,7 @@ std::unique_ptr<Format> Format::Create(const FormatOptions& options)
 
 // LZM format.
 
-FormatLZM::FormatLZM(FormatOptions options): Format{options}
+FormatLZM::FormatLZM(const FormatOptions& options): Format{options}
 {
     mFormatId = FormatId::LZM;
     mSupportsExtendOffset = true;
@@ -74,7 +74,7 @@ uint32_t FormatLZM::GetRepMatchCost(uint16_t length) const
 
 // EF8 format.
 
-FormatEF8::FormatEF8(FormatOptions options): Format{options}
+FormatEF8::FormatEF8(const FormatOptions& options): Format{options}
 {
     mFormatId = FormatId::EF8;
     mSupportsExtendOffset = true;
@@ -104,7 +104,7 @@ uint32_t FormatEF8::GetRepMatchCost(uint16_t length) const
 
 // BX0 format.
 
-FormatBX0::FormatBX0(FormatOptions options): Format{options}
+FormatBX0::FormatBX0(const FormatOptions& options): Format{options}
 {
     mFormatId = FormatId::BX0;
     mSupportsExtendOffset = true;
@@ -135,7 +135,7 @@ uint32_t FormatBX0::GetRepMatchCost(uint16_t length) const
 
 // BX2 format.
 
-FormatBX2::FormatBX2(FormatOptions options): Format{options}
+FormatBX2::FormatBX2(const FormatOptions& options): Format{options}
 {
     mFormatId = FormatId::BX2;
     mSupportsExtendOffset = false;

@@ -3,8 +3,8 @@
 
 #include "Compression.h"
 #include <algorithm>
+#include "ExhaustiveParser.h"
 #include "OptimalParser.h"
-#include "DijkstraParser.h"
 #include "UniversalCodes.h"
 
 BitStream EncodeLZM(const uint8_t* pInput, const std::vector<ParseStep>& parse, const Format& format)
@@ -210,27 +210,29 @@ BitStream Compress(const uint8_t* pInput, uint32_t inputSize, const Format& form
     switch (format.Id())
     {
         case FormatId::LZM:
-            parse = Parse(pInput, inputSize, format);
+            parse = OptimalParser::Parse(pInput, inputSize, format);
             stream = EncodeLZM(pInput, parse, format);
             break;
 
         case FormatId::EF8:
-            parse = Parse(pInput, inputSize, format);
+            parse = OptimalParser::Parse(pInput, inputSize, format);
             stream = EncodeEF8(pInput, parse, format);
             break;
 
         case FormatId::BX0:
         {
-            DijkstraParser parser(pInput, inputSize, format);
-            parse = parser.Parse();
+//            DijkstraParser parser(pInput, inputSize, format);
+            ExhaustiveParser parser;
+            parse = parser.Parse(pInput, inputSize, format);
             stream = EncodeBX0(pInput, parse, format);
             break;
         }
 
         case FormatId::BX2:
         {
-            DijkstraParser parser(pInput, inputSize, format);
-            parse = parser.Parse();
+//            DijkstraParser parser(pInput, inputSize, format);
+            ExhaustiveParser parser;
+            parse = parser.Parse(pInput, inputSize, format);
             stream = EncodeBX2(pInput, parse, format);
             break;
         }

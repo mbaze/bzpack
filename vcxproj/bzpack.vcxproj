@@ -22,24 +22,21 @@
     <ClCompile Include="..\src\BitStream.cpp" />
     <ClCompile Include="..\src\Compressor.cpp" />
     <ClCompile Include="..\src\Decompressor.cpp" />
-    <ClCompile Include="..\src\DijkstraParser.cpp" />
     <ClCompile Include="..\src\Formats.cpp" />
     <ClCompile Include="..\src\Main.cpp" />
     <ClCompile Include="..\src\PrefixMatcher.cpp" />
     <ClCompile Include="..\src\OptimalParser.cpp" />
+    <ClCompile Include="..\src\ExhaustiveParser.cpp" />
     <ClCompile Include="..\src\UniversalCodes.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\BitStream.h" />
-    <ClInclude Include="..\src\BlockVector.h" />
     <ClInclude Include="..\src\Compression.h" />
-    <ClInclude Include="..\src\CostTable.h" />
-    <ClInclude Include="..\src\DijkstraParser.h" />
     <ClInclude Include="..\src\Formats.h" />
     <ClInclude Include="..\src\PrefixMatcher.h" />
     <ClInclude Include="..\src\OptimalParser.h" />
     <ClInclude Include="..\src\CommonTypes.h" />
-    <ClInclude Include="..\src\MultiHeap.h" />
+    <ClInclude Include="..\src\ExhaustiveParser.h" />
     <ClInclude Include="..\src\UniversalCodes.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

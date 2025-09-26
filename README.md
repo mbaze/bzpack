@@ -77,10 +77,10 @@ The descriptions below refer to stream interpretation at the logical level, that
 runtime. However, in all formats except LZM, the physical representation in the stream differs. Unaligned bits are inverted to
 optimize byte-level fetching in the Z80 decoder.
 
-The BX0 and BX2 formats employ an exhaustive parser to achieve globally optimal encoding. This parser explores all possible
-coding paths, giving it roughly quadratic computational complexity in the size of the input block. This approach is excessive
-for general use, but it is acceptable in sizecoding, where every byte counts. For blocks up to ~1 KiB, the process is
-essentially instantaneous, although for blocks beyond ~4 KiB, it can take minutes or even hours.
+All formats use globally optimal parsers, staying true to the sizecoding spirit where every byte matters. For the BX0 and BX2
+formats, the parser must explore all possible coding paths using all available repeat offsets, giving it roughly quadratic
+computational complexity in the size of the input block. For blocks around 1 KiB, the process is essentially instantaneous.
+However, for blocks larger than ~4 KiB, it might take even several minutes to compress.
 
 ### LZM
 

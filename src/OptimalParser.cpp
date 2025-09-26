@@ -5,41 +5,38 @@
 #include <algorithm>
 #include "PrefixMatcher.h"
 
-struct PathNode
+std::vector<ParseStep> OptimalParser::Parse(const uint8_t* pInput, uint32_t inputSize, const Format& format)
 {
-    uint32_t cost = 0xFFFFFFFF;
-    uint16_t length = 0;
-    uint16_t offset = 0;
-};
+    if (pInput == nullptr || inputSize == 0)
+        return {};
 
-std::vector<ParseStep> Parse(const uint8_t* pInput, uint32_t inputSize, const Format& format)
-{
+    // Precompute matches.
+
+    PrefixMatcher matcher(pInput, inputSize, format.MinMatchLength(), format.MaxMatchLength(), format.MaxMatchOffset());
     std::vector<Match> matches;
-
-    PrefixMatcher matcher(
-        pInput,
-        inputSize,
-        format.MinMatchLength(),
-        format.MaxMatchLength(),
-        format.MaxMatchOffset()
-    );
 
     std::vector<PathNode> nodes(inputSize + 1);
     nodes[0].cost = 0;
 
     for (uint32_t inputPos = 0; inputPos < inputSize; inputPos++)
     {
+        matches.clear();
+        matcher.FindMatches(inputPos, false, matches);
+
+        const PathNode& node = nodes[inputPos];
+
         // Consider all available literals.
 
         uint16_t maxLength = std::min<uint16_t>(inputSize - inputPos, format.MaxLiteralLength());
 
-        for (uint16_t length = maxLength; length > 0; length--)
+        for (uint16_t length = 1; length <= maxLength; length++)
         {
-            uint32_t cost = nodes[inputPos].cost + format.GetLiteralCost(length);
+            PathNode& nextNode = nodes[inputPos + length];
+            uint32_t nextCost = node.cost + format.GetLiteralCost(length);
 
-            if (cost < nodes[inputPos + length].cost)
+            if (nextCost < nextNode.cost)
             {
-                nodes[inputPos + length] = PathNode{cost, length, 0};
+                nextNode = PathNode{nextCost, length, 0};
             }
         }
 
@@ -50,28 +47,27 @@ std::vector<ParseStep> Parse(const uint8_t* pInput, uint32_t inputSize, const Fo
             continue;
         }
 
-        matches.clear();
-        matcher.FindMatches(inputPos, false, matches);
-
         for (const Match& match: matches)
         {
-            uint32_t cost = nodes[inputPos].cost + format.GetMatchCost(match.length, match.offset);
+            PathNode& nextNode = nodes[inputPos + match.length];
+            uint32_t nextCost = node.cost + format.GetMatchCost(match.length, match.offset);
 
-            if (cost < nodes[inputPos + match.length].cost)
+            if (nextCost < nextNode.cost)
             {
-                nodes[inputPos + match.length] = PathNode{cost, match.length, match.offset};
+                nextNode = PathNode{nextCost, match.length, match.offset};
             }
         }
     }
 
-    // Backtrack and reconstruct the optimal parse sequence.
+    // Backtrack to reconstruct the optimal parse sequence.
 
     std::vector<ParseStep> parse;
 
     while (inputSize)
     {
-        parse.emplace_back(nodes[inputSize].length, nodes[inputSize].offset);
-        inputSize -= nodes[inputSize].length;
+        const PathNode& node = nodes[inputSize];
+        parse.emplace_back(node.length, node.offset);
+        inputSize -= node.length;
     }
 
     std::reverse(parse.begin(), parse.end());

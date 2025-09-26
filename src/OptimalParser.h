@@ -8,6 +8,21 @@
 #include "CommonTypes.h"
 #include "Formats.h"
 
-std::vector<ParseStep> Parse(const uint8_t* pInput, uint32_t inputSize, const Format& format);
+class OptimalParser
+{
+public:
+
+    static std::vector<ParseStep> Parse(const uint8_t* pInput, uint32_t inputSize, const Format& format);
+    OptimalParser() = delete;
+
+private:
+
+    struct PathNode
+    {
+        uint32_t cost = 0xFFFFFFFF;
+        uint16_t length = 0;
+        uint16_t offset = 0;
+    };
+};
 
 #endif // OPTIMAL_PARSER_H

@@ -35,7 +35,7 @@ std::vector<ParseStep> ExhaustiveParser::Parse(const uint8_t* pInput, uint32_t i
 
     // Kickstart the main loop and sweep over all coding paths.
 
-    nodes[0] = {0, 1, 0};
+    nodes[0] = PathNode{0, 1, 0};
 
     for (uint32_t inputPos = 0; inputPos < inputSize; inputPos++)
     {

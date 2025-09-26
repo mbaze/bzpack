@@ -25,7 +25,7 @@ std::vector<ParseStep> OptimalParser::Parse(const uint8_t* pInput, uint32_t inpu
 
         const PathNode& node = nodes[inputPos];
 
-        // Consider all available literals.
+        // Propagate literals.
 
         uint16_t maxLength = std::min<uint16_t>(inputSize - inputPos, format.MaxLiteralLength());
 
@@ -40,12 +40,7 @@ std::vector<ParseStep> OptimalParser::Parse(const uint8_t* pInput, uint32_t inpu
             }
         }
 
-        // Consider all available matches.
-
-        if (inputPos + format.MinMatchLength() > inputSize)
-        {
-            continue;
-        }
+        // Propagate matches.
 
         for (const Match& match: matches)
         {

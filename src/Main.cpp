@@ -5,7 +5,6 @@
 
 #include <algorithm>
 #include <cstdio>
-#include <cstdlib>
 #include <fstream>
 #include <functional>
 #include <unordered_map>
@@ -166,16 +165,9 @@ bool WriteFile(const char* pFileName, const uint8_t* pData, size_t size)
 
 int main(int argCount, char** args)
 {
-    std::set_new_handler(
-        [] {
-            PrintError(ErrorId::OutOfMemory);
-            std::abort();
-        }
-    );
-
     if (argCount < 2)
     {
-        printf("\nUsage: bzpack.exe [-lzm|-ef8|-bx0|-bx2] [-r] [-e] [-o] [-l] <inputFile> [outputFile]\n");
+        printf("\nUsage: bzpack.exe [-lzm|-ef8|-bx0|-bx2] [-r] [-e] [-o] [-l] [-n] <inputFile> [outputFile]\n");
         printf("\nOptions:\n\n");
         printf("-lzm: Byte-aligned LZSS. Raw 7-bit length, raw 8-bit offset (default).\n");
         printf("-ef8: Elias length, raw 8-bit offset.\n");
@@ -185,6 +177,7 @@ int main(int argCount, char** args)
         printf("-e: Add end-of-stream marker.\n");
         printf("-o: Extend the offset range by 1.\n");
         printf("-l: Extend the block length by 1.\n");
+        printf("-n: Produce natural stream without stream-level optimizations.\n");
         return 0;
     }
 
@@ -200,7 +193,8 @@ int main(int argCount, char** args)
         {"-r",   [&]() { options.reverse = 1; }},
         {"-e",   [&]() { options.endMarker = 1; }},
         {"-o",   [&]() { options.extendOffset = 1; }},
-        {"-l",   [&]() { options.extendLength = 1; }}
+        {"-l",   [&]() { options.extendLength = 1; }},
+        {"-n",   [&]() { options.naturalStream = 1; }}
     };
 
     // Process command line arguments.
@@ -268,7 +262,7 @@ int main(int argCount, char** args)
         return 1;
     }
 
-    if (spFormat->RequiresDijkstra() && inputData.size() >= 0xFFFF)
+    if (spFormat->SupportsRepOffset() && inputData.size() >= 0xFFFF)
     {
         PrintError(ErrorId::FileTooBig);
         return 1;

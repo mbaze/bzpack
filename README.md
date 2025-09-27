@@ -75,7 +75,7 @@ In the following text, we denote the Elias-Gamma code of integer *N* as `Elias(N
 
 The descriptions below refer to stream interpretation at the logical level, that is, how values appear in CPU registers at
 runtime. However, in all formats except LZM, the physical representation in the stream differs. Unaligned bits are inverted to
-optimize byte-level fetching in the Z80 decoder.
+optimize byte-level fetching in the Z80 decoder. This behavior can be suppressed with the `-n` command line option.
 
 All formats use globally optimal parsers, staying true to the sizecoding spirit where every byte matters. For the BX0 and BX2
 formats, the parser must explore all possible coding paths using all available repeat offsets, giving it roughly quadratic

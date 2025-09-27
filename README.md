@@ -10,7 +10,7 @@ Sinclair ZX Spectrum.
 
 Bzpack is a command-line utility with the following usage format:
 
-`bzpack.exe [-lzm|-ef8|-bx0|-bx2] [-r] [-e] [-o] [-l] <inputFile> [outputFile]`
+`bzpack.exe [-lzm|-ef8|-bx0|-bx2] [-r] [-e] [-o] [-l] [-n] <inputFile> [outputFile]`
 
 For example, to compress a file named *"demo.bin"* in reverse direction using the BX2 format with the end-of-stream marker, the
 command would be:
@@ -20,12 +20,12 @@ command would be:
 Here’s a list of supported command-line options (not including compression format identifiers `-lzm`, `-ef8`, `-bx0`, and
 `-bx2`):
 
-* `-r` - Compress in reverse direction. In practice, this option helps reduce the decoder size.
-* `-e` - Add an end-of-stream marker. Useful for general-purpose decompression, but often unnecessary for minimalist programs.
-* `-o` - Extend the offset range by 1. Supported by some formats; can produce a slightly shorter stream at the cost of a larger
-decoder.
-* `-l` - Extend the block length by 1. Supported by some formats; similarly, can result in a shorter stream, but requires a
-larger decoder.
+* `-r`: Compress in reverse direction. This option helps reduce the decoder size.
+* `-e`: Add an end-of-stream marker. Useful for general-purpose decompression, but often unnecessary for minimalist programs.
+* `-o`: Extend the offset range by 1. Supported by some formats; can produce a shorter stream at the cost of a larger decoder.
+* `-l`: Extend the block length by 1. Supported by some formats; can shorten the stream, but requires a larger decoder.
+* `-n`: Produce natural stream without stream-level optimizations (some formats use bitwise inversion to optimize decoding on
+the Z80).
 
 ## Compression Format Structure
 

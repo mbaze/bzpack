@@ -51,7 +51,7 @@ BitStream EncodeEF8(const uint8_t* pInput, const std::vector<ParseStep>& parse, 
     if (format.Id() != FormatId::EF8 || parse.empty())
         return {};
 
-    BitStream stream(true);
+    BitStream stream(!format.NaturalStream());
 
     for (const ParseStep& parseStep: parse)
     {
@@ -91,7 +91,7 @@ BitStream EncodeBX0(const uint8_t* pInput, const std::vector<ParseStep>& parse, 
     if (format.Id() != FormatId::BX0 || parse.empty())
         return {};
 
-    BitStream stream(true);
+    BitStream stream(!format.NaturalStream());
     uint16_t repOffset = 0;
     bool wasLiteral = false;
 
@@ -151,7 +151,7 @@ BitStream EncodeBX2(const uint8_t* pInput, const std::vector<ParseStep>& parse, 
     if (format.Id() != FormatId::BX2 || parse.empty())
         return {};
 
-    BitStream stream(true);
+    BitStream stream(!format.NaturalStream());
     uint16_t repOffset = 0;
     bool wasLiteral = false;
 

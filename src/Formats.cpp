@@ -10,7 +10,8 @@ Format::Format(const FormatOptions& options):
     mReverse(options.reverse),
     mEndMarker(options.endMarker),
     mExtendOffset(options.extendOffset),
-    mExtendLength(options.extendLength)
+    mExtendLength(options.extendLength),
+    mNaturalStream(options.naturalStream)
 {
     // Initialize the Elias-Gamma cost lookup table (index 0 used as sentinel).
 
@@ -49,7 +50,7 @@ FormatLZM::FormatLZM(const FormatOptions& options): Format{options}
     mFormatId = FormatId::LZM;
     mSupportsExtendOffset = true;
     mSupportsExtendLength = true;
-    mRequiresDijkstra = false;
+    mSupportsRepOffset = false;
 
     mMaxLiteralLength = 127 + options.extendLength;
     mMinMatchLength = 2;
@@ -79,7 +80,7 @@ FormatEF8::FormatEF8(const FormatOptions& options): Format{options}
     mFormatId = FormatId::EF8;
     mSupportsExtendOffset = true;
     mSupportsExtendLength = false;
-    mRequiresDijkstra = false;
+    mSupportsRepOffset = false;
 
     mMaxLiteralLength = 255;
     mMinMatchLength = 2;
@@ -109,7 +110,7 @@ FormatBX0::FormatBX0(const FormatOptions& options): Format{options}
     mFormatId = FormatId::BX0;
     mSupportsExtendOffset = true;
     mSupportsExtendLength = false;
-    mRequiresDijkstra = true;
+    mSupportsRepOffset = true;
 
     mMaxLiteralLength = 0xFFFF;
     mMinMatchLength = 2;
@@ -140,7 +141,7 @@ FormatBX2::FormatBX2(const FormatOptions& options): Format{options}
     mFormatId = FormatId::BX2;
     mSupportsExtendOffset = false;
     mSupportsExtendLength = false;
-    mRequiresDijkstra = true;
+    mSupportsRepOffset = true;
 
     mMaxLiteralLength = 0xFFFF;
     mMinMatchLength = 2;

@@ -16,6 +16,7 @@ std::vector<ParseStep> ExhaustiveParser::Parse(const uint8_t* pInput, uint32_t i
 
     // Allocate triangular DP table and corresponding row pointers.
 
+    std::vector<PathNode*> rowPointers(inputSize + 1);
     size_t nodeCount = 0;
 
     for (uint32_t i = 0; i <= inputSize; i++)
@@ -24,7 +25,6 @@ std::vector<ParseStep> ExhaustiveParser::Parse(const uint8_t* pInput, uint32_t i
     }
 
     std::vector<PathNode> nodes(nodeCount);
-    std::vector<PathNode*> rowPointers(inputSize + 1);
     PathNode* p = nodes.data();
 
     for (uint32_t i = 0; i <= inputSize; i++)

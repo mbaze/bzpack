@@ -17,11 +17,12 @@ enum FormatId
 
 struct FormatOptions
 {
-    uint8_t id: 4;
+    uint8_t id: 3;
     uint8_t reverse: 1;
     uint8_t endMarker: 1;
     uint8_t extendOffset: 1;
     uint8_t extendLength: 1;
+    uint8_t naturalStream: 1;
 };
 
 class Format
@@ -36,12 +37,13 @@ public:
     FormatId Id() const { return mFormatId; }
     bool SupportsExtendOffset() const { return mSupportsExtendOffset; }
     bool SupportsExtendLength() const { return mSupportsExtendLength; }
-    bool RequiresDijkstra() const { return mRequiresDijkstra; }
+    bool SupportsRepOffset() const { return mSupportsRepOffset; }
 
     bool Reverse() const { return mReverse; }
     bool EndMarker() const { return mEndMarker; }
     bool ExtendOffset() const { return mExtendOffset; }
     bool ExtendLength() const { return mExtendLength; }
+    bool NaturalStream() const { return mNaturalStream; }
 
     uint16_t MaxLiteralLength() const { return mMaxLiteralLength; }
     uint16_t MinMatchLength() const { return mMinMatchLength; }
@@ -54,7 +56,7 @@ public:
 
 protected:
 
-    explicit Format(const FormatOptions& options);
+    Format(const FormatOptions& options);
 
     FormatId mFormatId;
 
@@ -62,7 +64,7 @@ protected:
 
     bool mSupportsExtendOffset;
     bool mSupportsExtendLength;
-    bool mRequiresDijkstra;
+    bool mSupportsRepOffset;
 
     // Encoding options.
 
@@ -70,6 +72,7 @@ protected:
     bool mEndMarker;
     bool mExtendOffset;
     bool mExtendLength;
+    bool mNaturalStream;
 
     // Format limits.
 

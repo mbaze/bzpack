@@ -25,12 +25,12 @@ std::vector<ParseStep> ExhaustiveParser::Parse(const uint8_t* pInput, uint32_t i
     }
 
     std::vector<PathNode> nodes(nodeCount);
-    PathNode* p = nodes.data();
+    PathNode* rowPtr = nodes.data();
 
     for (uint32_t i = 0; i <= inputSize; i++)
     {
-        rowPointers[i] = p;
-        p += GetRowWidth(i, format.MaxMatchOffset());
+        rowPointers[i] = rowPtr;
+        rowPtr += GetRowWidth(i, format.MaxMatchOffset());
     }
 
     // Kickstart the main loop and sweep over all coding paths.
@@ -42,8 +42,8 @@ std::vector<ParseStep> ExhaustiveParser::Parse(const uint8_t* pInput, uint32_t i
         matches.clear();
         size_t regularMatchOffset = matcher.FindMatches(inputPos, true, matches);
 
+        uint16_t bestRepState = 0;
         uint32_t bestPosCost = 0xFFFFFFFF;
-        uint16_t bestRepState  = 0;
 
         PathNode* rowPtr = rowPointers[inputPos];
         uint32_t rowWidth = GetRowWidth(inputPos, format.MaxMatchOffset());
@@ -118,17 +118,17 @@ std::vector<ParseStep> ExhaustiveParser::Parse(const uint8_t* pInput, uint32_t i
 
     // Find the best final state at end of input.
 
-    uint32_t bestRepState = 0;
-    uint32_t bestCost = 0xFFFFFFFF;
-    uint32_t lastRowWidth = GetRowWidth(inputSize, format.MaxMatchOffset());
+    uint16_t bestRepState = 0;
+    uint32_t bestPosCost = 0xFFFFFFFF;
+    uint16_t lastRowWidth = GetRowWidth(inputSize, format.MaxMatchOffset());
 
-    for (uint32_t repState = 0; repState < lastRowWidth; repState++)
+    for (uint16_t repState = 0; repState < lastRowWidth; repState++)
     {
         const PathNode& node = rowPointers[inputSize][repState];
 
-        if (node.cost < bestCost)
+        if (node.cost < bestPosCost)
         {
-            bestCost = node.cost;
+            bestPosCost = node.cost;
             bestRepState = repState;
         }
     }

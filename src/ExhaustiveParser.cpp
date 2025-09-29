@@ -42,6 +42,9 @@ std::vector<ParseStep> ExhaustiveParser::Parse(const uint8_t* pInput, uint32_t i
         matches.clear();
         size_t regularMatchOffset = matcher.FindMatches(inputPos, true, matches);
 
+        uint32_t bestPosCost = 0xFFFFFFFF;
+        uint16_t bestRepState  = 0;
+
         PathNode* rowPtr = rowPointers[inputPos];
         uint32_t rowWidth = GetRowWidth(inputPos, format.MaxMatchOffset());
 
@@ -53,12 +56,15 @@ std::vector<ParseStep> ExhaustiveParser::Parse(const uint8_t* pInput, uint32_t i
             if (node.cost == 0xFFFFFFFF)
                 continue;
 
-            bool isMatch = node.matchLength;
-            bool isLiteral = !isMatch;
+            if (node.cost < bestPosCost)
+            {
+                bestPosCost = node.cost;
+                bestRepState = repState;            
+            }
 
             // Propagate repeat matches (only after a literal).
 
-            if (isLiteral)
+            if (node.matchLength == 0)
             {
                 for (const Match& match: matches)
                 {
@@ -77,7 +83,7 @@ std::vector<ParseStep> ExhaustiveParser::Parse(const uint8_t* pInput, uint32_t i
 
             // Propagate literals (only after a match).
 
-            if (isMatch)
+            if (node.matchLength)
             {
                 uint16_t maxLength = std::min<uint16_t>(inputSize - inputPos, format.MaxLiteralLength());
 
@@ -92,20 +98,20 @@ std::vector<ParseStep> ExhaustiveParser::Parse(const uint8_t* pInput, uint32_t i
                     }
                 }
             }
+        }
 
-            // Propagate regular matches.
+        // Propagate regular matches once per position (prior repState is irrelevant).
 
-            for (size_t i = regularMatchOffset; i < matches.size(); i++)
+        for (size_t i = regularMatchOffset; i < matches.size(); i++)
+        {
+            const Match& match = matches[i];
+
+            PathNode& nextNode = rowPointers[inputPos + match.length][match.offset];
+            uint32_t nextCost = bestPosCost + format.GetMatchCost(match.length, match.offset);
+
+            if (nextCost < nextNode.cost)
             {
-                const Match& match = matches[i];
-
-                PathNode& nextNode = rowPointers[inputPos + match.length][match.offset];
-                uint32_t nextCost = node.cost + format.GetMatchCost(match.length, match.offset);
-
-                if (nextCost < nextNode.cost)
-                {
-                    nextNode = PathNode{nextCost, match.length, repState};
-                }
+                nextNode = PathNode{nextCost, match.length, bestRepState};
             }
         }
     }

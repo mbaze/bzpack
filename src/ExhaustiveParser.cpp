@@ -126,8 +126,8 @@ std::vector<ParseStep> ExhaustiveParser::Parse(const uint8_t* pInput, uint32_t i
 
         if (node.cost < bestPosCost)
         {
-            bestPosCost = node.cost;
             bestRepState = repState;
+            bestPosCost = node.cost;
         }
     }
 

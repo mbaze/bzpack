@@ -39,8 +39,7 @@ std::vector<ParseStep> ExhaustiveParser::Parse(const uint8_t* pInput, uint32_t i
 
     for (uint32_t inputPos = 0; inputPos < inputSize; inputPos++)
     {
-        matches.clear();
-        size_t regularMatchOffset = matcher.FindMatches(inputPos, true, matches);
+        size_t regularMatchOffset = matcher.FindMatches(matches, inputPos, true);
 
         uint16_t bestRepState = 0;
         uint32_t bestPosCost = 0xFFFFFFFF;
@@ -58,14 +57,31 @@ std::vector<ParseStep> ExhaustiveParser::Parse(const uint8_t* pInput, uint32_t i
 
             if (node.cost < bestPosCost)
             {
-                bestPosCost = node.cost;
                 bestRepState = repState;            
+                bestPosCost = node.cost;
             }
 
-            // Propagate repeat matches (only after a literal).
-
-            if (node.matchLength == 0)
+            if (node.matchLength)
             {
+                // Propagate literals (only after a match).
+
+                uint16_t maxLength = std::min<uint16_t>(inputSize - inputPos, format.MaxLiteralLength());
+
+                for (uint16_t length = 1; length <= maxLength; length++)
+                {
+                    PathNode& nextNode = rowPointers[inputPos + length][repState];
+                    uint32_t nextCost = node.cost + format.GetLiteralCost(length);
+
+                    if (nextCost < nextNode.cost)
+                    {
+                        nextNode = PathNode{nextCost, 0, length};
+                    }
+                }
+            }
+            else
+            {
+                // Propagate repeat matches (only after a literal).
+
                 for (const Match& match: matches)
                 {
                     if (match.offset != repState)
@@ -77,24 +93,6 @@ std::vector<ParseStep> ExhaustiveParser::Parse(const uint8_t* pInput, uint32_t i
                     if (nextCost < nextNode.cost)
                     {
                         nextNode = PathNode{nextCost, match.length, repState};
-                    }
-                }
-            }
-
-            // Propagate literals (only after a match).
-
-            if (node.matchLength)
-            {
-                uint16_t maxLength = std::min<uint16_t>(inputSize - inputPos, format.MaxLiteralLength());
-
-                for (uint16_t length = 1; length <= maxLength; length++)
-                {
-                    PathNode& nextNode = rowPointers[inputPos + length][repState];
-                    uint32_t nextCost = node.cost + format.GetLiteralCost(length);
-
-                    if (nextCost < nextNode.cost)
-                    {
-                        nextNode = PathNode{nextCost, 0, length};
                     }
                 }
             }

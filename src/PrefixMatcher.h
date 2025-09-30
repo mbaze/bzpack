@@ -31,7 +31,7 @@ public:
         uint16_t maxMatchOffset
     );
 
-    size_t FindMatches(uint32_t inputPos, bool allowBytes, std::vector<Match>& matches) const;
+    size_t FindMatches(std::vector<Match>& matches, uint32_t inputPos, bool allowBytes = false) const;
     Match FindLongestMatch(uint32_t inputPos) const;
 
 private:

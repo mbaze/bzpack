@@ -20,9 +20,6 @@ std::vector<ParseStep> OptimalParser::Parse(const uint8_t* pInput, uint32_t inpu
 
     for (uint32_t inputPos = 0; inputPos < inputSize; inputPos++)
     {
-        matches.clear();
-        matcher.FindMatches(inputPos, false, matches);
-
         const PathNode& node = nodes[inputPos];
 
         // Propagate literals.
@@ -41,6 +38,8 @@ std::vector<ParseStep> OptimalParser::Parse(const uint8_t* pInput, uint32_t inpu
         }
 
         // Propagate matches.
+
+        matcher.FindMatches(matches, inputPos);
 
         for (const Match& match: matches)
         {

@@ -62,9 +62,11 @@ PrefixMatcher::PrefixMatcher(const uint8_t* pInput, uint32_t inputSize, uint16_t
     }
 }
 
-size_t PrefixMatcher::FindMatches(uint32_t inputPos, bool allowBytes, std::vector<Match>& matches) const
+size_t PrefixMatcher::FindMatches(std::vector<Match>& matches, uint32_t inputPos, bool allowBytes) const
 {
-    // Single-byte matches help set up useful repeat offsets.
+    matches.clear();
+
+    // Single-byte matches are cheap to encode and can establish useful repeat offsets.
 
     if (allowBytes)
     {

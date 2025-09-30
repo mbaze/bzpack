@@ -23,16 +23,9 @@ private:
         uint16_t value = 0;
     };
 
-    static uint16_t GetRowWidth(uint32_t inputPos, uint32_t maxOffset)
+    static uint16_t GetRowWidth(uint32_t inputPos, uint16_t maxOffset)
     {
-        uint32_t rowWidth = 1;
-
-        if (inputPos)
-        {
-            rowWidth += std::min(inputPos - 1, maxOffset);
-        }
-
-        return rowWidth;
+        return 1 + std::min<uint16_t>(inputPos - (inputPos > 0), maxOffset);
     }
 };
 

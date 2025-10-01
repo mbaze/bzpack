@@ -44,7 +44,7 @@ std::vector<ParseStep> ExhaustiveParser::Parse(const uint8_t* pInput, uint32_t i
         uint16_t bestRepState = 0;
         uint32_t bestPosCost = 0xFFFFFFFF;
 
-        PathNode* rowPtr = rowPointers[inputPos];
+        const PathNode* rowPtr = rowPointers[inputPos];
         uint16_t rowWidth = GetRowWidth(inputPos, format.MaxMatchOffset());
 
         for (uint16_t repState = 0; repState < rowWidth; repState++)

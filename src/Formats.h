@@ -56,7 +56,7 @@ public:
 
 protected:
 
-    explicit Format(const FormatOptions& options);
+    Format(const FormatOptions& options);
 
     FormatId mFormatId;
 

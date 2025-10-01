@@ -56,7 +56,7 @@ public:
 
 protected:
 
-    Format(const FormatOptions& options);
+    explicit Format(const FormatOptions& options);
 
     FormatId mFormatId;
 
@@ -89,8 +89,6 @@ protected:
 class FormatLZM: public Format
 {
     friend class Format;
-
-    FormatLZM() = delete;
     FormatLZM(const FormatOptions& options);
 
     uint32_t GetLiteralCost(uint16_t length) const override;
@@ -101,8 +99,6 @@ class FormatLZM: public Format
 class FormatEF8: public Format
 {
     friend class Format;
-
-    FormatEF8() = delete;
     FormatEF8(const FormatOptions& options);
 
     uint32_t GetLiteralCost(uint16_t length) const override;
@@ -113,8 +109,6 @@ class FormatEF8: public Format
 class FormatBX0: public Format
 {
     friend class Format;
-
-    FormatBX0() = delete;
     FormatBX0(const FormatOptions& options);
 
     uint32_t GetLiteralCost(uint16_t length) const override;
@@ -130,8 +124,6 @@ public:
 class FormatBX2: public Format
 {
     friend class Format;
-
-    FormatBX2() = delete;
     FormatBX2(const FormatOptions& options);
 
     uint32_t GetLiteralCost(uint16_t length) const override;

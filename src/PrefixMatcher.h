@@ -9,16 +9,6 @@
 
 class PrefixMatcher
 {
-    struct MaxMatch
-    {
-        MaxMatch(uint32_t inputPos, uint16_t length = 0):
-            inputPos{inputPos}, length{length}
-        {}
-
-        uint32_t inputPos;
-        uint16_t length;
-    };
-
 public:
 
     PrefixMatcher() = delete;
@@ -32,9 +22,18 @@ public:
     );
 
     size_t FindMatches(std::vector<Match>& matches, uint32_t inputPos, bool allowBytes = false) const;
-    Match FindLongestMatch(uint32_t inputPos) const;
 
 private:
+
+    struct MaxMatch
+    {
+        MaxMatch(uint32_t inputPos, uint16_t length):
+            inputPos{inputPos}, length{length}
+        {}
+
+        uint32_t inputPos;
+        uint16_t length;
+    };
 
     uint16_t GetMatchLength(uint32_t inputPos, uint32_t matchPos) const;
 
@@ -45,7 +44,7 @@ private:
     const uint16_t mMaxMatchLength;
     const uint16_t mMaxMatchOffset;
 
-    std::vector<std::vector<uint32_t>> mBytePositions;
+    std::vector<std::vector<uint32_t>> mByteMatches;
     std::vector<std::vector<MaxMatch>> mMaxMatches;
 };
 

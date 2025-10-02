@@ -34,7 +34,6 @@ public:
     uint8_t ReadByte();
 
     void FlushBits();
-    bool IssueCarryWarning() const;
 
 private:
 

@@ -11,54 +11,55 @@ PrefixMatcher::PrefixMatcher(const uint8_t* pInput, uint32_t inputSize, uint16_t
     mMaxMatchLength{maxMatchLength},
     mMaxMatchOffset{maxMatchOffset}
 {
-    // Initialize lists that track past positions of single bytes and 2-byte sequences in the input.
+    mByteMatches.resize(inputSize);
+    mMaxMatches.resize(inputSize);
 
-    std::vector<std::vector<uint32_t>> byteOccurrences(256);
-    mBytePositions.resize(inputSize);
+    if (inputSize < 2)
+        return;
+
+    // Gather byte positions and record matches of length 1 within the offset window.
+
+    std::vector<std::vector<uint32_t>> bytePositions(256);
 
     for (uint32_t inputPos = 0; inputPos < inputSize; inputPos++)
     {
         uint8_t byte = pInput[inputPos];
         uint32_t windowPos = inputPos - std::min<uint32_t>(inputPos, maxMatchOffset);
 
-        for (auto i = byteOccurrences[byte].rbegin(); i != byteOccurrences[byte].rend(); i++)
+        for (auto i = bytePositions[byte].rbegin(); i != bytePositions[byte].rend(); i++)
         {
             if (*i < windowPos)
                 break;
 
-            mBytePositions[inputPos].emplace_back(*i);
+            mByteMatches[inputPos].emplace_back(*i);
         }
 
-        byteOccurrences[byte].emplace_back(inputPos);
+        bytePositions[byte].emplace_back(inputPos);
     }
 
-    std::vector<std::vector<uint32_t>> wordOccurrences(65536);
-    mMaxMatches.resize(inputSize);
+    // Gather 2-byte word positions and record maximum match lengths within the offset window.
+
+    std::vector<std::vector<uint32_t>> wordPositions(65536);
 
     for (uint32_t inputPos = 0; inputPos < inputSize - 1; inputPos++)
     {
-        uint16_t word = (pInput[inputPos + 1] << 8) | pInput[inputPos];
+        uint16_t word = pInput[inputPos] | (pInput[inputPos + 1] << 8);
         uint32_t windowPos = inputPos - std::min<uint32_t>(inputPos, maxMatchOffset);
 
-        for (auto i = wordOccurrences[word].rbegin(); i != wordOccurrences[word].rend(); i++)
+        for (auto i = wordPositions[word].rbegin(); i != wordPositions[word].rend(); i++)
         {
             if (*i < windowPos)
                 break;
 
-            mMaxMatches[inputPos].emplace_back(*i);
+            uint16_t matchLength = GetMatchLength(inputPos, *i);
+
+            if (matchLength >= mMinMatchLength)
+            {
+                mMaxMatches[inputPos].emplace_back(*i, matchLength);
+            }
         }
 
-        wordOccurrences[word].emplace_back(inputPos);
-    }
-
-    // Calculate the longest available match length at each position.
-
-    for (uint32_t inputPos = 0; inputPos < inputSize; inputPos++)
-    {
-        for (MaxMatch& maxMatch: mMaxMatches[inputPos])
-        {
-            maxMatch.length = GetMatchLength(inputPos, maxMatch.inputPos);
-        }
+        wordPositions[word].emplace_back(inputPos);
     }
 }
 
@@ -70,7 +71,7 @@ size_t PrefixMatcher::FindMatches(std::vector<Match>& matches, uint32_t inputPos
 
     if (allowBytes)
     {
-        for (uint32_t bytePos: mBytePositions[inputPos])
+        for (uint32_t bytePos: mByteMatches[inputPos])
         {
             matches.emplace_back(1, inputPos - bytePos);
         }
@@ -89,23 +90,6 @@ size_t PrefixMatcher::FindMatches(std::vector<Match>& matches, uint32_t inputPos
     }
 
     return byteMatchCount;
-}
-
-Match PrefixMatcher::FindLongestMatch(uint32_t inputPos) const
-{
-    uint16_t maxLength = mMinMatchLength - 1;
-    uint16_t maxOffset = 0;
-
-    for (const MaxMatch& maxMatch: mMaxMatches[inputPos])
-    {
-        if (maxMatch.length > maxLength)
-        {
-            maxLength = maxMatch.length;
-            maxOffset = inputPos - maxMatch.inputPos;
-        }
-    }
-
-    return {maxLength, maxOffset};
 }
 
 uint16_t PrefixMatcher::GetMatchLength(uint32_t inputPos, uint32_t matchPos) const

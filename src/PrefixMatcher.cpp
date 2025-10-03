@@ -2,18 +2,16 @@
 // This code is licensed under the BSD 2-Clause License.
 
 #include "PrefixMatcher.h"
-#include <algorithm>
 
 PrefixMatcher::PrefixMatcher(const uint8_t* pInput, uint32_t inputSize, uint16_t minMatchLength, uint16_t maxMatchLength, uint16_t maxMatchOffset):
     mInputPtr{pInput},
     mInputSize{inputSize},
     mMinMatchLength{minMatchLength},
     mMaxMatchLength{maxMatchLength},
-    mMaxMatchOffset{maxMatchOffset}
+    mMaxMatchOffset{maxMatchOffset},
+    mByteMatches{inputSize},
+    mMaxMatches{inputSize}
 {
-    mByteMatches.resize(inputSize);
-    mMaxMatches.resize(inputSize);
-
     if (inputSize < 2)
         return;
 
@@ -21,7 +19,7 @@ PrefixMatcher::PrefixMatcher(const uint8_t* pInput, uint32_t inputSize, uint16_t
 
     std::vector<std::vector<uint32_t>> bytePositions(256);
 
-    for (uint32_t inputPos = 0; inputPos < inputSize; inputPos++)
+    for (uint32_t inputPos = 1; inputPos < inputSize; inputPos++)
     {
         uint8_t byte = pInput[inputPos];
         uint32_t windowPos = inputPos - std::min<uint32_t>(inputPos, maxMatchOffset);
@@ -41,7 +39,7 @@ PrefixMatcher::PrefixMatcher(const uint8_t* pInput, uint32_t inputSize, uint16_t
 
     std::vector<std::vector<uint32_t>> wordPositions(65536);
 
-    for (uint32_t inputPos = 0; inputPos < inputSize - 1; inputPos++)
+    for (uint32_t inputPos = 1; inputPos < inputSize - 1; inputPos++)
     {
         uint16_t word = pInput[inputPos] | (pInput[inputPos + 1] << 8);
         uint32_t windowPos = inputPos - std::min<uint32_t>(inputPos, maxMatchOffset);
@@ -94,9 +92,15 @@ size_t PrefixMatcher::FindMatches(std::vector<Match>& matches, uint32_t inputPos
 
 uint16_t PrefixMatcher::GetMatchLength(uint32_t inputPos, uint32_t matchPos) const
 {
-    const uint8_t* pInput = mInputPtr + inputPos;
-    const uint8_t* pMatch = mInputPtr + matchPos;
-    const uint8_t* pEnd = pInput + std::min<uint32_t>(mInputSize - inputPos, mMaxMatchLength);
-
-    return static_cast<uint16_t>(std::mismatch(pInput, pEnd, pMatch).first - pInput);
+    uint32_t maxLength = std::min<uint32_t>(mInputSize - inputPos, mMaxMatchLength) - 2;
+    uint16_t length = 2;
+    inputPos += 2;
+    matchPos += 2;
+    
+    while (maxLength-- && mInputPtr[inputPos++] == mInputPtr[matchPos++])
+    {
+        length++;
+    }
+    
+    return length;
 }

@@ -19,7 +19,7 @@ PrefixMatcher::PrefixMatcher(const uint8_t* pInput, uint32_t inputSize, uint16_t
 
     std::vector<std::vector<uint32_t>> bytePositions(256);
 
-    for (uint32_t inputPos = 1; inputPos < inputSize; inputPos++)
+    for (uint32_t inputPos = 0; inputPos < inputSize; inputPos++)
     {
         uint8_t byte = pInput[inputPos];
         uint32_t windowPos = inputPos - std::min<uint32_t>(inputPos, maxMatchOffset);
@@ -39,7 +39,7 @@ PrefixMatcher::PrefixMatcher(const uint8_t* pInput, uint32_t inputSize, uint16_t
 
     std::vector<std::vector<uint32_t>> wordPositions(65536);
 
-    for (uint32_t inputPos = 1; inputPos < inputSize - 1; inputPos++)
+    for (uint32_t inputPos = 0; inputPos < inputSize - 1; inputPos++)
     {
         uint16_t word = pInput[inputPos] | (pInput[inputPos + 1] << 8);
         uint32_t windowPos = inputPos - std::min<uint32_t>(inputPos, maxMatchOffset);

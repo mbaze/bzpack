@@ -125,7 +125,7 @@ uint32_t FormatBX0::GetLiteralCost(uint16_t length) const
 
 uint32_t FormatBX0::GetMatchCost(uint16_t length, uint16_t offset) const
 {
-    uint16_t eliasPart = GetEliasPart(offset);
+    uint16_t eliasPart = GetEliasPart(offset - mExtendOffset);
     return 1 + mEliasCosts[eliasPart] + 7 + mEliasCosts[length - 1];
 }
 

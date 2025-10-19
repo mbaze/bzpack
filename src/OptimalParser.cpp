@@ -39,7 +39,7 @@ std::vector<ParseStep> OptimalParser::Parse(const uint8_t* pInput, uint32_t inpu
 
         // Propagate matches.
 
-        matcher.FindMatches(matches, inputPos);
+        matcher.GetMatches(matches, inputPos);
 
         for (const Match& match: matches)
         {

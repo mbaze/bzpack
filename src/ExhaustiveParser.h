@@ -14,19 +14,27 @@ public:
 
 private:
 
-    // To avoid ambiguity with repState = 0, literals use matchLength = 0, and value stores the length.
-
-    struct PathNode
-    {
-        uint32_t cost = 0xFFFFFFFF;
-        uint16_t matchLength = 0;
-        uint16_t value = 0;
-    };
-
     static uint16_t GetRowWidth(uint32_t inputPos, uint16_t maxOffset)
     {
         return 1 + std::min<uint16_t>(inputPos - (inputPos > 0), maxOffset);
     }
+
+    static size_t GetNodeCount(uint32_t inputSize, uint16_t maxOffset)
+    {
+        maxOffset = std::min<uint16_t>(maxOffset, inputSize - 1);
+        return (maxOffset + 1) * inputSize - ((maxOffset + 1) * maxOffset >> 1) + 1;
+    }
+
+    struct PathNode
+    {
+        static constexpr uint32_t INVALID_COST = 0xFFFFFFFF;
+
+        uint32_t costAfterLiteral = INVALID_COST;
+        uint32_t costAfterMatch = INVALID_COST;
+        uint16_t literalLength = 0;
+        uint16_t matchLength = 0;
+    	uint16_t prevOffset = 0;
+    };
 };
 
 #endif // EXHAUSTIVE_PARSER_H

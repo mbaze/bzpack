@@ -2,6 +2,7 @@
 // This code is licensed under the BSD 2-Clause License.
 
 #include "PrefixMatcher.h"
+#include <algorithm>
 
 PrefixMatcher::PrefixMatcher(const uint8_t* pInput, uint32_t inputSize, uint16_t minMatchLength, uint16_t maxMatchLength, uint16_t maxMatchOffset):
     mInputPtr{pInput},
@@ -61,7 +62,7 @@ PrefixMatcher::PrefixMatcher(const uint8_t* pInput, uint32_t inputSize, uint16_t
     }
 }
 
-size_t PrefixMatcher::FindMatches(std::vector<Match>& matches, uint32_t inputPos, bool allowBytes) const
+size_t PrefixMatcher::GetMatches(std::vector<Match>& matches, uint32_t inputPos, bool allowBytes) const
 {
     matches.clear();
 

@@ -9,12 +9,12 @@ std::vector<ParseStep> ExhaustiveParser::Parse(const uint8_t* pInput, uint32_t i
     if (pInput == nullptr || inputSize == 0)
         return {};
 
-    // Precompute available matches for all input positions once.
+    // Precompute all available matches for each input position.
 
     std::vector<Match> matches;
     PrefixMatcher matcher(pInput, inputSize, format.MinMatchLength(), format.MaxMatchLength(), format.MaxMatchOffset());
 
-    // Create triangular DP table with row pointers.
+    // Allocate a triangular DP table (row pointers into a contiguous buffer).
 
     size_t nodeCount = GetNodeCount(inputSize, format.MaxMatchOffset());
     std::vector<PathNode> nodeBuffer(nodeCount);
@@ -28,13 +28,13 @@ std::vector<ParseStep> ExhaustiveParser::Parse(const uint8_t* pInput, uint32_t i
         rowPtr += GetRowWidth(inputPos, format.MaxMatchOffset());
     }
 
-    // Kickstart the main loop and sweep over all coding paths.
+    // Initialize the state and sweep over all coding paths at each input position.
 
     nodes[0][0].costAfterMatch = 0;
 
     for (uint32_t inputPos = 0; inputPos < inputSize; inputPos++)
     {
-        // Propagate literals (only from cost after match).
+        // Propagate literals (only from states that ended with a match).
 
         uint16_t rowWidth = GetRowWidth(inputPos, format.MaxMatchOffset());
         uint16_t maxLength = std::min<uint16_t>(inputSize - inputPos, format.MaxLiteralLength());
@@ -58,7 +58,7 @@ std::vector<ParseStep> ExhaustiveParser::Parse(const uint8_t* pInput, uint32_t i
             }
         }
 
-        // Propagate repeat matches (only from cost after literal).
+        // Propagate repeat matches (only from states that ended with a literal).
 
         size_t regularMatchStart = matcher.GetMatches(matches, inputPos, true);
 
@@ -88,7 +88,7 @@ std::vector<ParseStep> ExhaustiveParser::Parse(const uint8_t* pInput, uint32_t i
             }
         }
 
-        // Find best cost at this position.
+        // Find the minimal cost at this position.
 
         uint32_t bestCost = 0xFFFFFFFF;
         uint16_t bestOffset = 0;
@@ -122,32 +122,26 @@ std::vector<ParseStep> ExhaustiveParser::Parse(const uint8_t* pInput, uint32_t i
         }
     }
 
-    // Find the best final state at end of input.
-
-    uint32_t bestCost = 0xFFFFFFFF;
-    uint16_t bestOffset = 0;
-    bool isLiteral = false;
+    // Find the best final state at the end of input.
 
     uint16_t rowWidth = GetRowWidth(inputSize, format.MaxMatchOffset());
+    uint32_t bestCost = 0xFFFFFFFF;
+    uint16_t bestOffset = 0;
 
     for (uint16_t offset = 0; offset < rowWidth; offset++)
     {
         const PathNode& node = nodes[inputSize][offset];
+        uint32_t minCost = std::min(node.costAfterLiteral, node.costAfterMatch);
 
-        if (node.costAfterLiteral < bestCost)
+        if (minCost < bestCost)
         {
-            bestCost = node.costAfterLiteral;
+            bestCost = minCost;
             bestOffset = offset;
-            isLiteral = true;
-        }
-
-        if (node.costAfterMatch < bestCost)
-        {
-            bestCost = node.costAfterMatch;
-            bestOffset = offset;
-            isLiteral = false;
         }
     }
+
+    const PathNode& bestNode = nodes[inputSize][bestOffset];
+    bool isLiteral = (bestNode.costAfterLiteral <= bestNode.costAfterMatch);
 
     // Backtrack to reconstruct the optimal parse sequence.
 
@@ -160,12 +154,14 @@ std::vector<ParseStep> ExhaustiveParser::Parse(const uint8_t* pInput, uint32_t i
         if (isLiteral)
         {
             parse.emplace_back(node.literalLength, 0);
+
             isLiteral = false;
             inputSize -= node.literalLength;
         }
         else
         {
             parse.emplace_back(node.matchLength, bestOffset);
+
             isLiteral = (bestOffset == node.prevOffset);
             bestOffset = node.prevOffset;
             inputSize -= node.matchLength;

@@ -80,7 +80,7 @@ optimize byte-level fetching in the Z80 decoder. This behavior can be suppressed
 All formats use globally optimal parsers, staying true to the sizecoding spirit where every byte matters. For the BX0 and BX2
 formats, the parser must explore all possible coding paths using all available repeat offsets, giving it roughly quadratic
 computational complexity in the size of the input block. For blocks around 1 KiB, the process is essentially instantaneous.
-However, for blocks larger than ~16 KiB, it might take even several minutes to complete.
+However, for blocks larger than ~8 KiB, it might take even several minutes to complete.
 
 ### LZM
 

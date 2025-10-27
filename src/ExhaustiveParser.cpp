@@ -30,25 +30,36 @@ std::vector<ParseStep> ExhaustiveParser::Parse(const uint8_t* pInput, uint32_t i
 
     // Initialize the state and sweep over all coding paths at each input position.
 
-    nodes[0][0].costAfterMatch = 0;
+    nodes[0]->costAfterMatch = 0;
+    nodes[0]->literalRowWidth = 1;
 
     for (uint32_t inputPos = 0; inputPos < inputSize; inputPos++)
     {
+        size_t matchIndex = matcher.GetMatches(matches, inputPos, true);
+
+        // Mark future positions that are reachable by available matches.
+
+        for (const Match& match: matches)
+        {
+            uint32_t nextPos = inputPos + match.length;
+            nodes[nextPos]->literalRowWidth = GetRowWidth(nextPos, format.MaxMatchOffset());
+        }
+
         // Propagate literals (only from states that ended with a match).
 
-        uint16_t rowWidth = GetRowWidth(inputPos, format.MaxMatchOffset());
+        uint16_t rowWidth = nodes[inputPos]->literalRowWidth;
         uint16_t maxLength = std::min<uint16_t>(inputSize - inputPos, format.MaxLiteralLength());
 
         for (uint16_t offset = 0; offset < rowWidth; offset++)
         {
-            const PathNode& node = nodes[inputPos][offset];
-            if (node.costAfterMatch == PathNode::INVALID_COST)
+            uint32_t cost = nodes[inputPos][offset].CostAfterMatch();
+            if (cost == PathNode::INVALID_COST)
                 continue;
 
             for (uint16_t length = 1; length <= maxLength; length++)
             {
                 PathNode& nextNode = nodes[inputPos + length][offset];
-                uint32_t nextCost = node.costAfterMatch + format.GetLiteralCost(length);
+                uint32_t nextCost = cost + format.GetLiteralCost(length);
 
                 if (nextCost < nextNode.costAfterLiteral)
                 {
@@ -60,15 +71,15 @@ std::vector<ParseStep> ExhaustiveParser::Parse(const uint8_t* pInput, uint32_t i
 
         // Propagate repeat matches (only from states that ended with a literal).
 
-        size_t regularMatchStart = matcher.GetMatches(matches, inputPos, true);
-
         if (matches.empty())
             continue;
 
+        rowWidth = GetRowWidth(inputPos, format.MaxMatchOffset());
+
         for (uint16_t offset = 1; offset < rowWidth; offset++)
         {
-            const PathNode& node = nodes[inputPos][offset];
-            if (node.costAfterLiteral == PathNode::INVALID_COST)
+            uint32_t cost = nodes[inputPos][offset].costAfterLiteral;
+            if (cost == PathNode::INVALID_COST)
                 continue;
 
             for (const Match& match: matches)
@@ -77,26 +88,24 @@ std::vector<ParseStep> ExhaustiveParser::Parse(const uint8_t* pInput, uint32_t i
                     continue;
 
                 PathNode& nextNode = nodes[inputPos + match.length][offset];
-                uint32_t nextCost = node.costAfterLiteral + format.GetRepMatchCost(match.length);
+                uint32_t nextCost = cost + format.GetRepMatchCost(match.length);
 
-                if (nextCost < nextNode.costAfterMatch)
+                if (nextCost < nextNode.CostAfterMatch())
                 {
-                    nextNode.costAfterMatch = nextCost;
+                    nextNode.costAfterMatch = 0x80000000 | nextCost;
                     nextNode.matchLength = match.length;
-                    nextNode.prevOffset = offset;
                 }
             }
         }
 
-        // Find the minimal cost at this position.
+        // Find the minimum cost at the current position and store the backtracking offset.
 
-        uint32_t bestCost = 0xFFFFFFFF;
-        uint16_t bestOffset = 0;
+        uint32_t bestCost = PathNode::INVALID_COST;
+        uint16_t bestOffset = 0xFFFF;
 
         for (uint16_t offset = 0; offset < rowWidth; offset++)
         {
-            const PathNode& node = nodes[inputPos][offset];
-            uint32_t minCost = std::min(node.costAfterLiteral, node.costAfterMatch);
+            uint32_t minCost = nodes[inputPos][offset].MinCost();
 
             if (minCost < bestCost)
             {
@@ -105,19 +114,20 @@ std::vector<ParseStep> ExhaustiveParser::Parse(const uint8_t* pInput, uint32_t i
             }
         }
 
+        nodes[inputPos]->backtrackOffset = bestOffset;
+
         // Propagate regular matches (prior offset is irrelevant).
 
-        for (size_t i = regularMatchStart; i < matches.size(); i++)
+        for (size_t i = matchIndex; i < matches.size(); i++)
         {
             const Match& match = matches[i];
             PathNode& nextNode = nodes[inputPos + match.length][match.offset];
             uint32_t nextCost = bestCost + format.GetMatchCost(match.length, match.offset);
 
-            if (nextCost < nextNode.costAfterMatch)
+            if (nextCost < nextNode.CostAfterMatch())
             {
                 nextNode.costAfterMatch = nextCost;
                 nextNode.matchLength = match.length;
-                nextNode.prevOffset = bestOffset;
             }
         }
     }
@@ -125,13 +135,12 @@ std::vector<ParseStep> ExhaustiveParser::Parse(const uint8_t* pInput, uint32_t i
     // Find the best final state at the end of input.
 
     uint16_t rowWidth = GetRowWidth(inputSize, format.MaxMatchOffset());
-    uint32_t bestCost = 0xFFFFFFFF;
+    uint32_t bestCost = PathNode::INVALID_COST;
     uint16_t bestOffset = 0;
 
     for (uint16_t offset = 0; offset < rowWidth; offset++)
     {
-        const PathNode& node = nodes[inputSize][offset];
-        uint32_t minCost = std::min(node.costAfterLiteral, node.costAfterMatch);
+        uint32_t minCost = nodes[inputSize][offset].MinCost();
 
         if (minCost < bestCost)
         {
@@ -140,8 +149,7 @@ std::vector<ParseStep> ExhaustiveParser::Parse(const uint8_t* pInput, uint32_t i
         }
     }
 
-    const PathNode& bestNode = nodes[inputSize][bestOffset];
-    bool isLiteral = (bestNode.costAfterLiteral <= bestNode.costAfterMatch);
+    bool isLiteral = nodes[inputSize][bestOffset].PreferLiteralPath();
 
     // Backtrack to reconstruct the optimal parse sequence.
 
@@ -154,22 +162,19 @@ std::vector<ParseStep> ExhaustiveParser::Parse(const uint8_t* pInput, uint32_t i
         if (isLiteral)
         {
             parse.emplace_back(node.literalLength, 0);
-
-            isLiteral = false;
             inputSize -= node.literalLength;
+            isLiteral = false;
         }
         else
         {
             parse.emplace_back(node.matchLength, bestOffset);
-
-            isLiteral = (bestOffset == node.prevOffset);
-            bestOffset = node.prevOffset;
             inputSize -= node.matchLength;
+            isLiteral = node.IsRepeatMatch();
 
             if (!isLiteral)
             {
-                const PathNode& prevNode = nodes[inputSize][node.prevOffset];
-                isLiteral = (prevNode.costAfterLiteral <= prevNode.costAfterMatch);            
+                bestOffset = nodes[inputSize]->backtrackOffset;
+                isLiteral = nodes[inputSize][bestOffset].PreferLiteralPath();
             }
         }
     }

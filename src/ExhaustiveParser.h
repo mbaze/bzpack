@@ -27,13 +27,38 @@ private:
 
     struct PathNode
     {
-        static constexpr uint32_t INVALID_COST = 0xFFFFFFFF;
+        static constexpr uint32_t INVALID_COST = 0x7FFFFFFF;
+
+        uint32_t CostAfterMatch() const
+        {
+            return costAfterMatch & INVALID_COST;
+        }
+
+        uint32_t MinCost() const
+        {
+            return std::min(costAfterLiteral, CostAfterMatch());
+        }
+
+        bool IsRepeatMatch() const
+        {
+            return costAfterMatch & 0x80000000;
+        }
+
+        bool PreferLiteralPath() const
+        {
+            return costAfterLiteral <= CostAfterMatch();
+        }
 
         uint32_t costAfterLiteral = INVALID_COST;
         uint32_t costAfterMatch = INVALID_COST;
         uint16_t literalLength = 0;
-        uint16_t matchLength = 0;
-    	uint16_t prevOffset = 0;
+
+        union
+        {
+            uint16_t matchLength = 0;
+            uint16_t literalRowWidth;
+            uint16_t backtrackOffset;
+        };
     };
 };
 

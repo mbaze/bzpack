@@ -10,10 +10,12 @@ std::vector<ParseStep> OptimalParser::Parse(const uint8_t* pInput, uint32_t inpu
     if (pInput == nullptr || inputSize == 0)
         return {};
 
-    // Precompute matches.
+    // Precompute all available matches for each input position.
 
     std::vector<Match> matches;
     PrefixMatcher matcher(pInput, inputSize, format.MinMatchLength(), format.MaxMatchLength(), format.MaxMatchOffset());
+
+    // Initialize the state and sweep over all coding paths at each input position.
 
     std::vector<PathNode> nodes(inputSize + 1);
     nodes[0].cost = 0;

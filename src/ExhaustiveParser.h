@@ -29,25 +29,10 @@ private:
     {
         static constexpr uint32_t INVALID_COST = 0x7FFFFFFF;
 
-        uint32_t CostAfterMatch() const
-        {
-            return costAfterMatch & INVALID_COST;
-        }
-
-        uint32_t MinCost() const
-        {
-            return std::min(costAfterLiteral, CostAfterMatch());
-        }
-
-        bool IsRepeatMatch() const
-        {
-            return costAfterMatch & 0x80000000;
-        }
-
-        bool PreferLiteralPath() const
-        {
-            return costAfterLiteral <= CostAfterMatch();
-        }
+        uint32_t CostAfterMatch() const { return costAfterMatch & INVALID_COST; }
+        uint32_t MinCost() const { return std::min(costAfterLiteral, CostAfterMatch()); }
+        bool IsRepeatMatch() const { return costAfterMatch & 0x80000000; }
+        bool PreferLiteralPath() const { return costAfterLiteral <= CostAfterMatch(); }
 
         uint32_t costAfterLiteral = INVALID_COST;
         uint32_t costAfterMatch = INVALID_COST;

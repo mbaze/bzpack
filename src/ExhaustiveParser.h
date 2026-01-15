@@ -1,6 +1,7 @@
 #ifndef EXHAUSTIVE_PARSER_H
 #define EXHAUSTIVE_PARSER_H
 
+#include <algorithm>
 #include <vector>
 #include "CommonTypes.h"
 #include "Formats.h"

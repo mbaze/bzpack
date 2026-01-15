@@ -99,7 +99,7 @@ void ValidateOptions(FormatOptions options, const Format& format)
 
 std::vector<uint8_t> ReadFile(const char* pFileName)
 {
-    std::basic_ifstream<uint8_t> file(pFileName, std::ios::binary | std::ios::ate);
+    std::ifstream file(pFileName, std::ios::binary | std::ios::ate);
 
     if (!file)
     {
@@ -129,7 +129,7 @@ std::vector<uint8_t> ReadFile(const char* pFileName)
 
     std::vector<uint8_t> bytes(static_cast<size_t>(fileSize));
 
-    if (!file.read(bytes.data(), fileSize))
+    if (!file.read(reinterpret_cast<char*>(bytes.data()), fileSize))
     {
         PrintError(ErrorId::InputFileError);
         return {};
@@ -146,7 +146,7 @@ std::vector<uint8_t> ReadFile(const char* pFileName)
 
 bool WriteFile(const char* pFileName, const uint8_t* pData, size_t size)
 {
-    std::basic_ofstream<uint8_t> outputFile(pFileName, std::ios::binary);
+    std::ofstream outputFile(pFileName, std::ios::binary);
 
     if (!outputFile)
     {
@@ -154,7 +154,7 @@ bool WriteFile(const char* pFileName, const uint8_t* pData, size_t size)
         return false;
     }
 
-    if (!outputFile.write(pData, size))
+    if (!outputFile.write(reinterpret_cast<const char*>(pData), size))
     {
         PrintError(ErrorId::OutputFileError);
         return false;

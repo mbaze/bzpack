@@ -1,6 +1,7 @@
 // Copyright (c) 2025, Milos "baze" Bazelides
 // This code is licensed under the BSD 2-Clause License.
 
+#include <algorithm>
 #include "ExhaustiveParser.h"
 #include "PrefixMatcher.h"
 

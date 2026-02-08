@@ -98,30 +98,9 @@ std::vector<uint8_t> DecodeBX0(BitStream& stream, const Format& format, uint32_t
     uint16_t repOffset = 0;
     bool wasLiteral = false;
 
-    while (true)
+    while (format.EndMarker() || data.size() < inputSize)
     {
-        if (data.empty() ? true : stream.ReadBit())
-        {
-            uint16_t length = DecodeElias(stream);
-
-            if (wasLiteral)
-            {
-                while (length--)
-                {
-                    data.emplace_back(data[data.size() - repOffset]);
-                }
-            }
-            else
-            {
-                while (length--)
-                {
-                    data.emplace_back(stream.ReadByte());
-                }
-            }
-
-            wasLiteral = !wasLiteral;
-        }
-        else
+        if (data.size() && stream.ReadBit())
         {
             uint16_t offset = DecodeElias(stream) - 1;
 
@@ -140,9 +119,28 @@ std::vector<uint8_t> DecodeBX0(BitStream& stream, const Format& format, uint32_t
             repOffset = offset;
             wasLiteral = false;
         }
+        else if (wasLiteral)
+        {
+            uint16_t length = DecodeElias(stream);
 
-        if (!format.EndMarker() && data.size() >= inputSize)
-            break;
+            while (length--)
+            {
+                data.emplace_back(data[data.size() - repOffset]);
+            }
+
+            wasLiteral = false;
+        }
+        else
+        {
+            uint16_t length = DecodeElias(stream);
+
+            while (length--)
+            {
+                data.emplace_back(stream.ReadByte());
+            }
+
+            wasLiteral = true;
+        }
     }
 
     return data;

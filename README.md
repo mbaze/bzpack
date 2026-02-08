@@ -121,9 +121,9 @@ BX0 is a variant of Einar Saukas' popular [ZX0](https://github.com/einar-saukas/
 format disallows consecutive literals, and this implicit constraint frees up one bit of information, allowing a distinction
 between a regular match and a "repeat match" that uses the most recent offset. Blocks are encoded as follows:
 
-* `1`, `Elias(N)` – If following a match, copy the next `N` bytes to the output. If following a literal, copy `N` bytes from
+* `0`, `Elias(N)` – If following a match, copy the next `N` bytes to the output. If following a literal, copy `N` bytes from
 the most recent offset. The flag bit for the very first literal is not stored in the stream.
-* `0`, `Elias(O)`, `%ooooooo`, `Elias(N)` – Copy `N + 1` bytes from an offset of `(O << 7) | %ooooooo`. The leading flag bit of
+* `1`, `Elias(O)`, `%ooooooo`, `Elias(N)` – Copy `N + 1` bytes from an offset of `(O << 7) | %ooooooo`. The leading flag bit of
 `Elias(N)` is stored as the least significant bit of the byte containing `%ooooooo`. An offset of 16512 or greater indicates the
 end of the stream.
 

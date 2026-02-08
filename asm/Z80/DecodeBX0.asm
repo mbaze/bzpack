@@ -9,12 +9,12 @@
 		ld	hl,SrcAddr
 		ld	de,DstAddr
 
-DecodeLoop	call	EliasGamma1
+DecodeLoop	call	EliasGamma
 		lddr
 		rla
-		jr	nc,NewOffset
+		jr	c,NewOffset
 
-		call	EliasGamma1
+		call	EliasGamma
 
 RepOffset	ex	(sp),hl
 		push	hl
@@ -23,10 +23,11 @@ RepOffset	ex	(sp),hl
 		pop	hl
 		ex	(sp),hl
 		rla
-		jr	c,DecodeLoop
+		jr	nc,DecodeLoop
 
 NewOffset	pop	bc
-		call	EliasGamma2
+		or	a
+		call	EliasGamma
 		dec	c
 		ret	m		; Option to include the end-of-stream marker.
 		ld	b,c
@@ -37,12 +38,11 @@ NewOffset	pop	bc
 		rra
 ;		inc	bc		; Option to extend the offset range.
 		push	bc
-		call	EliasGamma2
+		call	EliasGamma
 		inc	bc
 		jr	RepOffset
 
-EliasGamma1	or	a
-EliasGamma2	ld	bc,1
+EliasGamma	ld	bc,1
 EliasLoop	adc	a,a
 		jr	nz,NoFetch
 		sbc	a,(hl)
